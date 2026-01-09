@@ -12,9 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "hibiscus",
-        "width": 800,
-        "height": 600
+        "title": "Hibiscus",
+        "width": 1100,
+        "height": 700,
+        "resizable": true
       }
     ],
     "security": {
