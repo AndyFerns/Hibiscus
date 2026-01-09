@@ -1,4 +1,5 @@
 mod commands;
+mod workspace;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -17,6 +18,10 @@ pub fn run() {
             // commands.rs module commands
             commands::read_text_file,
             commands::write_text_file,
+
+            // workspace commands
+            commands::load_workspace,
+            commands::save_workspace,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");
