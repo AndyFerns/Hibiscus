@@ -55,7 +55,7 @@
   "$defs": {
     "node": {
       "type": "object",
-      "required": ["id", "name"],
+      "required": ["id", "name", "type"],
       "properties": {
         "id": { "type": "string" },
         "type": { 
