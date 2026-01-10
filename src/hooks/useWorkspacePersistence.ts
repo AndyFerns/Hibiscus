@@ -7,6 +7,6 @@ export function persistWorkspace(
 ) {
   return invoke("save_workspace", {
     path,
-    data: workspace
+    workspace
   })
 }
