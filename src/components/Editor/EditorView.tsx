@@ -1,5 +1,21 @@
 import Editor from "@monaco-editor/react"
 
+/**
+ * Function for language detection from path
+ */
+function getLanguageFromPath(path: string): string {
+  const extension = path.toLowerCase().split(".").pop()
+  switch (extension) {
+    case "md":
+      return "markdown"
+    case "txt":
+      return "plaintext"
+    default:
+      return "plaintext"
+  }
+}
+
+
 export function EditorView({
   path,
   content,
@@ -9,16 +25,10 @@ export function EditorView({
   content: string
   onChange: (value: string) => void
 }) {
-  const extension = path.split(".").pop()
-
-  const language =
-    extension === "md" ? "markdown" :
-    extension === "txt" ? "plaintext" : "plaintext"
-
   return (
     <Editor
       height="100%"
-      language={language}
+      language={getLanguageFromPath(path)}
       value={content}
       theme="vs-dark"
       options={{
@@ -26,7 +36,7 @@ export function EditorView({
         minimap: { enabled: false },
         fontSize: 14
       }}
-      onChange={(v) => v && onChange(v)}
+      onChange={(v) => onChange(v ?? "")}
     />
   )
 }
