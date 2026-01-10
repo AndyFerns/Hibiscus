@@ -55,7 +55,37 @@ export default function App() {
           path: discovery.path
         })
         setWorkspace(loaded)
-        
+        if (loaded.session?.active_node) {
+        const findNode = (nodes: Node[]): Node | null => {
+          for (const node of nodes) {
+            if (node.id === loaded.session!.active_node) return node
+            if (node.children) {
+              const found = findNode(node.children)
+              if (found) return found
+            }
+          }
+          return null
+        }
+
+        const active = findNode(loaded.tree)
+        if (active) {
+          setActiveFile(active)
+
+          if (active.path) {
+            const fullPath = `${root}/${active.path}`
+            try {
+              const content = await invoke<string>("read_text_file", {
+                path: fullPath
+              })
+              setFileContent(content)
+            } catch {
+              setFileContent("Failed to restore file")
+            }
+          }
+        }
+      }
+
+
       } else {
         // No workspace yet → keep mockWorkspace or create new
         console.log("No existing Hibiscus workspace found")
