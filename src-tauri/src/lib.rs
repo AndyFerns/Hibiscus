@@ -22,6 +22,7 @@ pub fn run() {
             // workspace commands
             commands::load_workspace,
             commands::save_workspace,
+            commands::discover_workspace,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");
