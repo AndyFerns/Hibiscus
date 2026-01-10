@@ -8,6 +8,8 @@ import { openNode } from "./editors/openNode"
 import { updateSession } from "./state/session"
 import { persistWorkspace } from "./hooks/useWorkspacePersistence"
 import { discoverWorkspace } from "./hooks/discoverWorkspace.ts"
+import { EditorView } from "./components/Editor/EditorView"
+import { useDebouncedSave } from "./hooks/useDebouncedSave"
 
 
 const mockWorkspace: WorkspaceFile = {
@@ -43,6 +45,12 @@ export default function App() {
 
   const workspacePath = workspaceRoot ? `${workspaceRoot}/.hibiscus/workspace.json`: null // later discovered dynamically
 
+  // added absolute filepath (final truth)
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(null)
+
+  // debounced save hook implementation
+  const debouncedSave = useDebouncedSave(600) // 600 ms
+
   useEffect(() => {
     const boot = async () => {
       const root = "." // TEMP: later comes from "Open Folder"
@@ -77,6 +85,8 @@ export default function App() {
               const content = await invoke<string>("read_text_file", {
                 path: fullPath
               })
+              setActiveFile(active)
+              setActiveFilePath(fullPath)
               setFileContent(content)
             } catch {
               setFileContent("Failed to restore file")
@@ -121,12 +131,13 @@ export default function App() {
   const [fileContent, setFileContent] = useState<string>("")
 
 
-const handleOpenNode = (node: Node) => {
+  const handleOpenNode = (node: Node) => {
     openNode(node)
     setActiveFile(node)
 
     if (node.path && workspaceRoot) {
       const fullPath = `${workspaceRoot}/${node.path}`
+      setActiveFilePath(fullPath)
 
       invoke<string>("read_text_file", { path: fullPath })
         .then(setFileContent)
@@ -161,23 +172,23 @@ const handleOpenNode = (node: Node) => {
           onOpen={handleOpenNode}
         />
       }
+
       main={
-        <div style={{ padding: 16 }}>
-          {activeFile ? (
+        <div style={{ padding: 16, height: "100%" }}>
+          {activeFile && activeFilePath ? (
             <>
               <h3>{activeFile.name}</h3>
-              <pre
-                style={{
-                  background: "#1e1e1e",
-                  color: "#d4d4d4",
-                  padding: 12,
-                  borderRadius: 6,
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap"
-                }}
-              >
-                {fileContent}
-              </pre>
+
+              <div style={{ height: "calc(100% - 32px)" }}>
+                <EditorView
+                  path={activeFilePath}
+                  content={fileContent}
+                  onChange={(value) => {
+                    setFileContent(value)
+                    debouncedSave(activeFilePath, value)
+                  }}
+                />
+              </div>
             </>
           ) : (
             <p>Select a file from the tree.</p>
