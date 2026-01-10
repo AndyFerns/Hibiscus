@@ -87,8 +87,28 @@ export default function App() {
 
 
       } else {
-        // No workspace yet → keep mockWorkspace or create new
-        console.log("No existing Hibiscus workspace found")
+        // No workspace yet -> create new workspace
+        console.log("No existing Hibiscus workspace found! Creating Workspace")
+        const fresh: WorkspaceFile = {
+          schema_version: "1.0",
+          workspace: {
+            id: Date.now().toString(),
+            name: "Hibiscus Workspace",
+            root
+          },
+          tree: workspace.tree, // or rebuild from FS later
+          settings: {},
+          session: {}
+        }
+
+        try {
+          const path = `${root}/.hibiscus/workspace.json`
+          await persistWorkspace(path, fresh)
+          setWorkspace(fresh)
+        }
+        catch (e) {
+          console.error("Failed to create workspace", e)
+        }
       }
     }
 
