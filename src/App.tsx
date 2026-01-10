@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
-import { Workbench } from "./layout/Workbench.tsx"
+import { Workbench } from "./layout/workbench.tsx"
 import { TreeView } from "./components/Tree/TreeView.tsx"
 import { Node } from "./types/workspace"
 import { openNode } from "./editors/openNode"
