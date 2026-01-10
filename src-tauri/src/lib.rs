@@ -1,5 +1,6 @@
 mod commands;
 mod workspace;
+mod tree;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -23,6 +24,9 @@ pub fn run() {
             commands::load_workspace,
             commands::save_workspace,
             commands::discover_workspace,
+
+            // Tree builder commands
+            commands::build_tree,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");
