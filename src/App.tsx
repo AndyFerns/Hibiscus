@@ -38,8 +38,18 @@ export default function App() {
 
   const workspacePath = "workspace.json" // later discovered dynamically
 
+  //Active File state tracking  
+  const [activeFile, setActiveFile] = useState<Node | null>(null)
+  const [fileContent, setFileContent] = useState<string>("")
+
+
 const handleOpenNode = (node: Node) => {
     openNode(node)
+    setActiveFile(node)
+
+    if (node.path) {
+      setFileContent(`(mock content for ${node.path})`)
+    }
 
     setWorkspace(prev => {
       const next = updateSession(prev, {
@@ -60,15 +70,34 @@ const handleOpenNode = (node: Node) => {
       left={
         <TreeView
           tree={workspace.tree}
+          activeNodeId={workspace.session?.active_node}
           onOpen={handleOpenNode}
         />
       }
       main={
         <div style={{ padding: 16 }}>
-          <h2>Main Editor Area</h2>
-          <p>Select a file from the tree.</p>
+          {activeFile ? (
+            <>
+              <h3>{activeFile.name}</h3>
+              <pre
+                style={{
+                  background: "#1e1e1e",
+                  color: "#d4d4d4",
+                  padding: 12,
+                  borderRadius: 6,
+                  overflow: "auto",
+                  whiteSpace: "pre-wrap"
+                }}
+              >
+                {fileContent}
+              </pre>
+            </>
+          ) : (
+            <p>Select a file from the tree.</p>
+          )}
         </div>
       }
+
       bottom={
         <div style={{ padding: 8 }}>Status / Logs</div>
       }
