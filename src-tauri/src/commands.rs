@@ -99,9 +99,12 @@ pub struct WorkspaceDiscovery {
  */
 
 #[tauri::command]
-pub fn discover_workspace(folder: String) -> WorkspaceDiscovery {
-    let mut candidate = PathBuf::from(&folder);
-    candidate.push("workspace.json");
+pub fn discover_workspace(root: String) -> WorkspaceDiscovery {
+    let root = PathBuf::from(root);
+
+    let candidate = root
+        .join(".hibiscus")
+        .join("workspace.json");
 
     if candidate.is_file() {
         WorkspaceDiscovery {
