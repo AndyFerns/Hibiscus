@@ -1,0 +1,30 @@
+.workbench {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  width: 100vw;
+}
+
+.panel {
+  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--panel-bg, #fafafa);
+  overflow: auto;
+}
+
+.panel.left {
+  width: 240px;
+}
+
+.panel.right {
+  width: 240px;
+}
+
+.panel.bottom {
+  grid-column: 1 / -1;
+  height: 180px;
+}
+
+.panel.main {
+  background: var(--main-bg, #fff);
+}
