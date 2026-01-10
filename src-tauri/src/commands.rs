@@ -43,3 +43,35 @@ pub fn save_workspace(path: String, workspace: WorkspaceFile) -> Result<(), Stri
         .map_err(|e| e.to_string())
 }
 
+
+
+/**
+ * Workspace Return Type
+ */
+#[derive(Debug, serde::Serialize)]
+pub struct WorkspaceDiscovery {
+    pub found: bool,
+    pub path: Option<String>,
+}
+
+/**
+ * Function to discover the existence of a workspace.json file in the root of the folder 
+ */
+
+#[tauri::command]
+pub fn discover_workspace(folder: String) -> WorkspaceDiscovery {
+    let mut candidate = PathBuf::from(&folder);
+    candidate.push("workspace.json");
+
+    if candidate.is_file() {
+        WorkspaceDiscovery {
+            found: true,
+            path: Some(candidate.to_string_lossy().to_string()),
+        }
+    } else {
+        WorkspaceDiscovery {
+            found: false,
+            path: None,
+        }
+    }
+}
