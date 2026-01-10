@@ -12,6 +12,11 @@ src-tauri/target/
 # Tauri dev / build artifacts
 src-tauri/.tauri/
 
+# Project specific 
+.hibiscus/
+.hibiscus/workspace.json
+workspace.json
+
 # OS Junk
 .DS_Store
 Thumbs.db
