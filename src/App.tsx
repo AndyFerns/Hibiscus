@@ -1,7 +1,8 @@
 import { useState } from "react"
-import { Workbench } from "./layout/workbench.tsx"
+import { Workbench } from "./layout/Workbench.tsx"
 import { TreeView } from "./components/Tree/TreeView.tsx"
 import { Node } from "./types/workspace"
+import { openNode } from "./editors/openNode"
 
 const mockTree: Node[] = [
   {
@@ -27,7 +28,7 @@ export default function App() {
       left={
         <TreeView
           tree={tree}
-          onOpen={(node) => console.log("Open:", node)}
+          onOpen={openNode}
         />
       }
       main={
