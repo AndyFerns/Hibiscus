@@ -1,8 +1,8 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 use crate::workspace::{Node, NodeType};
 
-fn read_dir_recursive(root: &Path, base: &Path) -> Vec<Node> {
+pub fn read_dir_recursive(root: &Path, base: &Path) -> Vec<Node> {
     let mut nodes = Vec::new();
 
     if let Ok(entries) = fs::read_dir(root) {
