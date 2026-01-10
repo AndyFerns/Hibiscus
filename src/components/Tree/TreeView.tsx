@@ -11,8 +11,12 @@ export function TreeView({
   return (
     <div style={{ padding: 8 }}>
       {tree.map(node => (
-        <TreeNode key={node.id} node={node} onOpen={onOpen} />
-      ))}
+        <TreeNode 
+            key={node.id}  
+            node={node} 
+            onOpen={onOpen}
+            />
+        ))}
     </div>
   )
 }
