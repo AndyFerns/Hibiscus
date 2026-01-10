@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "workspace", "tree"],
+  "properties": {
+    "schema_version": { "type": "string" },
+
+    "workspace": {
+      "type": "object",
+      "required": ["id", "name", "root"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "root": { "type": "string" },
+        "created_at": { 
+            "type": "string" ,
+            "format": "date-time"
+        },
+        "updated_at": { "type": "string" }
+      }
+    },
+
+    "settings": {
+      "type": "object",
+      "additionalProperties": true
+    },
+
+    "tree": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" }
+    },
+
+    "session": {
+      "type": "object",
+      "properties": {
+        "open_nodes": { "type": "array", "items": { "type": "string" } },
+        "active_node": { "type": "string" },
+        "cursor": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "line": { 
+                    "type": "integer",
+                    "minimum": 0
+                },
+              "column": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { 
+            "type": "string",
+            "enum": ["file", "folder"]
+        },
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
