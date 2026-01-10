@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { invoke } from "@tauri-apps/api/core"
+import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
 import { Workbench } from "./layout/Workbench.tsx"
 import { TreeView } from "./components/Tree/TreeView.tsx"
@@ -6,6 +7,7 @@ import { Node } from "./types/workspace"
 import { openNode } from "./editors/openNode"
 import { updateSession } from "./state/session"
 import { persistWorkspace } from "./hooks/useWorkspacePersistence"
+import { discoverWorkspace } from "./hooks/discoverWorkspace.ts"
 
 
 const mockWorkspace: WorkspaceFile = {
@@ -36,7 +38,33 @@ const mockWorkspace: WorkspaceFile = {
 export default function App() {
   const [workspace, setWorkspace] = useState<WorkspaceFile>(mockWorkspace)
 
-  const workspacePath = "workspace.json" // later discovered dynamically
+  // workspace root: folder in which hibiscus was opened
+  const [workspaceRoot, setWorkspaceRoot] = useState<string | null>(null)
+
+  const workspacePath = workspaceRoot ? `${workspaceRoot}/.hibiscus/workspace.json`: null // later discovered dynamically
+
+  useEffect(() => {
+    const boot = async () => {
+      const root = "." // TEMP: later comes from "Open Folder"
+      setWorkspaceRoot(root)
+
+      const discovery = await discoverWorkspace(root)
+
+      if (discovery.found && discovery.path) {
+        const loaded = await invoke<WorkspaceFile>("load_workspace", {
+          path: discovery.path
+        })
+        setWorkspace(loaded)
+        
+      } else {
+        // No workspace yet → keep mockWorkspace or create new
+        console.log("No existing Hibiscus workspace found")
+      }
+    }
+
+    boot()
+  }, [])
+
 
   //Active File state tracking  
   const [activeFile, setActiveFile] = useState<Node | null>(null)
@@ -47,8 +75,15 @@ const handleOpenNode = (node: Node) => {
     openNode(node)
     setActiveFile(node)
 
-    if (node.path) {
-      setFileContent(`(mock content for ${node.path})`)
+    if (node.path && workspaceRoot) {
+      const fullPath = `${workspaceRoot}/${node.path}`
+
+      invoke<string>("read_text_file", { path: fullPath })
+        .then(setFileContent)
+        .catch(err => {
+          console.error(err)
+          setFileContent("Failed to load file")
+        })
     }
 
     setWorkspace(prev => {
@@ -59,7 +94,9 @@ const handleOpenNode = (node: Node) => {
         )
       })
 
-      persistWorkspace(workspacePath, next)
+      if (workspacePath) {
+        persistWorkspace(workspacePath, next)
+      }
       return next
     })
   }
