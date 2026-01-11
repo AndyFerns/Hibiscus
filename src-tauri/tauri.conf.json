@@ -9,6 +9,10 @@
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
+  "mainBinaryName": "Hibiscus",
+  "plugins": {
+    "dialog": null
+  },
   "app": {
     "windows": [
       {
