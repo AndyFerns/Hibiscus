@@ -1,0 +1,28 @@
+.topbar {
+  height: 40px;
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #1e1e1e;
+  border-bottom: 1px solid #2a2a2a;
+
+  user-select: none;
+}
+
+.topbar .brand {
+  font-weight: 600;
+}
+
+.topbar .workspace {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar button {
+  padding: 4px 8px;
+  font-size: 12px;
+}

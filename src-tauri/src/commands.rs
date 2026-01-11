@@ -1,7 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::workspace::WorkspaceFile;
+use crate::workspace::{WorkspaceFile, Node};
+use crate::tree::read_dir_recursive;
 
 /**
  * Function to read a file
@@ -117,4 +118,18 @@ pub fn discover_workspace(root: String) -> WorkspaceDiscovery {
             path: None,
         }
     }
+}
+
+/**
+ * Function to recursively build the FS tree
+ */
+#[tauri::command]
+pub fn build_tree(root: String) -> Result<Vec<Node>, String> {
+    let root = std::path::PathBuf::from(root);
+
+    if !root.is_dir() {
+        return Err("Invalid workspace root".into());
+    }
+
+    Ok(read_dir_recursive(&root, &root))
 }

@@ -1,14 +1,18 @@
 import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
 import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
-import { Workbench } from "./layout/Workbench.tsx"
+import { Workbench } from "./layout/workbench.tsx"
+import { TopBar } from "./components/TopBar/TopBar"
 import { TreeView } from "./components/Tree/TreeView.tsx"
 import { Node } from "./types/workspace"
 import { openNode } from "./editors/openNode"
 import { updateSession } from "./state/session"
 import { persistWorkspace } from "./hooks/useWorkspacePersistence"
 import { discoverWorkspace } from "./hooks/discoverWorkspace.ts"
-
+import { EditorView } from "./components/Editor/EditorView"
+import { useDebouncedSave } from "./hooks/useDebouncedSave"
+import { pickWorkspaceRoot } from "./hooks/useWorkspaceRoot.ts"
 
 const mockWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -35,6 +39,7 @@ const mockWorkspace: WorkspaceFile = {
 }
 
 
+
 export default function App() {
   const [workspace, setWorkspace] = useState<WorkspaceFile>(mockWorkspace)
 
@@ -43,10 +48,99 @@ export default function App() {
 
   const workspacePath = workspaceRoot ? `${workspaceRoot}/.hibiscus/workspace.json`: null // later discovered dynamically
 
+  // added absolute filepath (final truth)
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(null)
+
+  // debounced save hook implementation
+  const debouncedSave = useDebouncedSave(600) // 600 ms
+
+  // extract session restoration
+  const restoreSession = async (
+    loaded: WorkspaceFile,
+    tree: Node[],
+    root: string
+  ) => {
+    if (!loaded.session?.active_node) return
+
+    const findNode = (nodes: Node[]): Node | null => {
+      for (const node of nodes) {
+        if (node.id === loaded.session!.active_node) return node
+        if (node.children) {
+          const found = findNode(node.children)
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    const active = findNode(tree)
+    if (!active || !active.path) return
+
+    const fullPath = `${root}/${active.path}`
+    const content = await invoke<string>("read_text_file", { path: fullPath })
+
+    setActiveFile(active)
+    setActiveFilePath(fullPath)
+    setFileContent(content)
+  }
+
+  // async function to listen for and check for changed workspaces on boot
+  const handleChangeWorkspace = async () => {
+    const root = await pickWorkspaceRoot()
+    if (!root) return
+
+    localStorage.setItem("hibiscus:lastWorkspace", root)
+    await loadWorkspace(root)
+  }
+
+  // Extract loadWorkspace(root)
+  const loadWorkspace = async (root: string) => {
+    setWorkspaceRoot(root)
+
+    const tree = await invoke<Node[]>("build_tree", { root })
+    const discovery = await discoverWorkspace(root)
+
+    if (discovery.found && discovery.path) {
+      const loaded = await invoke<WorkspaceFile>("load_workspace", {
+        path: discovery.path,
+      })
+
+      setWorkspace({
+        ...loaded,
+        tree, // filesystem is truth
+      })
+
+      restoreSession(loaded, tree, root)
+    } else {
+      const fresh: WorkspaceFile = {
+        schema_version: "1.0",
+        workspace: {
+          id: Date.now().toString(),
+          name: "Hibiscus Workspace",
+          root,
+        },
+        tree,
+        settings: {},
+        session: {},
+      }
+
+      const path = `${root}/.hibiscus/workspace.json`
+      await persistWorkspace(path, fresh)
+      setWorkspace(fresh)
+      await invoke("watch_workspace", { path: root })
+    }
+  }
+
+
   useEffect(() => {
     const boot = async () => {
-      const root = "." // TEMP: later comes from "Open Folder"
+      const root = await pickWorkspaceRoot()  
+      if (!root) return
+
       setWorkspaceRoot(root)
+
+      // Added derived tree to build tree from fs
+      const tree = await invoke<Node[]>("build_tree", { root })
 
       const discovery = await discoverWorkspace(root)
 
@@ -54,7 +148,10 @@ export default function App() {
         const loaded = await invoke<WorkspaceFile>("load_workspace", {
           path: discovery.path
         })
-        setWorkspace(loaded)
+        setWorkspace({
+          ...loaded,
+          tree // filesystem is truth
+        })
         if (loaded.session?.active_node) {
         const findNode = (nodes: Node[]): Node | null => {
           for (const node of nodes) {
@@ -77,6 +174,8 @@ export default function App() {
               const content = await invoke<string>("read_text_file", {
                 path: fullPath
               })
+              setActiveFile(active)
+              setActiveFilePath(fullPath)
               setFileContent(content)
             } catch {
               setFileContent("Failed to restore file")
@@ -87,13 +186,65 @@ export default function App() {
 
 
       } else {
-        // No workspace yet → keep mockWorkspace or create new
-        console.log("No existing Hibiscus workspace found")
+        // No workspace yet -> create new workspace
+        console.log("No existing Hibiscus workspace found! Creating Workspace")
+        const fresh: WorkspaceFile = {
+          schema_version: "1.0",
+          workspace: {
+            id: Date.now().toString(),
+            name: "Hibiscus Workspace",
+            root
+          },
+          tree, // rebuild from FS 
+          settings: {},
+          session: {}
+        }
+
+        try {
+          const path = `${root}/.hibiscus/workspace.json`
+          await persistWorkspace(path, fresh)
+          setWorkspace(fresh)
+          await invoke("watch_workspace", { path: root })
+        }
+        catch (e) {
+          console.error("Failed to create workspace", e)
+        }
       }
     }
 
     boot()
   }, [])
+
+  // Listen for filesystem changes and rebuild tree
+  useEffect(() => {
+    if (!workspaceRoot) return
+
+    let unlisten: (() => void) | null = null
+
+    listen("fs-changed", async () => {
+      console.log("Filesystem changed — rebuilding tree")
+
+      try {
+        const tree = await invoke<Node[]>("build_tree", {
+          root: workspaceRoot
+        })
+
+        setWorkspace(prev => ({
+          ...prev,
+          tree
+        }))
+      } catch (e) {
+        console.error("Failed to rebuild tree", e)
+      }
+    }).then(fn => {
+      unlisten = fn
+    })
+
+    return () => {
+      if (unlisten) unlisten()
+    }
+  }, [workspaceRoot])
+
 
 
   //Active File state tracking  
@@ -101,12 +252,13 @@ export default function App() {
   const [fileContent, setFileContent] = useState<string>("")
 
 
-const handleOpenNode = (node: Node) => {
+  const handleOpenNode = (node: Node) => {
     openNode(node)
     setActiveFile(node)
 
     if (node.path && workspaceRoot) {
       const fullPath = `${workspaceRoot}/${node.path}`
+      setActiveFilePath(fullPath)
 
       invoke<string>("read_text_file", { path: fullPath })
         .then(setFileContent)
@@ -134,6 +286,15 @@ const handleOpenNode = (node: Node) => {
 
   return (
     <Workbench
+      // TopBar implementation
+      top={
+        <TopBar
+          workspaceRoot={workspaceRoot}
+          onChangeWorkspace={handleChangeWorkspace}
+        />
+      }
+
+      // Left Panel rendering
       left={
         <TreeView
           tree={workspace.tree}
@@ -141,23 +302,23 @@ const handleOpenNode = (node: Node) => {
           onOpen={handleOpenNode}
         />
       }
+
       main={
-        <div style={{ padding: 16 }}>
-          {activeFile ? (
+        <div style={{ padding: 16, height: "100%" }}>
+          {activeFile && activeFilePath ? (
             <>
               <h3>{activeFile.name}</h3>
-              <pre
-                style={{
-                  background: "#1e1e1e",
-                  color: "#d4d4d4",
-                  padding: 12,
-                  borderRadius: 6,
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap"
-                }}
-              >
-                {fileContent}
-              </pre>
+
+              <div style={{ height: "calc(100% - 32px)" }}>
+                <EditorView
+                  path={activeFilePath}
+                  content={fileContent}
+                  onChange={(value) => {
+                    setFileContent(value)
+                    debouncedSave(activeFilePath, value)
+                  }}
+                />
+              </div>
             </>
           ) : (
             <p>Select a file from the tree.</p>
