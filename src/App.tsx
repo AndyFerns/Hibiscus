@@ -1,4 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
+import { open } from "@tauri-apps/plugin-dialog"
 import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
 import { Workbench } from "./layout/workbench.tsx"
@@ -37,6 +39,20 @@ const mockWorkspace: WorkspaceFile = {
 }
 
 
+/**
+ * Temporary workaround for selecting a workspace root
+ */
+export async function pickWorkspaceRoot(): Promise<string | null> {
+  const result = await open({
+    directory: true,
+    multiple: false
+  })
+
+  return typeof result === "string" ? result : null
+}
+
+
+
 export default function App() {
   const [workspace, setWorkspace] = useState<WorkspaceFile>(mockWorkspace)
 
@@ -56,13 +72,19 @@ export default function App() {
       const root = "." // TEMP: later comes from "Open Folder"
       setWorkspaceRoot(root)
 
+      // Added derived tree to build tree from fs
+      const tree = await invoke<Node[]>("build_tree", { root })
+
       const discovery = await discoverWorkspace(root)
 
       if (discovery.found && discovery.path) {
         const loaded = await invoke<WorkspaceFile>("load_workspace", {
           path: discovery.path
         })
-        setWorkspace(loaded)
+        setWorkspace({
+          ...loaded,
+          tree // filesystem is truth
+        })
         if (loaded.session?.active_node) {
         const findNode = (nodes: Node[]): Node | null => {
           for (const node of nodes) {
@@ -106,7 +128,7 @@ export default function App() {
             name: "Hibiscus Workspace",
             root
           },
-          tree: workspace.tree, // or rebuild from FS later
+          tree, // rebuild from FS 
           settings: {},
           session: {}
         }
@@ -115,6 +137,7 @@ export default function App() {
           const path = `${root}/.hibiscus/workspace.json`
           await persistWorkspace(path, fresh)
           setWorkspace(fresh)
+          await invoke("watch_workspace", { path: root })
         }
         catch (e) {
           console.error("Failed to create workspace", e)
@@ -124,6 +147,37 @@ export default function App() {
 
     boot()
   }, [])
+
+  // Listen for filesystem changes and rebuild tree
+  useEffect(() => {
+    if (!workspaceRoot) return
+
+    let unlisten: (() => void) | null = null
+
+    listen("fs-changed", async () => {
+      console.log("Filesystem changed — rebuilding tree")
+
+      try {
+        const tree = await invoke<Node[]>("build_tree", {
+          root: workspaceRoot
+        })
+
+        setWorkspace(prev => ({
+          ...prev,
+          tree
+        }))
+      } catch (e) {
+        console.error("Failed to rebuild tree", e)
+      }
+    }).then(fn => {
+      unlisten = fn
+    })
+
+    return () => {
+      if (unlisten) unlisten()
+    }
+  }, [workspaceRoot])
+
 
 
   //Active File state tracking  
