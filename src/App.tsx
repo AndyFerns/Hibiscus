@@ -12,7 +12,7 @@ import { persistWorkspace } from "./hooks/useWorkspacePersistence"
 import { discoverWorkspace } from "./hooks/discoverWorkspace.ts"
 import { EditorView } from "./components/Editor/EditorView"
 import { useDebouncedSave } from "./hooks/useDebouncedSave"
-import { pickWorkspaceRoot } from "./hooks/useWorkspaceRoot.ts"
+import { pickWorkspaceRoot, getLastWorkspaceRoot } from "./hooks/useWorkspaceRoot.ts"
 
 const mockWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -131,89 +131,13 @@ export default function App() {
     }
   }
 
-
   useEffect(() => {
-    const boot = async () => {
-      const root = await pickWorkspaceRoot()  
-      if (!root) return
-
-      setWorkspaceRoot(root)
-
-      // Added derived tree to build tree from fs
-      const tree = await invoke<Node[]>("build_tree", { root })
-
-      const discovery = await discoverWorkspace(root)
-
-      if (discovery.found && discovery.path) {
-        const loaded = await invoke<WorkspaceFile>("load_workspace", {
-          path: discovery.path
-        })
-        setWorkspace({
-          ...loaded,
-          tree // filesystem is truth
-        })
-        if (loaded.session?.active_node) {
-        const findNode = (nodes: Node[]): Node | null => {
-          for (const node of nodes) {
-            if (node.id === loaded.session!.active_node) return node
-            if (node.children) {
-              const found = findNode(node.children)
-              if (found) return found
-            }
-          }
-          return null
-        }
-
-        const active = findNode(loaded.tree)
-        if (active) {
-          setActiveFile(active)
-
-          if (active.path) {
-            const fullPath = `${root}/${active.path}`
-            try {
-              const content = await invoke<string>("read_text_file", {
-                path: fullPath
-              })
-              setActiveFile(active)
-              setActiveFilePath(fullPath)
-              setFileContent(content)
-            } catch {
-              setFileContent("Failed to restore file")
-            }
-          }
-        }
-      }
-
-
-      } else {
-        // No workspace yet -> create new workspace
-        console.log("No existing Hibiscus workspace found! Creating Workspace")
-        const fresh: WorkspaceFile = {
-          schema_version: "1.0",
-          workspace: {
-            id: Date.now().toString(),
-            name: "Hibiscus Workspace",
-            root
-          },
-          tree, // rebuild from FS 
-          settings: {},
-          session: {}
-        }
-
-        try {
-          const path = `${root}/.hibiscus/workspace.json`
-          await persistWorkspace(path, fresh)
-          setWorkspace(fresh)
-          await invoke("watch_workspace", { path: root })
-        }
-        catch (e) {
-          console.error("Failed to create workspace", e)
-        }
-      }
+    const last = getLastWorkspaceRoot()
+    if (last) {
+      loadWorkspace(last)
     }
-
-    boot()
   }, [])
+
 
   // Listen for filesystem changes and rebuild tree
   useEffect(() => {
