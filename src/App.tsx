@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event"
 import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
 import { Workbench } from "./layout/workbench.tsx"
+import { TopBar } from "./components/TopBar/TopBar"
 import { TreeView } from "./components/Tree/TreeView.tsx"
 import { Node } from "./types/workspace"
 import { openNode } from "./editors/openNode"
@@ -52,6 +53,83 @@ export default function App() {
 
   // debounced save hook implementation
   const debouncedSave = useDebouncedSave(600) // 600 ms
+
+  // extract session restoration
+  const restoreSession = async (
+    loaded: WorkspaceFile,
+    tree: Node[],
+    root: string
+  ) => {
+    if (!loaded.session?.active_node) return
+
+    const findNode = (nodes: Node[]): Node | null => {
+      for (const node of nodes) {
+        if (node.id === loaded.session!.active_node) return node
+        if (node.children) {
+          const found = findNode(node.children)
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    const active = findNode(tree)
+    if (!active || !active.path) return
+
+    const fullPath = `${root}/${active.path}`
+    const content = await invoke<string>("read_text_file", { path: fullPath })
+
+    setActiveFile(active)
+    setActiveFilePath(fullPath)
+    setFileContent(content)
+  }
+
+  const handleChangeWorkspace = async () => {
+  const root = await pickWorkspaceRoot()
+  if (!root) return
+
+  localStorage.setItem("hibiscus:lastWorkspace", root)
+  await loadWorkspace(root)
+}
+
+  // Extract loadWorkspace(root)
+  const loadWorkspace = async (root: string) => {
+    setWorkspaceRoot(root)
+
+    const tree = await invoke<Node[]>("build_tree", { root })
+    const discovery = await discoverWorkspace(root)
+
+    if (discovery.found && discovery.path) {
+      const loaded = await invoke<WorkspaceFile>("load_workspace", {
+        path: discovery.path,
+      })
+
+      setWorkspace({
+        ...loaded,
+        tree, // filesystem is truth
+      })
+
+      restoreSession(loaded, tree, root)
+    } else {
+      const fresh: WorkspaceFile = {
+        schema_version: "1.0",
+        workspace: {
+          id: Date.now().toString(),
+          name: "Hibiscus Workspace",
+          root,
+        },
+        tree,
+        settings: {},
+        session: {},
+      }
+
+      const path = `${root}/.hibiscus/workspace.json`
+      await persistWorkspace(path, fresh)
+      setWorkspace(fresh)
+      await invoke("watch_workspace", { path: root })
+    }
+  }
+
 
   useEffect(() => {
     const boot = async () => {
@@ -207,6 +285,15 @@ export default function App() {
 
   return (
     <Workbench
+      // TopBar implementation
+      top={
+        <TopBar
+          workspaceRoot={workspaceRoot}
+          onChangeWorkspace={handleChangeWorkspace}
+        />
+      }
+
+      // Left Panel rendering
       left={
         <TreeView
           tree={workspace.tree}
