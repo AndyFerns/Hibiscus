@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
-import { open } from "@tauri-apps/plugin-dialog"
 import { useState , useEffect } from "react"
 import { WorkspaceFile } from "./types/workspace"
 import { Workbench } from "./layout/workbench.tsx"
@@ -12,7 +11,7 @@ import { persistWorkspace } from "./hooks/useWorkspacePersistence"
 import { discoverWorkspace } from "./hooks/discoverWorkspace.ts"
 import { EditorView } from "./components/Editor/EditorView"
 import { useDebouncedSave } from "./hooks/useDebouncedSave"
-
+import { pickWorkspaceRoot } from "./hooks/useWorkspaceRoot.ts"
 
 const mockWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -39,19 +38,6 @@ const mockWorkspace: WorkspaceFile = {
 }
 
 
-/**
- * Temporary workaround for selecting a workspace root
- */
-export async function pickWorkspaceRoot(): Promise<string | null> {
-  const result = await open({
-    directory: true,
-    multiple: false
-  })
-
-  return typeof result === "string" ? result : null
-}
-
-
 
 export default function App() {
   const [workspace, setWorkspace] = useState<WorkspaceFile>(mockWorkspace)
@@ -69,7 +55,9 @@ export default function App() {
 
   useEffect(() => {
     const boot = async () => {
-      const root = "." // TEMP: later comes from "Open Folder"
+      const root = await pickWorkspaceRoot()  
+      if (!root) return
+
       setWorkspaceRoot(root)
 
       // Added derived tree to build tree from fs
