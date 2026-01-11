@@ -16,7 +16,7 @@ export function Workbench({
 }) {
     return (
         <div className="workbench">
-            {top && <div className="workbench-top">{top}</div>}
+            {top && <header className="workbench-top">{top}</header>}
 
             {left && <aside className="panel left">{left}</aside>}
 
