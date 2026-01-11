@@ -84,13 +84,14 @@ export default function App() {
     setFileContent(content)
   }
 
+  // async function to listen for and check for changed workspaces on boot
   const handleChangeWorkspace = async () => {
-  const root = await pickWorkspaceRoot()
-  if (!root) return
+    const root = await pickWorkspaceRoot()
+    if (!root) return
 
-  localStorage.setItem("hibiscus:lastWorkspace", root)
-  await loadWorkspace(root)
-}
+    localStorage.setItem("hibiscus:lastWorkspace", root)
+    await loadWorkspace(root)
+  }
 
   // Extract loadWorkspace(root)
   const loadWorkspace = async (root: string) => {
