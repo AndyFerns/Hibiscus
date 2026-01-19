@@ -5,6 +5,7 @@ use tauri::Emitter;
 
 #[tauri::command]
 pub fn watch_workspace(path: String, window: tauri::Window) {
+    println!("Starting watcher for {}", path);
     std::thread::spawn(move || {
         let (tx, rx) = channel();
 

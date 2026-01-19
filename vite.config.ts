@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import monacoEditorPlugin from "vite-plugin-monaco-editor"
+import MonacoEditorPlugin from "vite-plugin-monaco-editor"
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -11,7 +11,7 @@ export default defineConfig(async () => ({
     react(),
 
     // monaco editor plugin referencing
-    monacoEditorPlugin({
+    (MonacoEditorPlugin as any).default({
       // keep this minimal
       languageWorkers: [
         "editorWorkerService",
