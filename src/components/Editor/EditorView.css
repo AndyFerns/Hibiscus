@@ -1,0 +1,10 @@
+.editor-wrapper {
+  height: 100%;
+  padding: 12px;
+}
+
+.editor-header {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}

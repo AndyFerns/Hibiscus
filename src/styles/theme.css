@@ -1,0 +1,15 @@
+:root {
+  --bg: #0f1115;
+  --panel-bg: #151821;
+  --editor-bg: #0f1115;
+
+  --border: rgba(255, 255, 255, 0.06);
+
+  --text: #e6e6eb;
+  --text-muted: #9aa0b3;
+
+  --accent: #7aa2f7;
+  --accent-soft: rgba(122, 162, 247, 0.15);
+
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont;
+}

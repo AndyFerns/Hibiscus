@@ -1,0 +1,20 @@
+.tree-node {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.tree-node:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tree-node.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.tree-node.folder {
+  font-weight: 500;
+  color: var(--text);
+}

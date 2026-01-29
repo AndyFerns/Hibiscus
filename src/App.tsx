@@ -60,7 +60,10 @@ export default function App() {
           )}
         </div>
       }
-      bottom={<div style={{ padding: 8 }}>Status / Logs</div>}
+      
+      bottom={
+      <div style={{ padding: 8 }}>Status / Logs</div>
+      }
     />
   )
 }

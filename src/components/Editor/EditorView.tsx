@@ -65,5 +65,13 @@ export function EditorView({
     }
   }, [path])
 
-  return <div ref={containerRef} style={{ height: "100%" }} />
+  return (
+    <div 
+      ref={containerRef} 
+      style={{ 
+        flex: 1,        // THIS is the key
+        minHeight: 0,   // prevents overflow bugs in flex/grid
+      }} 
+    />
+  )
 }
