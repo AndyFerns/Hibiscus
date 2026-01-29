@@ -44,6 +44,7 @@ export default function App() {
     activeFile,
     activeFilePath,
     fileContent,
+    isDirty,
     openFile,
     onChange,
   } = useEditorController(workspaceRoot)
@@ -95,14 +96,19 @@ export default function App() {
         <div className="editor-wrapper">
           {activeFile && activeFilePath ? (
             <>
-              {/* File header with name */}
+              {/* File header with name and dirty indicator */}
               <div className="editor-header">
                 <span className="editor-header-title">
                   <span className="editor-header-icon">📄</span>
                   {activeFile.name}
+                  {isDirty && <span className="editor-dirty-indicator">*</span>}
                 </span>
                 <div className="editor-header-actions">
-                  {/* Future: Add save indicator, close button, etc. */}
+                  {isDirty && (
+                    <span className="editor-unsaved-hint" title="Press Ctrl+S to save">
+                      Unsaved
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -159,7 +165,7 @@ export default function App() {
               </span>
             )}
             <span className="status-item status-item--muted">
-              Hibiscus v0.1.0
+              Hibiscus v0.2.0
             </span>
           </div>
         </div>

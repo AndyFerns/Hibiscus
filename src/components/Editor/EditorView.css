@@ -89,6 +89,43 @@
 }
 
 /* =============================================================================
+ * DIRTY STATE INDICATORS
+ * Visual feedback for unsaved changes
+ * ============================================================================= */
+
+.editor-dirty-indicator {
+  /* Asterisk next to filename */
+  color: var(--accent, #7aa2f7);
+  font-weight: var(--font-bold, 700);
+  margin-left: 2px;
+}
+
+.editor-unsaved-hint {
+  /* Small "Unsaved" badge */
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border);
+
+  /* Subtle pulse animation */
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
  * EDITOR CONTAINER
  * Monaco editor mount point
  * ============================================================================= */
