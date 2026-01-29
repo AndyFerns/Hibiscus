@@ -6,7 +6,7 @@
  * The root component that orchestrates the entire Hibiscus workspace editor.
  * 
  * ARCHITECTURE:
- * - Uses Workbench layout for IDE-like panels (top, left, main, bottom)
+ * - Uses Workbench layout for IDE-like panels (top, left, main, right, bottom)
  * - Workspace state managed by useWorkspaceController hook
  * - Editor state managed by useEditorController hook
  * - Components communicate through callbacks and shared state
@@ -18,12 +18,13 @@
  * ============================================================================
  */
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Workbench } from "./layout/workbench"
-import { TopBar } from "./components/TopBar/TopBar"
+import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
-import { EditorView } from "./components/Editor/EditorView"
+import { EditorView, CursorPosition } from "./components/Editor/EditorView"
 import { Calendar } from "./components/Calendar/Calendar"
+import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
 
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
@@ -31,7 +32,10 @@ import { useEditorController } from "./hooks/useEditorController"
 import "./App.css"
 
 export default function App() {
-  // Workspace state: tree structure, root path, and navigation
+  // ============================================================================
+  // WORKSPACE STATE
+  // Tree structure, root path, and navigation
+  // ============================================================================
   const {
     workspace,
     workspaceRoot,
@@ -39,7 +43,10 @@ export default function App() {
     openNode,
   } = useWorkspaceController()
 
-  // Editor state: active file, content, and save handling
+  // ============================================================================
+  // EDITOR STATE
+  // Active file, content, and save handling
+  // ============================================================================
   const {
     activeFile,
     activeFilePath,
@@ -49,10 +56,21 @@ export default function App() {
     onChange,
   } = useEditorController(workspaceRoot)
 
-  // Right panel visibility state (for calendar)
-  // TODO: Add toggle in View menu to control this
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showCalendar, _setShowCalendar] = useState(false)
+  // ============================================================================
+  // PANEL VISIBILITY STATE
+  // Controls which panels are visible in the layout
+  // ============================================================================
+  const [showLeftPanel, setShowLeftPanel] = useState(true)
+  const [showRightPanel, setShowRightPanel] = useState(false)
+
+  // ============================================================================
+  // CURSOR POSITION STATE
+  // Tracks current line/column for status bar display
+  // ============================================================================
+  const [cursorPosition, setCursorPosition] = useState<CursorPosition>({
+    line: 1,
+    column: 1,
+  })
 
   /**
    * Handle file open events from the tree view
@@ -61,18 +79,38 @@ export default function App() {
   const handleFileOpen = (node: Parameters<typeof openNode>[0]) => {
     openNode(node)
     openFile(node)
+    // Reset cursor position when opening new file
+    setCursorPosition({ line: 1, column: 1 })
   }
+
+  /**
+   * Toggle left panel (Explorer) visibility
+   */
+  const toggleLeftPanel = useCallback(() => {
+    setShowLeftPanel((prev) => !prev)
+  }, [])
+
+  /**
+   * Toggle right panel (Calendar) visibility
+   */
+  const toggleRightPanel = useCallback(() => {
+    setShowRightPanel((prev) => !prev)
+  }, [])
 
   return (
     <Workbench
       /* ----------------------------------------------------------------
-       * TOP BAR
-       * Application header with branding and workspace info
+       * TITLE BAR (Custom Window Titlebar)
+       * Application header with menus and window controls
        * ---------------------------------------------------------------- */
       top={
-        <TopBar
+        <TitleBar
           workspaceRoot={workspaceRoot}
-          onChangeWorkspace={changeWorkspace}
+          onOpenFolder={changeWorkspace}
+          onToggleLeftPanel={toggleLeftPanel}
+          onToggleRightPanel={toggleRightPanel}
+          showLeftPanel={showLeftPanel}
+          showRightPanel={showRightPanel}
         />
       }
 
@@ -81,11 +119,13 @@ export default function App() {
        * Displays the workspace file structure for navigation
        * ---------------------------------------------------------------- */
       left={
-        <TreeView
-          tree={workspace.tree}
-          activeNodeId={workspace.session?.active_node}
-          onOpen={handleFileOpen}
-        />
+        showLeftPanel ? (
+          <TreeView
+            tree={workspace.tree}
+            activeNodeId={workspace.session?.active_node}
+            onOpen={handleFileOpen}
+          />
+        ) : null
       }
 
       /* ----------------------------------------------------------------
@@ -118,6 +158,7 @@ export default function App() {
                   path={activeFilePath}
                   content={fileContent}
                   onChange={onChange}
+                  onCursorChange={setCursorPosition}
                 />
               </div>
             </>
@@ -139,14 +180,15 @@ export default function App() {
        * Toggle with View > Calendar in the menu
        * ---------------------------------------------------------------- */
       right={<Calendar />}
-      showRightPanel={showCalendar}
+      showRightPanel={showRightPanel}
 
       /* ----------------------------------------------------------------
        * BOTTOM PANEL - Status Bar
-       * Displays status info, logs, and quick actions
+       * Displays status info, cursor position, and layout controls
        * ---------------------------------------------------------------- */
       bottom={
         <div className="status-bar">
+          {/* Left: Workspace info */}
           <div className="status-bar-left">
             {workspaceRoot ? (
               <span className="status-item">
@@ -158,12 +200,35 @@ export default function App() {
               </span>
             )}
           </div>
+
+          {/* Right: Cursor position, file info, layout controls, version */}
           <div className="status-bar-right">
+            {/* Cursor Position (Line:Column) */}
             {activeFile && (
-              <span className="status-item">
+              <span className="status-item" title="Cursor position">
+                Ln {cursorPosition.line}, Col {cursorPosition.column}
+              </span>
+            )}
+
+            {/* Current file name */}
+            {activeFile && (
+              <span className="status-item status-item--muted">
                 {activeFile.name}
               </span>
             )}
+
+            {/* Separator */}
+            <span className="status-separator" />
+
+            {/* Layout Toggle */}
+            <LayoutToggle
+              showLeftPanel={showLeftPanel}
+              showRightPanel={showRightPanel}
+              onToggleLeftPanel={toggleLeftPanel}
+              onToggleRightPanel={toggleRightPanel}
+            />
+
+            {/* Version */}
             <span className="status-item status-item--muted">
               Hibiscus v0.2.0
             </span>
@@ -173,4 +238,3 @@ export default function App() {
     />
   )
 }
-

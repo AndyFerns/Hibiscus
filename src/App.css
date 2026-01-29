@@ -89,6 +89,14 @@ input {
   color: var(--error);
 }
 
+/* Vertical separator between status bar sections */
+.status-separator {
+  width: 1px;
+  height: 12px;
+  background: var(--border);
+  margin: 0 var(--space-1, 4px);
+}
+
 /* =============================================================================
  * ANIMATION KEYFRAMES
  * Reusable animations for components

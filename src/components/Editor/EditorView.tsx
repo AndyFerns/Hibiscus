@@ -90,21 +90,32 @@ function getLanguageFromPath(path: string): string {
 }
 
 /**
+ * Cursor position for status bar display
+ */
+export interface CursorPosition {
+  line: number
+  column: number
+}
+
+/**
  * EditorView Props Interface
  * @property path - File path (used for language detection)
  * @property content - Current file content
  * @property onChange - Callback fired when content changes
+ * @property onCursorChange - Callback fired when cursor position changes
  */
 interface EditorViewProps {
   path: string
   content: string
   onChange: (value: string) => void
+  onCursorChange?: (position: CursorPosition) => void
 }
 
 export function EditorView({
   path,
   content,
   onChange,
+  onCursorChange,
 }: EditorViewProps) {
   // Refs for Monaco editor instance and container DOM element
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -152,6 +163,16 @@ export function EditorView({
     // Set up change listener to propagate edits to parent
     editorRef.current.onDidChangeModelContent(() => {
       onChange(editorRef.current!.getValue())
+    })
+
+    // Set up cursor position listener for status bar
+    editorRef.current.onDidChangeCursorPosition((e) => {
+      if (onCursorChange) {
+        onCursorChange({
+          line: e.position.lineNumber,
+          column: e.position.column,
+        })
+      }
     })
 
     // Cleanup: dispose editor on unmount

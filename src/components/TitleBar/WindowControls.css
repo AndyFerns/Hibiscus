@@ -1,0 +1,87 @@
+/**
+ * ============================================================================
+ * WindowControls Styles
+ * ============================================================================
+ * 
+ * Cross-platform window control button styling.
+ * Designed to work on Windows, macOS, and Linux.
+ * ============================================================================
+ */
+
+.window-controls {
+    /* Layout */
+    display: flex;
+    align-items: center;
+    gap: 0;
+
+    /* Prevent dragging on controls */
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+
+    /* Ensure controls are clickable */
+    z-index: 100;
+}
+
+/* =============================================================================
+ * BASE BUTTON STYLES
+ * ============================================================================= */
+
+.window-control-btn {
+    /* Reset */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
+    /* Sizing - Windows-style proportions */
+    width: 46px;
+    height: 32px;
+
+    /* Center the icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Icon color */
+    color: var(--text-muted, #888);
+
+    /* Smooth transitions */
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.window-control-btn:hover {
+    color: var(--text, #fff);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.window-control-btn:active {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Focus state for keyboard navigation */
+.window-control-btn:focus-visible {
+    outline: 1px solid var(--accent, #7aa2f7);
+    outline-offset: -1px;
+}
+
+/* =============================================================================
+ * CLOSE BUTTON - Special red hover
+ * ============================================================================= */
+
+.window-control-close:hover {
+    background: #e81123;
+    color: #fff;
+}
+
+.window-control-close:active {
+    background: #bf0f1d;
+    color: #fff;
+}
+
+/* =============================================================================
+ * SVG ICON STYLING
+ * ============================================================================= */
+
+.window-control-btn svg {
+    /* Ensure icons render crisply */
+    shape-rendering: crispEdges;
+}

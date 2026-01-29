@@ -1,0 +1,144 @@
+/**
+ * ============================================================================
+ * LayoutToggle Component Styles
+ * ============================================================================
+ * 
+ * Expandable layout toggle button with smooth animations.
+ * Shows panel visibility toggles on hover.
+ * ============================================================================
+ */
+
+.layout-toggle {
+    /* Container */
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    /* Clickable area */
+    cursor: pointer;
+}
+
+/* =============================================================================
+ * MAIN ICON
+ * ============================================================================= */
+
+.layout-toggle-icon {
+    /* Sizing */
+    padding: 0 var(--space-2, 8px);
+    height: 100%;
+
+    /* Center icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Typography */
+    font-size: var(--text-md, 14px);
+    color: var(--text-muted);
+
+    /* Hover state */
+    transition: color var(--transition-fast);
+}
+
+.layout-toggle:hover .layout-toggle-icon {
+    color: var(--text);
+}
+
+/* =============================================================================
+ * EXPANDABLE PANEL
+ * ============================================================================= */
+
+.layout-toggle-panel {
+    /* Hidden by default */
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+
+    /* Layout */
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    padding: var(--space-2, 8px);
+
+    /* Appearance */
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: var(--shadow-lg);
+
+    /* Hidden state */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+
+    /* Animation */
+    transition:
+        opacity var(--transition-fast),
+        visibility var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+/* Show on hover */
+.layout-toggle:hover .layout-toggle-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-4px);
+}
+
+/* =============================================================================
+ * TOGGLE BUTTONS
+ * ============================================================================= */
+
+.layout-toggle-btn {
+    /* Reset */
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    /* Sizing */
+    width: 28px;
+    height: 28px;
+    padding: var(--space-1, 4px);
+
+    /* Center icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Rounded corners */
+    border-radius: var(--radius-sm, 4px);
+
+    /* Color */
+    color: var(--text-muted);
+
+    /* Transitions */
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.layout-toggle-btn:hover {
+    background: var(--panel-bg-hover);
+    color: var(--text);
+}
+
+.layout-toggle-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.layout-toggle-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* =============================================================================
+ * SVG ICONS
+ * ============================================================================= */
+
+.layout-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+}
