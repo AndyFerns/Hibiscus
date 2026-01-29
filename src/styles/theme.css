@@ -1,15 +1,239 @@
+/**
+ * ============================================================================
+ * HIBISCUS DESIGN SYSTEM - Theme Tokens
+ * ============================================================================
+ * 
+ * This file defines the core design tokens for the Hibiscus application.
+ * All components should use these variables instead of hardcoded values.
+ * 
+ * USAGE GUIDELINES:
+ * - Colors: Use semantic tokens (--bg, --text) not raw hex values
+ * - Spacing: Use --space-* tokens for consistent rhythm
+ * - Transitions: Use --transition-* for all animations
+ * - Shadows: Use --shadow-* for elevation effects
+ * 
+ * ADDING NEW COMPONENTS:
+ * If you need a new token, add it here with a descriptive comment.
+ * Follow the naming convention: --category-variant (e.g., --text-muted)
+ * ============================================================================
+ */
+
 :root {
-  --bg: #0f1115;
-  --panel-bg: #151821;
-  --editor-bg: #0f1115;
+  /* -------------------------------------------------------------------------
+   * COLOR PALETTE - Core Background Colors
+   * These form the layered depth system of the UI
+   * ------------------------------------------------------------------------- */
+  --bg: #0a0d12;                          /* Deepest background layer */
+  --bg-elevated: #0f1115;                 /* Raised surfaces (modals, dropdowns) */
+  --panel-bg: #131720;                    /* Side panels, secondary areas */
+  --panel-bg-hover: #1a1f2e;              /* Panel hover state */
+  --editor-bg: #0a0d12;                   /* Editor/main content area */
 
-  --border: rgba(255, 255, 255, 0.06);
+  /* -------------------------------------------------------------------------
+   * COLOR PALETTE - Border & Divider Colors
+   * Subtle separators that don't distract from content
+   * ------------------------------------------------------------------------- */
+  --border: rgba(255, 255, 255, 0.06);    /* Default subtle border */
+  --border-hover: rgba(255, 255, 255, 0.12); /* Border on hover */
+  --border-focus: rgba(122, 162, 247, 0.5);  /* Border when focused */
+  --divider: rgba(255, 255, 255, 0.04);   /* Section dividers */
 
-  --text: #e6e6eb;
-  --text-muted: #9aa0b3;
+  /* -------------------------------------------------------------------------
+   * COLOR PALETTE - Text Colors
+   * Hierarchical text system for readability
+   * ------------------------------------------------------------------------- */
+  --text: #e6e6eb;                        /* Primary text - high contrast */
+  --text-muted: #8b92a8;                  /* Secondary text - descriptions */
+  --text-subtle: #5c6370;                 /* Tertiary text - placeholders */
+  --text-disabled: #3e4451;               /* Disabled state text */
 
-  --accent: #7aa2f7;
-  --accent-soft: rgba(122, 162, 247, 0.15);
+  /* -------------------------------------------------------------------------
+   * COLOR PALETTE - Accent Colors
+   * Brand colors and interactive element highlights
+   * ------------------------------------------------------------------------- */
+  --accent: #7aa2f7;                      /* Primary accent - links, active */
+  --accent-hover: #89b4fa;                /* Accent hover state */
+  --accent-soft: rgba(122, 162, 247, 0.15); /* Soft accent for backgrounds */
+  --accent-glow: rgba(122, 162, 247, 0.25); /* Glow effect for focus states */
+  
+  /* Secondary accent for variety (purple tones) */
+  --accent-secondary: #bb9af7;            /* Secondary accent color */
+  --accent-secondary-soft: rgba(187, 154, 247, 0.15);
 
-  --font-ui: system-ui, -apple-system, BlinkMacSystemFont;
+  /* -------------------------------------------------------------------------
+   * COLOR PALETTE - Semantic Colors
+   * Meaningful colors for status and feedback
+   * ------------------------------------------------------------------------- */
+  --success: #9ece6a;                     /* Success states */
+  --success-soft: rgba(158, 206, 106, 0.15);
+  --warning: #e0af68;                     /* Warning states */
+  --warning-soft: rgba(224, 175, 104, 0.15);
+  --error: #f7768e;                       /* Error states */
+  --error-soft: rgba(247, 118, 142, 0.15);
+  --info: #7dcfff;                        /* Info states */
+  --info-soft: rgba(125, 207, 255, 0.15);
+
+  /* -------------------------------------------------------------------------
+   * TYPOGRAPHY - Font Families
+   * System fonts for performance, with fallbacks
+   * ------------------------------------------------------------------------- */
+  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  /* -------------------------------------------------------------------------
+   * TYPOGRAPHY - Font Sizes
+   * Modular scale for consistent hierarchy
+   * ------------------------------------------------------------------------- */
+  --text-xs: 11px;                        /* Badges, labels */
+  --text-sm: 12px;                        /* Secondary text, captions */
+  --text-base: 13px;                      /* Body text, UI elements */
+  --text-md: 14px;                        /* Emphasized body text */
+  --text-lg: 16px;                        /* Subheadings */
+  --text-xl: 18px;                        /* Section headings */
+  --text-2xl: 24px;                       /* Page titles */
+
+  /* -------------------------------------------------------------------------
+   * TYPOGRAPHY - Font Weights
+   * ------------------------------------------------------------------------- */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* -------------------------------------------------------------------------
+   * SPACING - Consistent spacing scale
+   * Use these for padding, margin, and gaps
+   * ------------------------------------------------------------------------- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* -------------------------------------------------------------------------
+   * BORDER RADIUS - Rounded corner scale
+   * ------------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm: 4px;                       /* Subtle rounding */
+  --radius-md: 6px;                       /* Default rounding */
+  --radius-lg: 8px;                       /* Cards, panels */
+  --radius-xl: 12px;                      /* Modals, large containers */
+  --radius-full: 9999px;                  /* Pills, avatars */
+
+  /* -------------------------------------------------------------------------
+   * SHADOWS - Elevation system
+   * Subtle shadows for depth perception
+   * ------------------------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
+  
+  /* Glow shadows for interactive elements */
+  --shadow-glow: 0 0 20px rgba(122, 162, 247, 0.15);
+  --shadow-glow-accent: 0 0 30px rgba(122, 162, 247, 0.25);
+
+  /* -------------------------------------------------------------------------
+   * TRANSITIONS - Animation timing
+   * Consistent, smooth animations throughout the app
+   * ------------------------------------------------------------------------- */
+  --transition-fast: 0.1s ease-out;       /* Micro-interactions */
+  --transition-normal: 0.15s ease-out;    /* Standard transitions */
+  --transition-slow: 0.25s ease-out;      /* Larger movements */
+  --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* -------------------------------------------------------------------------
+   * Z-INDEX - Layering system
+   * Predictable stacking order
+   * ------------------------------------------------------------------------- */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-tooltip: 500;
+
+  /* -------------------------------------------------------------------------
+   * COMPONENT-SPECIFIC TOKENS
+   * Sizes for specific UI elements
+   * ------------------------------------------------------------------------- */
+  --topbar-height: 42px;
+  --sidebar-width: 260px;
+  --statusbar-height: 32px;
+  --tree-indent: 16px;                    /* Tree view indentation per level */
+}
+
+/* ===========================================================================
+ * CUSTOM SCROLLBAR STYLES
+ * Sleek, dark-themed scrollbars that match the UI
+ * =========================================================================== */
+
+/* Webkit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* ===========================================================================
+ * FOCUS STATES
+ * Accessible focus indicators that match the design
+ * =========================================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===========================================================================
+ * SELECTION STYLES
+ * Custom text selection colors
+ * =========================================================================== */
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
 }

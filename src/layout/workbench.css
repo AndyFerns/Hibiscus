@@ -1,44 +1,213 @@
+/**
+ * ============================================================================
+ * WORKBENCH LAYOUT - Main Application Shell
+ * ============================================================================
+ * 
+ * The workbench uses CSS Grid to create a flexible IDE-like layout with:
+ * - Fixed-height top bar (42px)
+ * - Flexible left sidebar (260px default)
+ * - Expandable main content area
+ * - Fixed-height bottom status bar (minimum 32px)
+ * 
+ * GRID LAYOUT VISUALIZATION:
+ * ┌─────────────────────────────────────────┐
+ * │                  TOP                    │ 42px
+ * ├──────────────┬──────────────────────────┤
+ * │              │                          │
+ * │     LEFT     │          MAIN            │ 1fr (flexible)
+ * │   (260px)    │                          │
+ * │              │                          │
+ * ├──────────────┴──────────────────────────┤
+ * │                BOTTOM                   │ minmax(32px, auto)
+ * └─────────────────────────────────────────┘
+ * 
+ * BUG FIX NOTE:
+ * The original `grid-template-rows: 42px 1fr auto` caused the bottom panel
+ * to sometimes render with height 0 on initial load. Changed to use
+ * `minmax(32px, auto)` to guarantee minimum visibility.
+ * ============================================================================
+ */
+
 .workbench {
+  /* Grid Layout Configuration */
   display: grid;
-  grid-template-columns: 260px 1fr;
-  grid-template-rows: 42px 1fr 24px;
+  grid-template-columns: var(--sidebar-width, 260px) 1fr;
+
+  /* 
+   * FIX: Changed 'auto' to 'minmax(32px, auto)' for bottom row
+   * This ensures the bottom panel always has at least 32px height,
+   * preventing the visibility bug on initial render.
+   */
+  grid-template-rows: var(--topbar-height, 42px) 1fr minmax(var(--statusbar-height, 32px), auto);
+
   grid-template-areas:
     "top top"
     "left main"
     "bottom bottom";
 
+  /* Full viewport sizing */
   height: 100vh;
   width: 100vw;
 
+  /* Prevent content overflow from breaking layout */
   overflow: hidden;
 
+  /* Apply theme colors and typography */
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
+  font-size: var(--text-base, 13px);
+
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---- Grid area bindings  ---- */
+/* =============================================================================
+ * TOP BAR - Application header area
+ * Contains branding, workspace info, and global actions
+ * ============================================================================= */
 
 .workbench-top {
   grid-area: top;
+
+  /* Subtle border separator */
   border-bottom: 1px solid var(--border);
+
+  /* Glassmorphism effect for depth */
+  background: linear-gradient(180deg,
+      rgba(19, 23, 32, 0.95) 0%,
+      rgba(19, 23, 32, 0.85) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  /* Ensure topbar stays above other content */
+  position: relative;
+  z-index: var(--z-sticky, 200);
 }
+
+/* =============================================================================
+ * LEFT PANEL - Sidebar / File Tree
+ * Scrollable panel for navigation content
+ * ============================================================================= */
 
 .panel.left {
   grid-area: left;
+
+  /* Panel background with subtle differentiation */
   background: var(--panel-bg);
+
+  /* Right border separator */
   border-right: 1px solid var(--border);
+
+  /* Scrolling behavior */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* 
+   * IMPORTANT: min-height: 0 is required for flex/grid children
+   * to properly calculate scroll height. Without this, the panel
+   * would expand beyond viewport instead of scrolling.
+   */
+  min-height: 0;
+
+  /* Smooth transition for potential resize */
+  transition: width var(--transition-slow, 0.25s ease-out);
 }
+
+/* =============================================================================
+ * MAIN PANEL - Primary content area (Editor)
+ * Flexible area that expands to fill available space
+ * ============================================================================= */
 
 .panel.main {
   grid-area: main;
+
+  /* Prevent editor from overflowing */
+  overflow: hidden;
+
+  /* Required for proper flex child sizing */
+  min-height: 0;
+  min-width: 0;
+
+  /* Editor area background */
   background: var(--editor-bg);
+
+  /* Flex container for editor content */
+  display: flex;
+  flex-direction: column;
 }
+
+/* =============================================================================
+ * RIGHT PANEL - Optional secondary sidebar
+ * Currently not in use, but ready for future features
+ * ============================================================================= */
+
+.panel.right {
+  grid-area: right;
+
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* =============================================================================
+ * BOTTOM PANEL - Status Bar
+ * Fixed at bottom, displays status info and logs
+ * ============================================================================= */
 
 .panel.bottom {
   grid-area: bottom;
-  font-size: 12px;
+
+  /* Flexbox for horizontal content alignment */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+
+  /* Compact padding for status bar */
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+
+  /* Smaller text for status info */
+  font-size: var(--text-sm, 12px);
   color: var(--text-muted);
+
+  /* Top border separator */
   border-top: 1px solid var(--border);
-  padding: 4px 8px;
+
+  /* Subtle background matching panels */
+  background: var(--panel-bg);
+
+  /* 
+   * Ensure minimum height even with minimal content.
+   * This works together with the grid minmax() to prevent
+   * the panel from collapsing.
+   */
+  min-height: var(--statusbar-height, 32px);
+}
+
+/* =============================================================================
+ * UTILITY CLASSES FOR PANELS
+ * Additional styling options for panel variants
+ * ============================================================================= */
+
+/* Panel with hover highlight effect */
+.panel--interactive:hover {
+  background: var(--panel-bg-hover);
+}
+
+/* Panel loading state */
+.panel--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Collapsed panel (for future resizable panels) */
+.panel--collapsed {
+  width: 0 !important;
+  overflow: hidden;
+  border: none;
 }

@@ -1,20 +1,194 @@
-.topbar {
-  height: 42px;
-  padding: 0 12px;
+/**
+ * ============================================================================
+ * TopBar Component Styles
+ * ============================================================================
+ * 
+ * Styles for the application header bar including:
+ * - Brand section with gradient highlight
+ * - Workspace info with truncation for long paths
+ * - Interactive button with hover effects
+ * 
+ * Uses design tokens from theme.css for consistency.
+ * ============================================================================
+ */
 
+/* =============================================================================
+ * TOPBAR CONTAINER
+ * Main header bar layout
+ * ============================================================================= */
+
+.topbar {
+  /* Full height from parent grid cell */
+  height: 100%;
+
+  /* Horizontal padding for content */
+  padding: 0 var(--space-4, 16px);
+
+  /* Flexbox for left/right distribution */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-4, 16px);
 
-  background: var(--panel-bg);
+  /* Inherit glassmorphism from workbench-top */
+  background: transparent;
   color: var(--text);
 }
 
+/* =============================================================================
+ * BRAND SECTION
+ * Logo and application name on the left
+ * ============================================================================= */
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+
+  /* Prevent shrinking when workspace path is long */
+  flex-shrink: 0;
+}
+
+.topbar-brand-icon {
+  /* Larger icon for visual prominence */
+  font-size: var(--text-xl, 18px);
+
+  /* Subtle animation on hover for delight */
+  transition: transform var(--transition-normal, 0.15s ease-out);
+}
+
+.topbar-brand:hover .topbar-brand-icon {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+.topbar-brand-text {
+  /* Brand typography */
+  font-size: var(--text-lg, 16px);
+  font-weight: var(--font-semibold, 600);
+  letter-spacing: 0.5px;
+
+  /* Gradient brand text for premium feel */
+  background: linear-gradient(135deg,
+      var(--accent, #7aa2f7) 0%,
+      var(--accent-secondary, #bb9af7) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =============================================================================
+ * WORKSPACE SECTION
+ * Workspace path and change button on the right
+ * ============================================================================= */
+
+.topbar-workspace {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+
+  /* Allow shrinking with ellipsis for long paths */
+  min-width: 0;
+
+  /* Muted color for secondary info */
+  color: var(--text-muted);
+  font-size: var(--text-sm, 13px);
+}
+
+.topbar-workspace-label {
+  /* Keep label visible */
+  flex-shrink: 0;
+  color: var(--text-subtle);
+}
+
+.topbar-workspace-path {
+  /* Truncate long paths with ellipsis */
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* Slightly brighter for emphasis */
+  color: var(--text);
+  font-weight: var(--font-medium, 500);
+
+  /* Monospace for file paths */
+  font-family: var(--font-mono);
+  font-size: var(--text-sm, 12px);
+}
+
+.topbar-workspace-empty {
+  /* Italic style for empty state */
+  font-style: italic;
+  color: var(--text-subtle);
+}
+
+/* =============================================================================
+ * BUTTON STYLES
+ * Interactive change button with hover effects
+ * ============================================================================= */
+
+.topbar-button {
+  /* Reset browser defaults */
+  appearance: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  /* Sizing and spacing */
+  padding: var(--space-1, 6px) var(--space-3, 12px);
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-medium, 500);
+
+  /* Visual styling */
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-radius: var(--radius-md, 6px);
+
+  /* Border with glow effect on hover */
+  border: 1px solid var(--border);
+
+  /* Smooth transitions for all interactive states */
+  transition:
+    background var(--transition-fast, 0.1s ease-out),
+    border-color var(--transition-fast, 0.1s ease-out),
+    box-shadow var(--transition-fast, 0.1s ease-out),
+    transform var(--transition-fast, 0.1s ease-out);
+}
+
+.topbar-button:hover {
+  /* Accent-tinted background on hover */
+  background: var(--accent-soft);
+  border-color: var(--accent);
+
+  /* Subtle glow effect */
+  box-shadow: 0 0 12px rgba(122, 162, 247, 0.2);
+}
+
+.topbar-button:active {
+  /* Pressed state feedback */
+  transform: scale(0.97);
+  background: var(--accent-glow);
+}
+
+/* Focus state for keyboard navigation */
+.topbar-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+ * LEGACY CLASS COMPATIBILITY
+ * Keeping old class names for backwards compatibility
+ * These can be removed once all references are updated
+ * ============================================================================= */
+
+/* Old .brand class - now use .topbar-brand */
 .topbar .brand {
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
+/* Old .workspace class - now use .topbar-workspace */
 .topbar .workspace {
   display: flex;
   align-items: center;
@@ -22,6 +196,7 @@
   color: var(--text-muted);
 }
 
+/* Old button style - now use .topbar-button */
 .topbar button {
   background: transparent;
   border: 1px solid var(--border);

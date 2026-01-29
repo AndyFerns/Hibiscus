@@ -1,20 +1,214 @@
-.tree-node {
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 4px;
-  color: var(--text-muted);
+/**
+ * ============================================================================
+ * TreeNode Component Styles
+ * ============================================================================
+ * 
+ * Styles for the recursive file/folder tree nodes including:
+ * - Dynamic depth-based indentation using CSS custom properties
+ * - Hover and active state animations
+ * - Visual distinction between files and folders
+ * 
+ * DYNAMIC INDENTATION:
+ * The component passes --tree-depth as a CSS custom property, which is used
+ * to calculate left padding dynamically. This avoids inline styles while
+ * maintaining the tree structure visualization.
+ * 
+ * Uses design tokens from theme.css for consistency.
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * NODE CONTAINER
+ * Wrapper for each tree node and its children
+ * ============================================================================= */
+
+.tree-node-container {
+  /* Container for node + children */
+  width: 100%;
 }
 
+/* =============================================================================
+ * NODE ROW
+ * The clickable row for each file/folder
+ * ============================================================================= */
+
+.tree-node {
+  /* Flexbox for icon + name alignment */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+
+  /* 
+   * DYNAMIC INDENTATION
+   * Uses CSS custom property --tree-depth (set by component) to calculate
+   * left padding based on nesting level. var(--tree-indent, 16px) is the
+   * indentation per level, defined in theme.css.
+   */
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  padding-left: calc(var(--space-2, 8px) + (var(--tree-depth, 0) * var(--tree-indent, 16px)));
+
+  /* Text styling */
+  font-size: var(--text-base, 13px);
+  color: var(--text-muted);
+
+  /* Interactive cursor */
+  cursor: pointer;
+  user-select: none;
+
+  /* Rounded corners for hover effect */
+  border-radius: var(--radius-sm, 4px);
+  margin: 1px var(--space-1, 4px);
+
+  /* Position for pseudo-element effects */
+  position: relative;
+
+  /* Smooth transitions for all state changes */
+  transition:
+    background var(--transition-fast, 0.1s ease-out),
+    color var(--transition-fast, 0.1s ease-out),
+    box-shadow var(--transition-fast, 0.1s ease-out),
+    transform var(--transition-fast, 0.1s ease-out);
+}
+
+/* =============================================================================
+ * HOVER STATE
+ * Visual feedback when mouse hovers over a node
+ * ============================================================================= */
+
 .tree-node:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+/* Subtle left border indicator on hover */
+.tree-node:hover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  width: 2px;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  opacity: 0.5;
+}
+
+/* =============================================================================
+ * ACTIVE/SELECTED STATE
+ * Highlighting for the currently selected node
+ * ============================================================================= */
+
+.tree-node--active {
+  /* Accent-tinted background */
+  background: var(--accent-soft) !important;
+  color: var(--text) !important;
+
+  /* Subtle glow effect */
+  box-shadow:
+    inset 0 0 0 1px rgba(122, 162, 247, 0.2),
+    0 0 12px rgba(122, 162, 247, 0.1);
+}
+
+/* Stronger left border for active node */
+.tree-node--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  background: linear-gradient(180deg,
+      var(--accent) 0%,
+      var(--accent-secondary, #bb9af7) 100%);
+  border-radius: var(--radius-full);
+  opacity: 1;
+}
+
+/* =============================================================================
+ * FOCUS STATE
+ * Keyboard navigation accessibility
+ * ============================================================================= */
+
+.tree-node:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    0 0 8px rgba(122, 162, 247, 0.3);
+}
+
+/* =============================================================================
+ * NODE TYPE VARIANTS
+ * Visual distinction between files and folders
+ * ============================================================================= */
+
+/* Folder nodes - slightly bolder */
+.tree-node--folder {
+  font-weight: var(--font-medium, 500);
+  color: var(--text);
+}
+
+/* File nodes - regular weight */
+.tree-node--file {
+  font-weight: var(--font-normal, 400);
+}
+
+/* =============================================================================
+ * NODE ICON
+ * Emoji icon (folder or file)
+ * ============================================================================= */
+
+.tree-node-icon {
+  /* Fixed size for alignment */
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+
+  /* Subtle scale on hover for microinteraction */
+  transition: transform var(--transition-fast, 0.1s ease-out);
+}
+
+.tree-node:hover .tree-node-icon {
+  transform: scale(1.1);
+}
+
+/* =============================================================================
+ * NODE NAME
+ * File/folder name text
+ * ============================================================================= */
+
+.tree-node-name {
+  /* Truncate long names with ellipsis */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* Allow shrinking */
+  min-width: 0;
+  flex: 1;
+}
+
+/* =============================================================================
+ * CHILDREN CONTAINER
+ * Wrapper for nested child nodes
+ * ============================================================================= */
+
+.tree-node-children {
+  /* Smooth height animation for expand/collapse (future feature) */
+  overflow: hidden;
+}
+
+/* =============================================================================
+ * LEGACY CLASS COMPATIBILITY
+ * Previous class selectors - kept for any external references
+ * ============================================================================= */
+
+/* Original .tree-node class structure */
+.tree-node.folder {
+  font-weight: 500;
+  color: var(--text);
 }
 
 .tree-node.active {
   background: var(--accent-soft);
-  color: var(--text);
-}
-
-.tree-node.folder {
-  font-weight: 500;
   color: var(--text);
 }
