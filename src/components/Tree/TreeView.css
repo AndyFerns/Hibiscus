@@ -1,0 +1,107 @@
+/**
+ * ============================================================================
+ * TreeView Component Styles
+ * ============================================================================
+ * 
+ * Container styles for the file tree panel including:
+ * - Panel header with title
+ * - Scrollable content area
+ * - Empty state styling
+ * 
+ * Uses design tokens from theme.css for consistency.
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * TREE VIEW CONTAINER
+ * Main container for the entire tree panel
+ * ============================================================================= */
+
+.tree-view {
+    /* Fill available height from parent panel */
+    height: 100%;
+
+    /* Flex column for header + content layout */
+    display: flex;
+    flex-direction: column;
+
+    /* Prevent text selection while navigating */
+    user-select: none;
+}
+
+/* =============================================================================
+ * TREE VIEW HEADER
+ * Panel header with title and optional actions
+ * ============================================================================= */
+
+.tree-view-header {
+    /* Fixed header at top */
+    flex-shrink: 0;
+
+    /* Padding and spacing */
+    padding: var(--space-3, 12px) var(--space-3, 12px);
+    padding-bottom: var(--space-2, 8px);
+
+    /* Bottom border separator */
+    border-bottom: 1px solid var(--divider, rgba(255, 255, 255, 0.04));
+
+    /* Flex for title + actions */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tree-view-title {
+    /* Header typography */
+    font-size: var(--text-xs, 11px);
+    font-weight: var(--font-semibold, 600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    /* Muted color for secondary heading */
+    color: var(--text-subtle);
+}
+
+/* =============================================================================
+ * TREE VIEW CONTENT
+ * Scrollable area containing the tree nodes
+ * ============================================================================= */
+
+.tree-view-content {
+    /* Fill remaining height */
+    flex: 1;
+
+    /* Enable scrolling for long lists */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* Required for proper scroll calculation */
+    min-height: 0;
+
+    /* Padding for tree content */
+    padding: var(--space-2, 8px) 0;
+}
+
+/* =============================================================================
+ * EMPTY STATE
+ * Displayed when no files are in the workspace
+ * ============================================================================= */
+
+.tree-view-empty {
+    /* Center the empty message */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Minimum height for visibility */
+    min-height: 100px;
+
+    /* Padding */
+    padding: var(--space-4, 16px);
+
+    /* Muted text styling */
+    color: var(--text-subtle);
+    font-size: var(--text-sm, 12px);
+    font-style: italic;
+    text-align: center;
+}

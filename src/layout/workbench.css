@@ -1,52 +1,258 @@
+/**
+ * ============================================================================
+ * WORKBENCH LAYOUT - Main Application Shell
+ * ============================================================================
+ * 
+ * The workbench uses CSS Grid to create a flexible IDE-like layout with:
+ * - Fixed-height top bar
+ * - Resizable left sidebar (file explorer)
+ * - Expandable main content area (editor)
+ * - Resizable right sidebar (future calendar)
+ * - Fixed-height bottom status bar
+ * 
+ * GRID LAYOUT VISUALIZATION:
+ * ┌────────────────────────────────────────────────────────────────┐
+ * │                           TOP                                  │ 42px
+ * ├──────────────┬───┬─────────────────────┬───┬──────────────────┤
+ * │              │ ↔ │                     │ ↔ │                  │
+ * │     LEFT     │ R │        MAIN         │ R │      RIGHT       │ 1fr
+ * │   (sidebar)  │ E │      (editor)       │ E │    (calendar)    │
+ * │              │ S │                     │ S │                  │
+ * ├──────────────┴───┴─────────────────────┴───┴──────────────────┤
+ * │                          BOTTOM                                │ 32px
+ * └────────────────────────────────────────────────────────────────┘
+ * 
+ * RES = Resize Handle
+ * ============================================================================
+ */
+
 .workbench {
+  /* Grid Layout Configuration */
   display: grid;
 
-  /* Columns: left | main | right */
-  grid-template-columns: auto 1fr auto;
+  /* 
+   * Columns are set dynamically via inline style from component.
+   * Default: [left-panel] [main-content] [right-panel]
+   * The component manages widths for resizable behavior.
+   */
+  grid-template-columns: var(--sidebar-width, 260px) 1fr 0;
 
-  /* Rows: top | main | bottom */
-  grid-template-rows: auto 1fr auto;
+  /* 
+   * Rows: top bar, content area, bottom bar
+   * Using minmax for bottom to guarantee visibility
+   */
+  grid-template-rows: var(--topbar-height, 42px) 1fr minmax(var(--statusbar-height, 32px), auto);
 
   grid-template-areas:
-    "top    top    top"
-    "left   main   right"
+    "top top top"
+    "left main right"
     "bottom bottom bottom";
 
+  /* Full viewport sizing */
   height: 100vh;
   width: 100vw;
 
+  /* Prevent content overflow from breaking layout */
   overflow: hidden;
+
+  /* Apply theme colors and typography */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--text-base, 13px);
+
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---- Grid area bindings  ---- */
+/* =============================================================================
+ * TOP BAR - Application header area
+ * ============================================================================= */
 
 .workbench-top {
   grid-area: top;
+  grid-column: 1 / -1;
+  /* Span all columns */
+
+  /* Subtle border separator */
+  border-bottom: 1px solid var(--border);
+
+  /* Glassmorphism effect for depth */
+  background: linear-gradient(180deg,
+      rgba(19, 23, 32, 0.95) 0%,
+      rgba(19, 23, 32, 0.85) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  /* Ensure topbar stays above other content */
+  position: relative;
+  z-index: var(--z-sticky, 200);
 }
 
+/* =============================================================================
+ * PANEL BASE STYLES
+ * Common styles for all panels
+ * ============================================================================= */
+
 .panel {
-  border: 1px solid rgba(0,0,0,0.1);
-  background: var(--panel-bg, #fafafa);
-  overflow: auto;
+  /* Required for proper overflow handling */
+  min-height: 0;
+  min-width: 0;
+
+  /* Default panel background */
+  background: var(--panel-bg);
 }
+
+/* =============================================================================
+ * LEFT PANEL - Sidebar / File Tree
+ * ============================================================================= */
 
 .panel.left {
   grid-area: left;
-  width: 240px;
+
+  /* Right border separator */
+  border-right: 1px solid var(--border);
+
+  /* Scrolling behavior */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
+/* =============================================================================
+ * MAIN PANEL - Primary content area (Editor)
+ * ============================================================================= */
+
+.panel.main {
+  grid-area: main;
+
+  /* Prevent editor from overflowing */
+  overflow: hidden;
+
+  /* Editor area background - slightly different shade */
+  background: var(--editor-bg);
+
+  /* Flex container for editor content */
+  display: flex;
+  flex-direction: column;
+}
+
+/* =============================================================================
+ * RIGHT PANEL - Secondary sidebar (Calendar)
+ * ============================================================================= */
 
 .panel.right {
   grid-area: right;
-  width: 240px;
+
+  /* Left border separator */
+  border-left: 1px solid var(--border);
+
+  /* Scrolling behavior */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
+/* =============================================================================
+ * BOTTOM PANEL - Status Bar
+ * ============================================================================= */
 
 .panel.bottom {
   grid-area: bottom;
-  height: 180px;
+  grid-column: 1 / -1;
+  /* Span all columns */
+
+  /* Flexbox for horizontal content alignment */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+
+  /* Compact padding for status bar */
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+
+  /* Smaller text for status info */
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+
+  /* Top border separator */
+  border-top: 1px solid var(--border);
+
+  /* Ensure minimum height */
+  min-height: var(--statusbar-height, 32px);
 }
 
-.panel.main {
-  background: var(--main-bg, #fff);
-  background: var(--main-bg, #fff);
-  overflow: hidden; /* editor manages its own scrolling */
+/* =============================================================================
+ * RESIZE HANDLES
+ * Draggable dividers between panels
+ * ============================================================================= */
+
+.resize-handle {
+  /* Positioning in grid */
+  position: absolute;
+  top: var(--topbar-height, 42px);
+  bottom: var(--statusbar-height, 32px);
+
+  /* Handle dimensions */
+  width: 6px;
+
+  /* Cursor indicates resizable */
+  cursor: col-resize;
+
+  /* Initially invisible */
+  background: transparent;
+
+  /* Transition for hover effect */
+  transition: background var(--transition-fast);
+
+  /* Stacking above panels */
+  z-index: var(--z-overlay, 250);
+}
+
+.resize-handle:hover,
+.resize-handle.active {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.resize-handle.active {
+  opacity: 0.8;
+}
+
+/* Left resize handle - positioned at right edge of left panel */
+.resize-handle-left {
+  left: var(--left-panel-width, 260px);
+  transform: translateX(-50%);
+}
+
+/* Right resize handle - positioned at left edge of right panel */
+.resize-handle-right {
+  right: var(--right-panel-width, 300px);
+  transform: translateX(50%);
+}
+
+/* =============================================================================
+ * UTILITY CLASSES FOR PANELS
+ * ============================================================================= */
+
+/* Panel with hover highlight effect */
+.panel--interactive:hover {
+  background: var(--panel-bg-hover);
+}
+
+/* Panel loading state */
+.panel--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Collapsed panel */
+.panel--collapsed {
+  width: 0 !important;
+  overflow: hidden;
+  border: none;
+}
+
+/* Hidden panel (completely removed from layout) */
+.panel--hidden {
+  display: none;
 }

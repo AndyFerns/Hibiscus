@@ -1,0 +1,195 @@
+/**
+ * ============================================================================
+ * EditorView Component Styles
+ * ============================================================================
+ * 
+ * Styles for the Monaco editor container including:
+ * - Editor wrapper with proper flex layout
+ * - File header with name and metadata
+ * - Monaco editor container styling
+ * 
+ * Uses design tokens from theme.css for consistency.
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * EDITOR WRAPPER
+ * Main container for the entire editor area
+ * ============================================================================= */
+
+.editor-wrapper {
+  /* Fill the main panel */
+  height: 100%;
+  width: 100%;
+
+  /* Flex column for header + editor */
+  display: flex;
+  flex-direction: column;
+
+  /* Subtle padding */
+  padding: var(--space-3, 12px);
+  padding-top: 0;
+
+  /* Required for proper flex sizing */
+  min-height: 0;
+  min-width: 0;
+}
+
+/* =============================================================================
+ * EDITOR HEADER
+ * File name and metadata display above the editor
+ * ============================================================================= */
+
+.editor-header {
+  /* Fixed height header */
+  flex-shrink: 0;
+
+  /* Padding and spacing */
+  padding: var(--space-3, 12px) var(--space-1, 4px);
+
+  /* Bottom border separator */
+  border-bottom: 1px solid var(--divider, rgba(255, 255, 255, 0.04));
+
+  /* Flex for name + actions */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+}
+
+.editor-header-title {
+  /* File name typography */
+  font-size: var(--text-md, 14px);
+  font-weight: var(--font-medium, 500);
+  color: var(--text);
+
+  /* Truncate long names */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* File icon spacing */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.editor-header-icon {
+  /* Muted file icon */
+  color: var(--text-muted);
+  font-size: var(--text-lg, 16px);
+}
+
+.editor-header-actions {
+  /* Container for future action buttons */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * DIRTY STATE INDICATORS
+ * Visual feedback for unsaved changes
+ * ============================================================================= */
+
+.editor-dirty-indicator {
+  /* Asterisk next to filename */
+  color: var(--accent, #7aa2f7);
+  font-weight: var(--font-bold, 700);
+  margin-left: 2px;
+}
+
+.editor-unsaved-hint {
+  /* Small "Unsaved" badge */
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border);
+
+  /* Subtle pulse animation */
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+ * EDITOR CONTAINER
+ * Monaco editor mount point
+ * ============================================================================= */
+
+.editor-container {
+  /* Fill remaining space */
+  flex: 1;
+
+  /* CRITICAL FIX: Must be a flex container for Monaco to properly fill height */
+  display: flex;
+  flex-direction: column;
+
+  /* Required for Monaco to calculate height */
+  min-height: 0;
+  min-width: 0;
+
+  /* Subtle rounded corners */
+  border-radius: var(--radius-sm, 4px);
+
+  /* Prevent overflow */
+  overflow: hidden;
+
+  /* Subtle border for definition */
+  border: 1px solid var(--divider, rgba(255, 255, 255, 0.04));
+}
+
+/* =============================================================================
+ * PLACEHOLDER STATE
+ * Shown when no file is selected
+ * ============================================================================= */
+
+.editor-placeholder {
+  /* Center the placeholder content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3, 12px);
+
+  /* Fill the space */
+  height: 100%;
+
+  /* Muted styling */
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.editor-placeholder-icon {
+  /* Large icon */
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+.editor-placeholder-text {
+  font-size: var(--text-base, 13px);
+}
+
+/* =============================================================================
+ * LEGACY CLASS COMPATIBILITY
+ * Previous class structure - kept for backwards compatibility
+ * ============================================================================= */
+
+.editor-inner {
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+}

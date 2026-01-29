@@ -1,0 +1,289 @@
+/**
+ * ============================================================================
+ * TitleBar Component Styles
+ * ============================================================================
+ * 
+ * Custom window titlebar styling with:
+ * - Draggable content ONLY in specific regions (center) to allow button clicks
+ * - Logo and menu sections on the left
+ * - Centered application title
+ * - Window controls on the right
+ * 
+ * CRITICAL DRAG REGION RULES:
+ * - Root .titlebar must NOT have drag region (blocks child clicks)
+ * - Only empty/background areas like .titlebar-center should be draggable
+ * - Interactive elements must be explicitly no-drag or outside drag regions
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * TITLEBAR CONTAINER
+ * Main header bar layout - three-column design
+ * ============================================================================= */
+
+.titlebar {
+    /* Full height from parent grid cell */
+    height: 100%;
+
+    /* Horizontal padding for content */
+    padding: 0;
+    padding-left: var(--space-2, 8px);
+
+    /* Three-section layout with centered title */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-2, 8px);
+
+    /* Background */
+    /* background: var(--panel-bg); -- Moved to workbench for better blending */
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+
+    /* Ensure crisp rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* CRITICAL: Do NOT set drag here. It propagates and blocks clicks. */
+}
+
+/* =============================================================================
+ * LEFT SECTION
+ * Logo and menu items - NOT draggable
+ * ============================================================================= */
+
+.titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    justify-self: start;
+
+    /* Explicitly no drag to be safe */
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+}
+
+/* Logo */
+.titlebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1, 4px) var(--space-2, 8px);
+
+    /* Subtle hover effect */
+    border-radius: var(--radius-sm, 4px);
+    transition: background var(--transition-fast);
+}
+
+.titlebar-logo:hover {
+    background: var(--panel-bg-hover);
+}
+
+.titlebar-logo-icon {
+    font-size: var(--text-lg, 16px);
+    transition: transform var(--transition-normal);
+}
+
+.titlebar-logo:hover .titlebar-logo-icon {
+    transform: rotate(-10deg) scale(1.1);
+}
+
+/* =============================================================================
+ * MENU NAVIGATION
+ * File, Edit, Selection, View, Tools, Help sections
+ * ============================================================================= */
+
+.titlebar-menu {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.titlebar-menu-section {
+    position: relative;
+}
+
+.titlebar-menu-trigger {
+    /* Reset button styles */
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+
+    /* Typography */
+    font-size: var(--text-sm, 12px);
+    color: var(--text-muted);
+
+    /* Sizing */
+    padding: var(--space-1, 4px) var(--space-2, 8px);
+    border-radius: var(--radius-sm, 4px);
+
+    /* Transitions */
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.titlebar-menu-trigger:hover,
+.titlebar-menu-section.active .titlebar-menu-trigger {
+    background: var(--panel-bg-hover);
+    color: var(--text);
+}
+
+/* =============================================================================
+ * DROPDOWN MENUS
+ * Popup menus for each section
+ * ============================================================================= */
+
+.titlebar-dropdown {
+    /* Positioning */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 2px;
+
+    /* Sizing */
+    min-width: 220px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    /* Appearance */
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: var(--shadow-lg);
+
+    /* Stacking */
+    z-index: var(--z-dropdown, 300);
+
+    /* Animation */
+    animation: titlebar-dropdown-enter 0.1s ease-out;
+}
+
+@keyframes titlebar-dropdown-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.titlebar-dropdown-item {
+    /* Reset button styles */
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+
+    /* Layout */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4, 16px);
+
+    /* Sizing */
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+
+    /* Typography */
+    font-size: var(--text-sm, 12px);
+    color: var(--text);
+
+    /* Transitions */
+    transition: background var(--transition-fast);
+}
+
+.titlebar-dropdown-item:hover {
+    background: var(--panel-bg-hover);
+}
+
+.titlebar-dropdown-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.titlebar-dropdown-label {
+    flex: 1;
+}
+
+.titlebar-dropdown-shortcut {
+    color: var(--text-subtle);
+    font-size: var(--text-xs, 11px);
+    font-family: var(--font-mono);
+}
+
+.titlebar-dropdown-divider {
+    height: 1px;
+    margin: var(--space-1, 4px) var(--space-2, 8px);
+    background: var(--divider);
+}
+
+/* =============================================================================
+ * CENTER SECTION
+ * Application title & Drag Region
+ * ============================================================================= */
+
+.titlebar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Center content horizontally */
+    gap: var(--space-2, 8px);
+    justify-self: stretch;
+    /* Fill available space */
+    width: 100%;
+    /* Ensure it takes up space */
+    height: 100%;
+    /* Full height to be easily grabbable */
+
+    /* DRAG REGION: This is the main handle for moving the window */
+    -webkit-app-region: drag;
+    app-region: drag;
+
+    user-select: none;
+}
+
+.titlebar-title {
+    /* Brand typography */
+    font-size: var(--text-sm, 13px);
+    font-weight: var(--font-semibold, 600);
+    letter-spacing: 0.5px;
+
+    /* Gradient brand text for premium feel */
+    background: linear-gradient(135deg,
+            var(--accent, #7aa2f7) 0%,
+            var(--accent-secondary, #bb9af7) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.titlebar-subtitle {
+    font-size: var(--text-sm, 12px);
+    color: var(--text-subtle);
+    font-weight: var(--font-normal, 400);
+}
+
+/* =============================================================================
+ * RIGHT SECTION
+ * Window controls
+ * ============================================================================= */
+
+.titlebar-right {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    height: 100%;
+
+    /* CRITICAL: Explicitly no drag so buttons receive clicks */
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+}
