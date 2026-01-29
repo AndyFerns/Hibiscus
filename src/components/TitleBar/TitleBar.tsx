@@ -62,6 +62,8 @@ interface TitleBarProps {
     showLeftPanel?: boolean
     /** Whether right panel is visible */
     showRightPanel?: boolean
+    /** Callback to save current file */
+    onSave?: () => void
 }
 
 export function TitleBar({
@@ -71,6 +73,7 @@ export function TitleBar({
     onToggleRightPanel,
     showLeftPanel = true,
     showRightPanel = false,
+    onSave,
 }: TitleBarProps) {
     // Track which menu is currently open
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
@@ -95,7 +98,7 @@ export function TitleBar({
                 },
                 { label: "Open Recent", shortcut: "→" },
                 { divider: true, label: "" },
-                { label: "Save", shortcut: "Ctrl+S" },
+                { label: "Save", shortcut: "Ctrl+S", action: onSave },
                 { label: "Save As...", shortcut: "Ctrl+Shift+S" },
                 { label: "Save All", shortcut: "Ctrl+Alt+S" },
                 { divider: true, label: "" },

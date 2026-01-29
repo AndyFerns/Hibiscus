@@ -109,6 +109,7 @@ interface EditorViewProps {
   content: string
   onChange: (value: string) => void
   onCursorChange?: (position: CursorPosition) => void
+  onSave?: () => void
 }
 
 export function EditorView({
@@ -116,6 +117,7 @@ export function EditorView({
   content,
   onChange,
   onCursorChange,
+  onSave,
 }: EditorViewProps) {
   // Refs for Monaco editor instance and container DOM element
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -174,6 +176,16 @@ export function EditorView({
         })
       }
     })
+
+    // Register Save command (Ctrl+S / Cmd+S)
+    if (onSave) {
+      editorRef.current.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+        () => {
+          onSave()
+        }
+      )
+    }
 
     // Cleanup: dispose editor on unmount
     return () => {

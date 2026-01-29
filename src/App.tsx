@@ -54,6 +54,7 @@ export default function App() {
     isDirty,
     openFile,
     onChange,
+    saveCurrentFile,
   } = useEditorController(workspaceRoot)
 
   // ============================================================================
@@ -111,6 +112,7 @@ export default function App() {
           onToggleRightPanel={toggleRightPanel}
           showLeftPanel={showLeftPanel}
           showRightPanel={showRightPanel}
+          onSave={saveCurrentFile}
         />
       }
 
@@ -159,6 +161,7 @@ export default function App() {
                   content={fileContent}
                   onChange={onChange}
                   onCursorChange={setCursorPosition}
+                  onSave={saveCurrentFile}
                 />
               </div>
             </>
