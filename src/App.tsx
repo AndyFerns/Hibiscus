@@ -230,7 +230,7 @@ export default function App() {
 
             {/* Version */}
             <span className="status-item status-item--muted">
-              Hibiscus v0.2.0
+              Hibiscus v0.2.1
             </span>
           </div>
         </div>

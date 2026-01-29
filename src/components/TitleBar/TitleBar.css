@@ -4,14 +4,15 @@
  * ============================================================================
  * 
  * Custom window titlebar styling with:
- * - Draggable region for window movement
+ * - Draggable content ONLY in specific regions (center) to allow button clicks
  * - Logo and menu sections on the left
  * - Centered application title
  * - Window controls on the right
  * 
- * CROSS-PLATFORM:
- * - Uses CSS variables for consistent theming
- * - Respects system color schemes via theme.css
+ * CRITICAL DRAG REGION RULES:
+ * - Root .titlebar must NOT have drag region (blocks child clicks)
+ * - Only empty/background areas like .titlebar-center should be draggable
+ * - Interactive elements must be explicitly no-drag or outside drag regions
  * ============================================================================
  */
 
@@ -35,17 +36,16 @@
     gap: var(--space-2, 8px);
 
     /* Background */
-    background: var(--panel-bg);
+    /* background: var(--panel-bg); -- Moved to workbench for better blending */
+    background: transparent;
     border-bottom: 1px solid var(--border);
     color: var(--text);
-
-    /* Enable window dragging */
-    -webkit-app-region: drag;
-    app-region: drag;
 
     /* Ensure crisp rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* CRITICAL: Do NOT set drag here. It propagates and blocks clicks. */
 }
 
 /* =============================================================================
@@ -59,7 +59,7 @@
     gap: var(--space-1, 4px);
     justify-self: start;
 
-    /* Disable drag on interactive elements */
+    /* Explicitly no drag to be safe */
     -webkit-app-region: no-drag;
     app-region: no-drag;
 }
@@ -228,20 +228,26 @@
 
 /* =============================================================================
  * CENTER SECTION
- * Application title - draggable
+ * Application title & Drag Region
  * ============================================================================= */
 
 .titlebar-center {
     display: flex;
     align-items: center;
+    justify-content: center;
+    /* Center content horizontally */
     gap: var(--space-2, 8px);
-    justify-self: center;
+    justify-self: stretch;
+    /* Fill available space */
+    width: 100%;
+    /* Ensure it takes up space */
+    height: 100%;
+    /* Full height to be easily grabbable */
 
-    /* Allow dragging in center */
+    /* DRAG REGION: This is the main handle for moving the window */
     -webkit-app-region: drag;
     app-region: drag;
 
-    /* Ensure text is selectable for accessibility */
     user-select: none;
 }
 
@@ -275,8 +281,9 @@
     display: flex;
     align-items: center;
     justify-self: end;
+    height: 100%;
 
-    /* Disable drag on window controls */
+    /* CRITICAL: Explicitly no drag so buttons receive clicks */
     -webkit-app-region: no-drag;
     app-region: no-drag;
 }

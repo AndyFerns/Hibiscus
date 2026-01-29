@@ -3,22 +3,23 @@
  * TitleBar Component
  * ============================================================================
  * 
- * Custom window titlebar that replaces the native window decorations.
+ * Application menu bar with VSCode-style dropdown menus.
+ * Sits below the native OS window titlebar for reliable cross-platform support.
  * 
  * LAYOUT:
  * ┌─────────────────────────────────────────────────────────────────────────┐
- * │ 🌺 │ File  Edit  Selection  View  Tools  Help │ Hibiscus — Workspace │ ▬ □ ✕ │
+ * │ 🌺 │ File  Edit  Selection  View  Tools  Help │    Hibiscus — Workspace │
  * └─────────────────────────────────────────────────────────────────────────┘
  * 
  * FEATURES:
- * - Draggable titlebar area using data-tauri-drag-region
- * - Menu system (File, Edit, Selection, View, Tools, Help)
+ * - VSCode-style dropdown menu system
+ * - Menu sections: File, Edit, Selection, View, Tools, Help
  * - Centered app title with workspace name
- * - Window controls (minimize, maximize, close)
+ * - Connected actions for Open Folder, panel toggles, etc.
  * 
- * CROSS-PLATFORM:
- * - Uses Tauri's drag region for window movement
- * - WindowControls component handles native window operations
+ * NOTE: Window controls (minimize, maximize, close) are handled by the
+ * native OS window decorations for maximum reliability and cross-platform
+ * compatibility.
  * ============================================================================
  */
 
@@ -226,17 +227,17 @@ export function TitleBar({
         : null
 
     return (
-        <div className="titlebar" data-tauri-drag-region>
+        <div className="titlebar">
             {/* ----------------------------------------------------------------
        * LEFT SECTION: Logo + Menu Items
        * ---------------------------------------------------------------- */}
             <div className="titlebar-left" ref={menuRef}>
-                {/* Logo - Not draggable */}
+                {/* Logo */}
                 <div className="titlebar-logo">
                     <span className="titlebar-logo-icon">🌺</span>
                 </div>
 
-                {/* Menu sections - Not draggable */}
+                {/* Menu sections */}
                 <nav className="titlebar-menu" role="menubar">
                     {menuSections.map((section) => (
                         <div
