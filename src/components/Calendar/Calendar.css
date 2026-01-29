@@ -1,0 +1,194 @@
+/**
+ * ============================================================================
+ * Calendar Component Styles
+ * ============================================================================
+ * 
+ * Placeholder styling for the calendar right panel.
+ * Will be expanded when full calendar is implemented.
+ * ============================================================================
+ */
+
+.calendar {
+    /* Fill available height from parent panel */
+    height: 100%;
+
+    /* Flex column layout */
+    display: flex;
+    flex-direction: column;
+
+    /* Prevent text selection while interacting */
+    user-select: none;
+}
+
+/* =============================================================================
+ * HEADER
+ * ============================================================================= */
+
+.calendar-header {
+    /* Fixed header */
+    flex-shrink: 0;
+
+    /* Padding */
+    padding: var(--space-3, 12px);
+    padding-bottom: var(--space-2, 8px);
+
+    /* Bottom border */
+    border-bottom: 1px solid var(--divider);
+}
+
+.calendar-title {
+    /* Header typography */
+    font-size: var(--text-xs, 11px);
+    font-weight: var(--font-semibold, 600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-subtle);
+}
+
+/* =============================================================================
+ * MONTH NAVIGATION
+ * ============================================================================= */
+
+.calendar-month {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3, 12px);
+}
+
+.calendar-month-label {
+    font-size: var(--text-md, 14px);
+    font-weight: var(--font-medium, 500);
+    color: var(--text);
+}
+
+.calendar-nav-btn {
+    /* Reset */
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    /* Sizing */
+    width: 28px;
+    height: 28px;
+
+    /* Typography */
+    font-size: var(--text-base, 13px);
+    color: var(--text-muted);
+
+    /* Shape */
+    border-radius: var(--radius-sm, 4px);
+
+    /* Transition */
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
+}
+
+.calendar-nav-btn:hover {
+    background: var(--panel-bg-hover);
+    color: var(--text);
+}
+
+/* =============================================================================
+ * CALENDAR GRID PLACEHOLDER
+ * ============================================================================= */
+
+.calendar-grid-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2, 8px);
+    padding: var(--space-4, 16px);
+
+    /* Muted appearance */
+    color: var(--text-subtle);
+    text-align: center;
+}
+
+.calendar-placeholder-text {
+    font-size: var(--text-sm, 12px);
+    font-style: italic;
+}
+
+.calendar-current-date {
+    font-size: var(--text-base, 13px);
+    color: var(--text-muted);
+}
+
+/* =============================================================================
+ * UPCOMING EVENTS
+ * ============================================================================= */
+
+.calendar-events {
+    flex-shrink: 0;
+    border-top: 1px solid var(--divider);
+}
+
+.calendar-events-header {
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    font-size: var(--text-xs, 11px);
+    font-weight: var(--font-semibold, 600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-subtle);
+}
+
+.calendar-events-list {
+    padding: 0 var(--space-3, 12px);
+    padding-bottom: var(--space-2, 8px);
+}
+
+.calendar-event-item {
+    padding: var(--space-2, 8px);
+    font-size: var(--text-sm, 12px);
+    color: var(--text-muted);
+    background: var(--panel-bg-hover);
+    border-radius: var(--radius-sm, 4px);
+}
+
+/* =============================================================================
+ * ACTIONS
+ * ============================================================================= */
+
+.calendar-actions {
+    flex-shrink: 0;
+    padding: var(--space-3, 12px);
+    border-top: 1px solid var(--divider);
+}
+
+.calendar-action-btn {
+    /* Reset */
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+
+    /* Full width */
+    width: 100%;
+
+    /* Sizing */
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+
+    /* Typography */
+    font-size: var(--text-sm, 12px);
+    font-weight: var(--font-medium, 500);
+
+    /* Visual */
+    background: var(--accent-soft);
+    color: var(--text);
+    border-radius: var(--radius-md, 6px);
+
+    /* Transition */
+    transition:
+        background var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.calendar-action-btn:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 12px rgba(122, 162, 247, 0.2);
+}

@@ -3,10 +3,11 @@
  * TopBar Component Styles
  * ============================================================================
  * 
- * Styles for the application header bar including:
- * - Brand section with gradient highlight
- * - Workspace info with truncation for long paths
- * - Interactive button with hover effects
+ * VSCode-style header bar with:
+ * - Logo on the left
+ * - Menu sections with dropdowns
+ * - Centered application title
+ * - Workspace actions on the right
  * 
  * Uses design tokens from theme.css for consistency.
  * ============================================================================
@@ -14,7 +15,7 @@
 
 /* =============================================================================
  * TOPBAR CONTAINER
- * Main header bar layout
+ * Main header bar layout - three-column design
  * ============================================================================= */
 
 .topbar {
@@ -22,13 +23,13 @@
   height: 100%;
 
   /* Horizontal padding for content */
-  padding: 0 var(--space-4, 16px);
+  padding: 0 var(--space-3, 12px);
 
-  /* Flexbox for left/right distribution */
-  display: flex;
+  /* Three-section layout with centered title */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4, 16px);
+  gap: var(--space-2, 8px);
 
   /* Inherit glassmorphism from workbench-top */
   background: transparent;
@@ -36,34 +37,197 @@
 }
 
 /* =============================================================================
- * BRAND SECTION
- * Logo and application name on the left
+ * LEFT SECTION
+ * Logo and menu items
  * ============================================================================= */
 
-.topbar-brand {
+.topbar-left {
   display: flex;
   align-items: center;
-  gap: var(--space-2, 8px);
-
-  /* Prevent shrinking when workspace path is long */
-  flex-shrink: 0;
+  gap: var(--space-1, 4px);
+  justify-self: start;
 }
 
-.topbar-brand-icon {
-  /* Larger icon for visual prominence */
-  font-size: var(--text-xl, 18px);
+/* Logo */
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1, 4px) var(--space-2, 8px);
 
-  /* Subtle animation on hover for delight */
-  transition: transform var(--transition-normal, 0.15s ease-out);
+  /* Subtle hover effect */
+  border-radius: var(--radius-sm, 4px);
+  transition: background var(--transition-fast);
 }
 
-.topbar-brand:hover .topbar-brand-icon {
+.topbar-logo:hover {
+  background: var(--panel-bg-hover);
+}
+
+.topbar-logo-icon {
+  font-size: var(--text-lg, 16px);
+  transition: transform var(--transition-normal);
+}
+
+.topbar-logo:hover .topbar-logo-icon {
   transform: rotate(-10deg) scale(1.1);
 }
 
-.topbar-brand-text {
+/* =============================================================================
+ * MENU NAVIGATION
+ * File, Edit, Selection, View, Tools, Help sections
+ * ============================================================================= */
+
+.topbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.topbar-menu-section {
+  position: relative;
+}
+
+.topbar-menu-trigger {
+  /* Reset button styles */
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+
+  /* Typography */
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+
+  /* Sizing */
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+
+  /* Transitions */
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.topbar-menu-trigger:hover,
+.topbar-menu-section.active .topbar-menu-trigger {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+/* =============================================================================
+ * DROPDOWN MENUS
+ * Popup menus for each section
+ * ============================================================================= */
+
+.topbar-dropdown {
+  /* Positioning */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+
+  /* Sizing */
+  min-width: 220px;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  /* Appearance */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 6px);
+  box-shadow: var(--shadow-lg);
+
+  /* Stacking */
+  z-index: var(--z-dropdown, 300);
+
+  /* Animation */
+  animation: dropdown-enter 0.1s ease-out;
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topbar-dropdown-item {
+  /* Reset button styles */
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+
+  /* Sizing */
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+
+  /* Typography */
+  font-size: var(--text-sm, 12px);
+  color: var(--text);
+
+  /* Transitions */
+  transition: background var(--transition-fast);
+}
+
+.topbar-dropdown-item:hover {
+  background: var(--panel-bg-hover);
+}
+
+.topbar-dropdown-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.topbar-dropdown-label {
+  flex: 1;
+}
+
+.topbar-dropdown-shortcut {
+  color: var(--text-subtle);
+  font-size: var(--text-xs, 11px);
+  font-family: var(--font-mono);
+}
+
+.topbar-dropdown-divider {
+  height: 1px;
+  margin: var(--space-1, 4px) var(--space-2, 8px);
+  background: var(--divider);
+}
+
+/* =============================================================================
+ * CENTER SECTION
+ * Application title - always centered
+ * ============================================================================= */
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  justify-self: center;
+
+  /* Prevent interaction from menu hover */
+  pointer-events: none;
+}
+
+.topbar-title {
   /* Brand typography */
-  font-size: var(--text-lg, 16px);
+  font-size: var(--text-sm, 13px);
   font-weight: var(--font-semibold, 600);
   letter-spacing: 0.5px;
 
@@ -76,55 +240,50 @@
   -webkit-text-fill-color: transparent;
 }
 
+.topbar-subtitle {
+  font-size: var(--text-sm, 12px);
+  color: var(--text-subtle);
+  font-weight: var(--font-normal, 400);
+}
+
 /* =============================================================================
- * WORKSPACE SECTION
- * Workspace path and change button on the right
+ * RIGHT SECTION
+ * Workspace info and actions
  * ============================================================================= */
 
-.topbar-workspace {
+.topbar-right {
   display: flex;
   align-items: center;
   gap: var(--space-3, 12px);
-
-  /* Allow shrinking with ellipsis for long paths */
-  min-width: 0;
+  justify-self: end;
 
   /* Muted color for secondary info */
   color: var(--text-muted);
-  font-size: var(--text-sm, 13px);
-}
-
-.topbar-workspace-label {
-  /* Keep label visible */
-  flex-shrink: 0;
-  color: var(--text-subtle);
+  font-size: var(--text-sm, 12px);
 }
 
 .topbar-workspace-path {
   /* Truncate long paths with ellipsis */
-  max-width: 300px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 
   /* Slightly brighter for emphasis */
-  color: var(--text);
-  font-weight: var(--font-medium, 500);
-
-  /* Monospace for file paths */
-  font-family: var(--font-mono);
-  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+  font-size: var(--text-xs, 11px);
 }
 
 .topbar-workspace-empty {
   /* Italic style for empty state */
   font-style: italic;
   color: var(--text-subtle);
+  font-size: var(--text-xs, 11px);
 }
 
 /* =============================================================================
  * BUTTON STYLES
- * Interactive change button with hover effects
+ * Interactive button with hover effects
  * ============================================================================= */
 
 .topbar-button {
@@ -135,14 +294,14 @@
   cursor: pointer;
 
   /* Sizing and spacing */
-  padding: var(--space-1, 6px) var(--space-3, 12px);
-  font-size: var(--text-sm, 12px);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--text-xs, 11px);
   font-weight: var(--font-medium, 500);
 
   /* Visual styling */
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-sm, 4px);
 
   /* Border with glow effect on hover */
   border: 1px solid var(--border);
@@ -161,52 +320,16 @@
   border-color: var(--accent);
 
   /* Subtle glow effect */
-  box-shadow: 0 0 12px rgba(122, 162, 247, 0.2);
+  box-shadow: 0 0 8px rgba(122, 162, 247, 0.2);
 }
 
 .topbar-button:active {
   /* Pressed state feedback */
   transform: scale(0.97);
-  background: var(--accent-glow);
 }
 
 /* Focus state for keyboard navigation */
 .topbar-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-/* =============================================================================
- * LEGACY CLASS COMPATIBILITY
- * Keeping old class names for backwards compatibility
- * These can be removed once all references are updated
- * ============================================================================= */
-
-/* Old .brand class - now use .topbar-brand */
-.topbar .brand {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* Old .workspace class - now use .topbar-workspace */
-.topbar .workspace {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-muted);
-}
-
-/* Old button style - now use .topbar-button */
-.topbar button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.topbar button:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
 }

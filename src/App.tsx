@@ -18,10 +18,12 @@
  * ============================================================================
  */
 
+import { useState } from "react"
 import { Workbench } from "./layout/workbench"
 import { TopBar } from "./components/TopBar/TopBar"
 import { TreeView } from "./components/Tree/TreeView"
 import { EditorView } from "./components/Editor/EditorView"
+import { Calendar } from "./components/Calendar/Calendar"
 
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
@@ -45,6 +47,11 @@ export default function App() {
     openFile,
     onChange,
   } = useEditorController(workspaceRoot)
+
+  // Right panel visibility state (for calendar)
+  // TODO: Add toggle in View menu to control this
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [showCalendar, _setShowCalendar] = useState(false)
 
   /**
    * Handle file open events from the tree view
@@ -119,6 +126,14 @@ export default function App() {
           )}
         </div>
       }
+
+      /* ----------------------------------------------------------------
+       * RIGHT PANEL - Calendar (when visible)
+       * Study planning and scheduling widget
+       * Toggle with View > Calendar in the menu
+       * ---------------------------------------------------------------- */
+      right={<Calendar />}
+      showRightPanel={showCalendar}
 
       /* ----------------------------------------------------------------
        * BOTTOM PANEL - Status Bar

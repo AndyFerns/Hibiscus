@@ -97,6 +97,10 @@
   /* Fill remaining space */
   flex: 1;
 
+  /* CRITICAL FIX: Must be a flex container for Monaco to properly fill height */
+  display: flex;
+  flex-direction: column;
+
   /* Required for Monaco to calculate height */
   min-height: 0;
   min-width: 0;
