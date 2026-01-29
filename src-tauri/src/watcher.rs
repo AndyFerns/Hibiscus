@@ -1,9 +1,11 @@
 use notify::{Watcher, RecursiveMode, Event};
 use std::sync::mpsc::channel;
+use std::time::{Duration, Instant};
 use tauri::Emitter;
 
 #[tauri::command]
 pub fn watch_workspace(path: String, window: tauri::Window) {
+    println!("Starting watcher for {}", path);
     std::thread::spawn(move || {
         let (tx, rx) = channel();
 
@@ -20,11 +22,17 @@ pub fn watch_workspace(path: String, window: tauri::Window) {
             return;
         }
 
+        let mut last_emit = Instant::now();
+        let debounce = Duration::from_millis(250);
+
         // Keep watcher alive for the duration of the thread
         for res in rx {
             match res {
                 Ok(Event { .. }) => {
-                    let _ = window.emit("fs-changed", ());
+                    if last_emit.elapsed() >= debounce {
+                        last_emit = Instant::now();
+                        let _ = window.emit("fs-changed", ());
+                    }
                 }
                 Err(e) => {
                     eprintln!("Watch error: {e}");
