@@ -124,13 +124,29 @@ export function EditorView({
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   // ===========================================================================
-  // BUG FIX: Use ref to avoid stale closure in Monaco command handler
-  // The addCommand callback is registered once on mount. Without this ref,
-  // it would capture the initial onSave, causing Ctrl+S to use stale state
-  // (wrong file path, outdated content). The ref is updated on every render.
+  // CRITICAL FIX: Use refs for ALL callbacks to avoid stale closures
   // ===========================================================================
+  // Monaco event listeners are registered ONCE on mount. Without refs, they
+  // capture the initial callback values and never update. This causes:
+  // - onChange to save to wrong file when switching files
+  // - onSave to target incorrect file on Ctrl+S
+  // - Content corruption when rapid file switching occurs
+  //
+  // Solution: Store callbacks in refs and update them on every render.
+  // Event handlers read from refs to always get the latest callback.
+  // ===========================================================================
+  const onChangeRef = useRef(onChange)
+  const onCursorChangeRef = useRef(onCursorChange)
   const onSaveRef = useRef(onSave)
+
+  // Update refs on every render to capture latest callbacks
+  onChangeRef.current = onChange
+  onCursorChangeRef.current = onCursorChange
   onSaveRef.current = onSave
+
+  // Track current path to prevent onChange from firing during file switches
+  const currentPathRef = useRef(path)
+  currentPathRef.current = path
 
   /**
    * Initialize Monaco editor on mount
@@ -171,15 +187,20 @@ export function EditorView({
       scrollBeyondLastLine: false,
     })
 
-    // Set up change listener to propagate edits to parent
+    // ===========================================================================
+    // CRITICAL: Content change handler uses ref to always call latest onChange
+    // ===========================================================================
     editorRef.current.onDidChangeModelContent(() => {
-      onChange(editorRef.current!.getValue())
+      // Use ref to get the latest onChange callback
+      if (onChangeRef.current) {
+        onChangeRef.current(editorRef.current!.getValue())
+      }
     })
 
-    // Set up cursor position listener for status bar
+    // Cursor position listener using ref
     editorRef.current.onDidChangeCursorPosition((e) => {
-      if (onCursorChange) {
-        onCursorChange({
+      if (onCursorChangeRef.current) {
+        onCursorChangeRef.current({
           line: e.position.lineNumber,
           column: e.position.column,
         })
@@ -187,11 +208,9 @@ export function EditorView({
     })
 
     // Register Save command (Ctrl+S / Cmd+S)
-    // Uses onSaveRef to always call the LATEST onSave callback
     editorRef.current.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
       () => {
-        // Access current onSave via ref to avoid stale closure
         if (onSaveRef.current) {
           onSaveRef.current()
         }

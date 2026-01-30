@@ -150,8 +150,12 @@ pub async fn read_text_file(path: String) -> Result<String, HibiscusError> {
 
 /// Writes contents to a text file asynchronously.
 ///
-/// Creates parent directories if they don't exist.
-/// Uses atomic write (write to temp file, then rename) to prevent corruption.
+/// Uses a safe write strategy inspired by modern editors (VS Code, Sublime):
+/// 1. Write to a temporary file with `.hibiscus-save~` suffix
+/// 2. Sync to disk to ensure durability
+/// 3. On Windows: delete target first (Windows can't rename over existing)
+/// 4. Rename temp to target (atomic on most filesystems)
+/// 5. Cleanup temp file on any failure
 ///
 /// # Arguments
 /// * `path` - Absolute path to the file to write
@@ -181,40 +185,83 @@ pub async fn write_text_file(path: String, contents: String) -> Result<(), Hibis
         })?;
     }
 
-    // Atomic write: write to temp file first, then rename
-    // This prevents file corruption if the write is interrupted
-    let temp_path = path.with_extension("tmp");
+    // ===========================================================================
+    // MODERN EDITOR SAVE STRATEGY
+    // ===========================================================================
+    // Create temp file with .hibiscus-save~ suffix APPENDED to full filename.
+    // Using a unique suffix prevents conflicts with user files.
+    // Example: "notes.txt" -> "notes.txt.hibiscus-save~"
+    // ===========================================================================
+    let temp_filename = format!(
+        "{}.hibiscus-save~",
+        path.file_name()
+            .map(|n| n.to_string_lossy())
+            .unwrap_or_default()
+    );
+    let temp_path = path.with_file_name(&temp_filename);
 
     // Write to temp file
-    let mut file = fs::File::create(&temp_path).await.map_err(|e| {
-        HibiscusError::Io(format!(
-            "Failed to create temp file '{}': {}",
-            temp_path.display(),
-            e
-        ))
-    })?;
+    let write_result = async {
+        let mut file = fs::File::create(&temp_path).await.map_err(|e| {
+            HibiscusError::Io(format!(
+                "Failed to create temp file '{}': {}",
+                temp_path.display(),
+                e
+            ))
+        })?;
 
-    file.write_all(contents.as_bytes()).await.map_err(|e| {
-        HibiscusError::Io(format!(
-            "Failed to write to temp file '{}': {}",
-            temp_path.display(),
-            e
-        ))
-    })?;
+        file.write_all(contents.as_bytes()).await.map_err(|e| {
+            HibiscusError::Io(format!(
+                "Failed to write to temp file '{}': {}",
+                temp_path.display(),
+                e
+            ))
+        })?;
 
-    file.sync_all().await.map_err(|e| {
-        HibiscusError::Io(format!("Failed to sync file '{}': {}", temp_path.display(), e))
-    })?;
+        // Sync to ensure data is on disk before rename
+        file.sync_all().await.map_err(|e| {
+            HibiscusError::Io(format!("Failed to sync file '{}': {}", temp_path.display(), e))
+        })?;
 
-    // Rename temp file to target (atomic operation on most filesystems)
-    fs::rename(&temp_path, &path).await.map_err(|e| {
-        HibiscusError::Io(format!(
+        Ok::<(), HibiscusError>(())
+    }
+    .await;
+
+    // If write failed, cleanup temp file and return error
+    if let Err(e) = write_result {
+        let _ = fs::remove_file(&temp_path).await; // Ignore cleanup errors
+        return Err(e);
+    }
+
+    // ===========================================================================
+    // WINDOWS COMPATIBILITY: Windows doesn't support atomic rename over existing
+    // files. We must delete the target first. This creates a brief window where
+    // the file doesn't exist, but it's the standard approach for Windows.
+    // ===========================================================================
+    #[cfg(target_os = "windows")]
+    if path.exists() {
+        if let Err(e) = fs::remove_file(&path).await {
+            // Cleanup temp and return error
+            let _ = fs::remove_file(&temp_path).await;
+            return Err(HibiscusError::Io(format!(
+                "Failed to remove existing file '{}' before save: {}",
+                path.display(),
+                e
+            )));
+        }
+    }
+
+    // Rename temp file to target
+    if let Err(e) = fs::rename(&temp_path, &path).await {
+        // Cleanup temp file on rename failure
+        let _ = fs::remove_file(&temp_path).await;
+        return Err(HibiscusError::Io(format!(
             "Failed to rename '{}' to '{}': {}",
             temp_path.display(),
             path.display(),
             e
-        ))
-    })?;
+        )));
+    }
 
     Ok(())
 }

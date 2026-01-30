@@ -102,6 +102,16 @@ export function useEditorController(workspaceRoot: string | null) {
     }
   }, [activeFilePath])
 
+  // ===========================================================================
+  // RACE CONDITION FIX: Track open requests to discard stale responses
+  // ===========================================================================
+  // When user rapidly clicks multiple files, multiple async openFile calls run
+  // in parallel. Without this tracking, the slower request could "win" and
+  // display the wrong file content. The request ID ensures only the latest
+  // request's response is used.
+  // ===========================================================================
+  const openRequestIdRef = useRef(0)
+
   /**
    * Open a file in the editor
    * Loads from disk or retrieves from buffer if already open
@@ -109,7 +119,11 @@ export function useEditorController(workspaceRoot: string | null) {
   const openFile = useCallback(async (node: Node) => {
     if (!node.path || !workspaceRoot) return
 
-    const fullPath = `${workspaceRoot}/${node.path}`
+    // Normalize path separators for Windows compatibility
+    const fullPath = `${workspaceRoot}\\${node.path.replace(/\//g, '\\')}`
+
+    // Generate unique request ID for this open operation
+    const requestId = ++openRequestIdRef.current
 
     // Check if we have this file in buffer already
     let buffer = buffersRef.current.get(fullPath)
@@ -118,6 +132,13 @@ export function useEditorController(workspaceRoot: string | null) {
       // Load from disk
       try {
         const content = await invoke<string>("read_text_file", { path: fullPath })
+
+        // RACE CONDITION CHECK: Discard if a newer request was made
+        if (requestId !== openRequestIdRef.current) {
+          console.log(`[Hibiscus] Discarding stale file open response for: ${node.name}`)
+          return
+        }
+
         buffer = {
           content,
           savedContent: content,
@@ -128,6 +149,12 @@ export function useEditorController(workspaceRoot: string | null) {
         console.error("[Hibiscus] Failed to open file:", error)
         return
       }
+    }
+
+    // RACE CONDITION CHECK: Final check before updating state
+    if (requestId !== openRequestIdRef.current) {
+      console.log(`[Hibiscus] Discarding stale file open for: ${node.name}`)
+      return
     }
 
     // Set as active file
