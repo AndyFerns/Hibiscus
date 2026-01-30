@@ -287,12 +287,12 @@ export function TitleBar({
             </div>
 
             {/* ----------------------------------------------------------------
-       * CENTER SECTION: App Title (Draggable)
+       * CENTER SECTION: App Title (Inherits drag from parent)
        * ---------------------------------------------------------------- */}
-            <div className="titlebar-center" data-tauri-drag-region>
-                <span className="titlebar-title" data-tauri-drag-region>Hibiscus</span>
+            <div className="titlebar-center">
+                <span className="titlebar-title">Hibiscus</span>
                 {workspaceName && (
-                    <span className="titlebar-subtitle" data-tauri-drag-region>
+                    <span className="titlebar-subtitle">
                         — {workspaceName}
                     </span>
                 )}
