@@ -62,6 +62,8 @@ interface TitleBarProps {
     showLeftPanel?: boolean
     /** Whether right panel is visible */
     showRightPanel?: boolean
+    /** Callback to save current file */
+    onSave?: () => void
 }
 
 export function TitleBar({
@@ -71,6 +73,7 @@ export function TitleBar({
     onToggleRightPanel,
     showLeftPanel = true,
     showRightPanel = false,
+    onSave,
 }: TitleBarProps) {
     // Track which menu is currently open
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
@@ -95,7 +98,7 @@ export function TitleBar({
                 },
                 { label: "Open Recent", shortcut: "→" },
                 { divider: true, label: "" },
-                { label: "Save", shortcut: "Ctrl+S" },
+                { label: "Save", shortcut: "Ctrl+S", action: onSave },
                 { label: "Save As...", shortcut: "Ctrl+Shift+S" },
                 { label: "Save All", shortcut: "Ctrl+Alt+S" },
                 { divider: true, label: "" },
@@ -284,12 +287,12 @@ export function TitleBar({
             </div>
 
             {/* ----------------------------------------------------------------
-       * CENTER SECTION: App Title (Draggable)
+       * CENTER SECTION: App Title (Inherits drag from parent)
        * ---------------------------------------------------------------- */}
-            <div className="titlebar-center" data-tauri-drag-region>
-                <span className="titlebar-title" data-tauri-drag-region>Hibiscus</span>
+            <div className="titlebar-center">
+                <span className="titlebar-title">Hibiscus</span>
                 {workspaceName && (
-                    <span className="titlebar-subtitle" data-tauri-drag-region>
+                    <span className="titlebar-subtitle">
                         — {workspaceName}
                     </span>
                 )}

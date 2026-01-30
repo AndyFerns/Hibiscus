@@ -4,15 +4,17 @@
  * ============================================================================
  * 
  * Custom window titlebar styling with:
- * - Draggable content ONLY in specific regions (center) to allow button clicks
+ * - Draggable by default across the entire bar (~75%+ draggable area)
+ * - Interactive elements (menus, buttons) explicitly excluded from drag
  * - Logo and menu sections on the left
  * - Centered application title
  * - Window controls on the right
  * 
- * CRITICAL DRAG REGION RULES:
- * - Root .titlebar must NOT have drag region (blocks child clicks)
- * - Only empty/background areas like .titlebar-center should be draggable
- * - Interactive elements must be explicitly no-drag or outside drag regions
+ * DRAG REGION STRATEGY (Modern Approach):
+ * - The entire .titlebar is set as a drag region
+ * - Interactive child elements (buttons, menus) use app-region: no-drag
+ * - This maximizes the draggable area while keeping buttons clickable
+ * - User can grab anywhere except directly on interactive elements
  * ============================================================================
  */
 
@@ -45,7 +47,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* CRITICAL: Do NOT set drag here. It propagates and blocks clicks. */
+    /* =========================================================================
+     * DRAG REGION: Make the ENTIRE titlebar draggable by default
+     * =========================================================================
+     * This approach (used by VS Code, Electron apps) makes ~75%+ of the
+     * titlebar draggable. Interactive elements below explicitly opt-out
+     * using app-region: no-drag.
+     * ========================================================================= */
+    -webkit-app-region: drag;
+    app-region: drag;
+
+    /* Prevent text selection while dragging */
+    user-select: none;
 }
 
 /* =============================================================================
@@ -124,6 +137,14 @@
     transition:
         background var(--transition-fast),
         color var(--transition-fast);
+
+    /* =========================================================================
+     * CRITICAL: Exclude from drag region so clicks are received
+     * Parent .titlebar-left already has no-drag, but being explicit here
+     * ensures reliability across browser/Tauri versions.
+     * ========================================================================= */
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 
 .titlebar-menu-trigger:hover,
@@ -228,26 +249,20 @@
 
 /* =============================================================================
  * CENTER SECTION
- * Application title & Drag Region
+ * Application title - inherits drag from parent .titlebar
  * ============================================================================= */
 
 .titlebar-center {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Center content horizontally */
     gap: var(--space-2, 8px);
     justify-self: stretch;
-    /* Fill available space */
     width: 100%;
-    /* Ensure it takes up space */
     height: 100%;
-    /* Full height to be easily grabbable */
 
-    /* DRAG REGION: This is the main handle for moving the window */
-    -webkit-app-region: drag;
-    app-region: drag;
-
+    /* Inherits drag from parent .titlebar, no need to set here */
+    /* Prevent text selection */
     user-select: none;
 }
 
