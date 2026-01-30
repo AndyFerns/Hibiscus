@@ -23,7 +23,7 @@ import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
 import { EditorView, CursorPosition } from "./components/Editor/EditorView"
-import { Calendar } from "./components/Calendar/Calendar"
+import { RightPanelContainer } from "./components/RightPanel/RightPanelContainer"
 import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
 
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
@@ -102,6 +102,19 @@ export default function App() {
   const toggleRightPanel = useCallback(() => {
     setShowRightPanel((prev) => !prev)
   }, [])
+
+  /**
+   * Open file by path string (for Calendar linked files)
+   */
+  const openFileByPath = useCallback((filePath: string) => {
+    const name = filePath.split(/[/\\]/).pop() || filePath
+    handleFileOpen({
+      id: filePath,
+      name,
+      path: filePath,
+      type: "file"
+    })
+  }, [handleFileOpen])
 
   return (
     <Workbench
@@ -183,11 +196,15 @@ export default function App() {
       }
 
       /* ----------------------------------------------------------------
-       * RIGHT PANEL - Calendar (when visible)
-       * Study planning and scheduling widget
-       * Toggle with View > Calendar in the menu
+       * RIGHT PANEL - Calendar & Planner
+       * Split view for study planning
        * ---------------------------------------------------------------- */
-      right={<Calendar />}
+      right={
+        <RightPanelContainer
+          workspaceRoot={workspaceRoot}
+          onOpenFile={openFileByPath}
+        />
+      }
       showRightPanel={showRightPanel}
 
       /* ----------------------------------------------------------------

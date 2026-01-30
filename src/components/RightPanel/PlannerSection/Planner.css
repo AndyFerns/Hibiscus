@@ -1,0 +1,113 @@
+/**
+ * ============================================================================
+ * Planner Section Styles
+ * ============================================================================
+ */
+
+.planner-section {
+    padding: var(--space-3, 12px);
+    border-bottom: 1px solid var(--border);
+}
+
+.planner-section:last-child {
+    border-bottom: none;
+}
+
+.planner-header {
+    font-size: var(--text-xs, 12px);
+    color: var(--text-subtle);
+    font-weight: var(--font-semibold, 600);
+    text-transform: uppercase;
+    margin-bottom: var(--space-2, 8px);
+}
+
+.planner-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.planner-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: var(--radius-sm, 4px);
+    font-size: var(--text-sm, 13px);
+    transition: background var(--transition-fast, 0.15s);
+}
+
+.planner-item:hover {
+    background: var(--panel-bg-hover);
+}
+
+.event-item {
+    border-left: 2px solid var(--accent, #7aa2f7);
+}
+
+.planner-time {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs, 11px);
+    color: var(--text-subtle);
+    width: 45px;
+    flex-shrink: 0;
+}
+
+.planner-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.planner-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.planner-link-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0.5;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+.planner-link-btn:hover {
+    opacity: 1;
+    background: var(--panel-bg-alt);
+}
+
+.planner-checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.planner-task-title {
+    flex: 1;
+}
+
+.planner-task-title.completed {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.planner-date-badge {
+    font-size: 10px;
+    background: var(--panel-bg-alt);
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin-left: 6px;
+    color: var(--text-subtle);
+}
+
+.planner-empty {
+    font-size: var(--text-sm, 12px);
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--space-2, 8px) 0;
+}

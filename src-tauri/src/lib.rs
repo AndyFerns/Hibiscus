@@ -48,6 +48,9 @@ pub fn run() {
             watcher::stop_watching,
             watcher::is_watching,
             watcher::get_watched_path,
+            // Calendar operations
+            commands::read_calendar_data,
+            commands::save_calendar_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");

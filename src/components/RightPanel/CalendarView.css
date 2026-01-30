@@ -1,0 +1,274 @@
+/**
+ * ============================================================================
+ * CalendarView Component Styles
+ * ============================================================================
+ * 
+ * Styles for the interactive monthly calendar grid.
+ * - Grid layout for days
+ * - Navigation header styling
+ * - Event indicators (dots)
+ * - Selected state styling
+ * ============================================================================
+ */
+
+.calendar-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--space-3, 12px);
+    gap: var(--space-3, 12px);
+    overflow-y: auto;
+}
+
+/* =============================================================================
+ * NAVIGATION HEADER
+ * ============================================================================= */
+
+.calendar-view-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2, 8px);
+}
+
+.calendar-view-nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm, 4px);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s);
+}
+
+.calendar-view-nav-btn:hover {
+    background: var(--panel-bg-hover);
+    border-color: var(--text-muted);
+}
+
+.calendar-view-month-label {
+    font-weight: var(--font-bold, 700);
+    font-size: var(--text-base, 14px);
+    color: var(--text);
+}
+
+.calendar-view-today-btn {
+    background: transparent;
+    border: none;
+    font-size: var(--text-xs, 12px);
+    color: var(--accent, #7aa2f7);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+.calendar-view-today-btn:hover {
+    background: rgba(122, 162, 247, 0.1);
+}
+
+/* =============================================================================
+ * WEEKDAY HEADERS
+ * ============================================================================= */
+
+.calendar-view-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    margin-bottom: var(--space-1, 4px);
+}
+
+.calendar-view-weekday {
+    font-size: var(--text-xs, 10px);
+    color: var(--text-subtle);
+    font-weight: var(--font-semibold, 600);
+    text-transform: uppercase;
+}
+
+/* =============================================================================
+ * MONTH GRID
+ * ============================================================================= */
+
+.calendar-view-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-view-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 4px;
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+    transition: all var(--transition-fast, 0.15s);
+}
+
+.calendar-view-day:hover {
+    background: var(--panel-bg-hover);
+}
+
+.calendar-view-day.other-month {
+    opacity: 0.3;
+}
+
+.calendar-view-day.today {
+    font-weight: bold;
+    color: var(--accent, #7aa2f7);
+    border-color: rgba(122, 162, 247, 0.3);
+}
+
+.calendar-view-day.selected {
+    background: var(--accent, #7aa2f7);
+    color: white;
+}
+
+.calendar-view-day.selected:hover {
+    background: var(--accent-hover, #6688cc);
+    /* Slightly darker/desaturated for hover logic */
+}
+
+/* Correct text color for selected today */
+.calendar-view-day.selected.today {
+    color: white;
+    border-color: transparent;
+}
+
+.calendar-view-day-number {
+    font-size: var(--text-sm, 12px);
+    line-height: 1;
+}
+
+/* =============================================================================
+ * EVENT INDICATORS (DOTS)
+ * ============================================================================= */
+
+.calendar-view-day-events {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.calendar-view-event-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-subtle);
+}
+
+/* Inverse dot color when selected to ensure contrast */
+.calendar-view-day.selected .calendar-view-event-dot {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.calendar-view-event-more {
+    font-size: 8px;
+    color: var(--text-subtle);
+    line-height: 1;
+}
+
+.calendar-view-day.selected .calendar-view-event-more {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* =============================================================================
+ * SELECTED EVENTS & LIST
+ * ============================================================================= */
+
+.calendar-view-selected-events {
+    margin-top: var(--space-4, 16px);
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-3, 12px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-view-selected-header {
+    font-size: var(--text-sm, 12px);
+    font-weight: var(--font-semibold, 600);
+    color: var(--text-subtle);
+    margin-bottom: var(--space-2, 8px);
+}
+
+.calendar-view-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.calendar-view-event-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    padding: 6px 8px;
+    background: var(--panel-bg-alt, rgba(255, 255, 255, 0.03));
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    transition: background var(--transition-fast, 0.15s);
+    border-left: 3px solid transparent;
+    /* Colored border logic handled via inline style loop or class if strict */
+}
+
+.calendar-view-event-item:hover {
+    background: var(--panel-bg-hover);
+}
+
+.calendar-view-event-type-icon {
+    font-size: 14px;
+}
+
+.calendar-view-event-title {
+    flex: 1;
+    font-size: var(--text-sm, 12px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-view-event-time {
+    font-size: var(--text-xs, 10px);
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+}
+
+.calendar-view-no-events {
+    color: var(--text-muted);
+    font-size: var(--text-sm, 12px);
+    text-align: center;
+    padding: var(--space-3, 12px);
+    font-style: italic;
+}
+
+.calendar-view-add-btn {
+    margin-top: var(--space-2, 8px);
+    width: 100%;
+    padding: 6px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-subtle);
+    border-radius: var(--radius-sm, 4px);
+    font-size: var(--text-xs, 12px);
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s);
+}
+
+.calendar-view-add-btn:hover {
+    background: var(--panel-bg-hover);
+    color: var(--accent);
+    border-color: var(--accent);
+}
