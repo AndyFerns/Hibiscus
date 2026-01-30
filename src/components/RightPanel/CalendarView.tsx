@@ -27,7 +27,7 @@
  */
 
 import { useState, useMemo } from "react"
-import { CalendarEvent, EVENT_TYPE_CONFIG } from "../../types/calendar"
+import { CalendarEvent, EVENT_TYPE_CONFIG, formatLocalDate } from "../../types/calendar"
 import "./CalendarView.css"
 
 /**
@@ -83,9 +83,10 @@ function getMonthGrid(year: number, month: number): Date[] {
 
 /**
  * @brief Format date as ISO date string (YYYY-MM-DD)
+ * Uses formatLocalDate to ensure local timezone logic
  */
 function toDateString(date: Date): string {
-    return date.toISOString().split('T')[0]
+    return formatLocalDate(date)
 }
 
 /**

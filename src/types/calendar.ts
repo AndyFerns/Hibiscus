@@ -130,3 +130,14 @@ export const EVENT_TYPE_CONFIG: Record<EventType, { color: string; icon: string;
     reminder: { color: '#bb9af7', icon: '🔔', label: 'Reminder' },
     custom: { color: '#787c99', icon: '📌', label: 'Custom' },
 }
+
+/**
+ * Formats a local date object to YYYY-MM-DD string
+ * avoiding UTC shifts caused by toISOString()
+ */
+export function formatLocalDate(date: Date): string {
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+}

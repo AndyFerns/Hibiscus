@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from "react"
-import { CalendarEvent, EventType, EVENT_TYPE_CONFIG } from "../../types/calendar"
+import { CalendarEvent, EventType, EVENT_TYPE_CONFIG, formatLocalDate } from "../../types/calendar"
 import "./EventModal.css"
 
 interface EventModalProps {
@@ -50,9 +50,9 @@ export function EventModal({
                 // New event default state
                 setTitle("")
                 setType("study")
-                // Format initial date as YYYY-MM-DD
+                // Format initial date to YYYY-MM-DD using local time to prevent off-by-one errors
                 const d = initialDate || new Date()
-                setDate(d.toISOString().split('T')[0])
+                setDate(formatLocalDate(d))
                 setTime("")
                 setLinkedFile("")
                 setDescription("")

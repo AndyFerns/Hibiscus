@@ -19,7 +19,7 @@ import { DailyPlanner } from "./PlannerSection/DailyPlanner"
 import { TaskList } from "./PlannerSection/TaskList"
 import { EventModal } from "./EventModal"
 import { useCalendarController } from "../../hooks/useCalendarController"
-import { CalendarEvent } from "../../types/calendar"
+import { CalendarEvent, formatLocalDate } from "../../types/calendar"
 import "./PlannerSection/Planner.css"
 
 interface RightPanelContainerProps {
@@ -36,7 +36,7 @@ export function RightPanelContainer({ workspaceRoot, onOpenFile }: RightPanelCon
     const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>(undefined)
 
     // Derived state: Today's date string
-    const todayStr = new Date().toISOString().split('T')[0]
+    const todayStr = formatLocalDate(new Date())
 
     // Filter events for today
     const todayEvents = useMemo(() =>

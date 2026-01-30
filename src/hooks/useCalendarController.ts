@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
-import { CalendarEvent, DailyTask, CalendarData } from "../types/calendar"
+import { CalendarEvent, DailyTask, CalendarData, formatLocalDate } from "../types/calendar"
 
 export function useCalendarController(workspaceRoot: string | null) {
     const [events, setEvents] = useState<CalendarEvent[]>([])
@@ -58,7 +58,7 @@ export function useCalendarController(workspaceRoot: string | null) {
         const newEvent: CalendarEvent = {
             id: crypto.randomUUID(),
             title: event.title || "New Event",
-            date: event.date || new Date().toISOString().split('T')[0],
+            date: event.date || formatLocalDate(new Date()),
             type: event.type || "study",
             completed: false,
             ...event
