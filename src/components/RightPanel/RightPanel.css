@@ -1,0 +1,248 @@
+/**
+ * ============================================================================
+ * RightPanel Component Styles
+ * ============================================================================
+ * 
+ * Styles for the split right panel with:
+ * - Vertical flexbox layout with two sections
+ * - Resizable divider between sections
+ * - Collapse/expand animations
+ * - Hover-reveal collapse buttons
+ * 
+ * CSS VARIABLES USED:
+ * - --panel-bg: Panel background color
+ * - --panel-bg-hover: Hover state background
+ * - --border: Border color
+ * - --text, --text-muted: Text colors
+ * - --accent: Accent color for active states
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * CONTAINER
+ * Main right panel container with vertical flex layout
+ * ============================================================================= */
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background: var(--panel-bg);
+    overflow: hidden;
+}
+
+/* =============================================================================
+ * SECTIONS
+ * Top (Calendar) and Bottom (Planner) sections
+ * ============================================================================= */
+
+.right-panel-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Allow flex shrinking */
+    overflow: hidden;
+    transition: height 0.2s ease-out;
+}
+
+/* Collapsed state - only show header */
+.right-panel-section.collapsed {
+    flex-shrink: 0;
+}
+
+/* =============================================================================
+ * SECTION HEADER
+ * Title bar for each section with collapse button
+ * ============================================================================= */
+
+.right-panel-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    min-height: 36px;
+    user-select: none;
+}
+
+.right-panel-section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    font-size: var(--text-sm, 12px);
+    font-weight: var(--font-semibold, 600);
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.right-panel-section-icon {
+    font-size: var(--text-base, 14px);
+}
+
+/* =============================================================================
+ * COLLAPSE BUTTON
+ * Shown on hover, toggles section collapse state
+ * ============================================================================= */
+
+.right-panel-collapse-btn {
+    /* Reset button styles */
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    /* Sizing */
+    width: 20px;
+    height: 20px;
+    padding: 0;
+
+    /* Layout */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Typography */
+    font-size: 10px;
+    color: var(--text-muted);
+
+    /* Hover visibility */
+    opacity: 0;
+    transition:
+        opacity var(--transition-fast, 0.15s),
+        background var(--transition-fast, 0.15s),
+        color var(--transition-fast, 0.15s);
+
+    /* Rounded corners */
+    border-radius: var(--radius-sm, 4px);
+}
+
+/* Show on section header hover */
+.right-panel-section-header:hover .right-panel-collapse-btn {
+    opacity: 1;
+}
+
+.right-panel-collapse-btn:hover {
+    background: var(--panel-bg-hover);
+    color: var(--text);
+}
+
+/* =============================================================================
+ * SECTION CONTENT
+ * Scrollable content area for each section
+ * ============================================================================= */
+
+.right-panel-section-content {
+    flex: 1;
+    min-height: 0;
+    /* Critical for flex overflow scrolling */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb, rgba(255, 255, 255, 0.1)) transparent;
+}
+
+.right-panel-section-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.right-panel-section-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.right-panel-section-content::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.1));
+    border-radius: 3px;
+}
+
+.right-panel-section-content::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.2));
+}
+
+/* =============================================================================
+ * RESIZE HANDLE
+ * Draggable divider between top and bottom sections
+ * ============================================================================= */
+
+.right-panel-resize-handle {
+    /* Sizing - thin line but good hit area */
+    height: 4px;
+    width: 100%;
+    flex-shrink: 0;
+
+    /* Appearance */
+    background: var(--border);
+    cursor: row-resize;
+
+    /* Transition for active state */
+    transition: background var(--transition-fast, 0.15s);
+
+    /* Position relative for pseudo-element */
+    position: relative;
+}
+
+/* Expand hit area with pseudo-element */
+.right-panel-resize-handle::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    z-index: 1;
+}
+
+/* Hover/active state */
+.right-panel-resize-handle:hover,
+.right-panel-resize-handle.active {
+    background: var(--accent, #7aa2f7);
+}
+
+/* =============================================================================
+ * TOP SECTION (Calendar)
+ * ============================================================================= */
+
+.right-panel-top {
+    /* Default takes top portion */
+}
+
+/* =============================================================================
+ * BOTTOM SECTION (Planner)
+ * ============================================================================= */
+
+.right-panel-bottom {
+    /* Border between sections */
+    border-top: 1px solid var(--border);
+}
+
+/* =============================================================================
+ * PLACEHOLDER CONTENT
+ * Styling for placeholder messages during development
+ * ============================================================================= */
+
+.right-panel-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: var(--space-4, 16px);
+    text-align: center;
+    color: var(--text-subtle);
+}
+
+.right-panel-placeholder-icon {
+    font-size: 32px;
+    margin-bottom: var(--space-2, 8px);
+    opacity: 0.5;
+}
+
+.right-panel-placeholder-text {
+    font-size: var(--text-sm, 12px);
+    line-height: 1.5;
+}
