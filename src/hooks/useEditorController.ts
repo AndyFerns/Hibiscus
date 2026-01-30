@@ -19,6 +19,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
+import { listen } from "@tauri-apps/api/event"
 import { Node } from "../types/workspace"
 
 /**
@@ -229,6 +230,72 @@ export function useEditorController(workspaceRoot: string | null) {
       })
     }
   }, [])
+
+  // ===========================================================================
+  // BUG FIX: Detect external file changes (via File Explorer, other editors)
+  // When the filesystem watcher detects changes, we reload the content for
+  // any open files that were modified externally. If the file has unsaved
+  // local changes (isDirty), we warn the user; otherwise update silently.
+  // ===========================================================================
+  useEffect(() => {
+    if (!workspaceRoot) return
+
+    let unlisten: (() => void) | null = null
+
+    listen<string[]>("fs-changed", async (event) => {
+      const changedPaths = event.payload
+
+      // Check each buffer to see if it was modified externally
+      for (const [filePath, buffer] of buffersRef.current.entries()) {
+        // Normalize paths for comparison (handle Windows backslashes)
+        const normalizedFilePath = filePath.replace(/\\/g, "/")
+        const wasModified = changedPaths.some(changedPath => {
+          const normalizedChanged = changedPath.replace(/\\/g, "/")
+          return normalizedFilePath === normalizedChanged
+        })
+
+        if (wasModified) {
+          try {
+            // Read current disk content
+            const diskContent = await invoke<string>("read_text_file", { path: filePath })
+
+            // If disk content differs from what we last saved, it was changed externally
+            if (diskContent !== buffer.savedContent) {
+              if (buffer.isDirty) {
+                // User has unsaved changes - log warning, don't overwrite
+                console.warn(
+                  `[Hibiscus] External change detected for ${filePath.split(/[/\\]/).pop()} ` +
+                  `but file has unsaved changes. Not reloading.`
+                )
+              } else {
+                // No local changes - safe to reload from disk
+                buffer.content = diskContent
+                buffer.savedContent = diskContent
+                buffer.isDirty = false
+
+                // If this is the active file, update the UI state
+                if (filePath === activeFilePath) {
+                  setFileContent(diskContent)
+                  setIsDirty(false)
+                }
+
+                console.log(
+                  `[Hibiscus] Reloaded external changes: ${filePath.split(/[/\\]/).pop()}`
+                )
+              }
+            }
+          } catch (e) {
+            // File may have been deleted - handle gracefully
+            console.warn(`[Hibiscus] Could not reload ${filePath}:`, e)
+          }
+        }
+      }
+    }).then(fn => (unlisten = fn))
+
+    return () => {
+      if (unlisten) unlisten()
+    }
+  }, [workspaceRoot, activeFilePath])
 
   return {
     activeFile,

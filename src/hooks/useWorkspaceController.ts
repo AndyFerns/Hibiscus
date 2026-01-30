@@ -31,12 +31,14 @@ export function useWorkspaceController() {
     const discovery = await discoverWorkspace(root)
 
     if (discovery.found && discovery.path) {
+      // Load existing workspace configuration
       const loaded = await invoke<WorkspaceFile>("load_workspace", {
         path: discovery.path,
       })
 
       setWorkspace({ ...loaded, tree })
     } else {
+      // Create fresh workspace for new directories
       const fresh: WorkspaceFile = {
         schema_version: "1.0",
         workspace: {
@@ -52,10 +54,14 @@ export function useWorkspaceController() {
       const path = `${root}/.hibiscus/workspace.json`
       await persistWorkspace(path, fresh)
       setWorkspace(fresh)
-
-        //ALWAYS start watcher
-      await invoke("watch_workspace", { path: root })
     }
+
+    // =========================================================================
+    // BUG FIX: Start file watcher for ALL workspaces (new AND existing)
+    // Previously this was only inside the else-block, causing autosave and
+    // external file change detection to fail for existing workspaces.
+    // =========================================================================
+    await invoke("watch_workspace", { path: root })
   }
 
   // ---- workspace switch ----

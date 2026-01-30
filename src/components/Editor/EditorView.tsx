@@ -123,6 +123,15 @@ export function EditorView({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
+  // ===========================================================================
+  // BUG FIX: Use ref to avoid stale closure in Monaco command handler
+  // The addCommand callback is registered once on mount. Without this ref,
+  // it would capture the initial onSave, causing Ctrl+S to use stale state
+  // (wrong file path, outdated content). The ref is updated on every render.
+  // ===========================================================================
+  const onSaveRef = useRef(onSave)
+  onSaveRef.current = onSave
+
   /**
    * Initialize Monaco editor on mount
    * Creates the editor instance with initial content and configuration
@@ -178,14 +187,16 @@ export function EditorView({
     })
 
     // Register Save command (Ctrl+S / Cmd+S)
-    if (onSave) {
-      editorRef.current.addCommand(
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-        () => {
-          onSave()
+    // Uses onSaveRef to always call the LATEST onSave callback
+    editorRef.current.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      () => {
+        // Access current onSave via ref to avoid stale closure
+        if (onSaveRef.current) {
+          onSaveRef.current()
         }
-      )
-    }
+      }
+    )
 
     // Cleanup: dispose editor on unmount
     return () => {
