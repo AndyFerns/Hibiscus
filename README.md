@@ -4,7 +4,7 @@
 
 It bridges the gap between a lightweight code editor and a dedicated study planner, allowing you to manage your coursework, coding projects, and exam schedules in a single, distraction-free environment. By integrating file management with time management, Hibiscus reduces context switching and keeps your focus where it belongs.
 
-![Hibiscus UI](https://via.placeholder.com/800x450?text=Hibiscus+UI+Preview) *(Replace with actual screenshot)*
+![Hibiscus UI](public/Hibiscus%20v0.3.7.png)
 
 ## ✨ Key Features
 
