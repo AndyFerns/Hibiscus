@@ -29,6 +29,11 @@ import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
 
+import versionInfo from "../version.json"
+
+export const APP_NAME = versionInfo.name;
+export const APP_VERSION = versionInfo.version;
+
 import "./App.css"
 
 export default function App() {
@@ -233,7 +238,7 @@ export default function App() {
 
             {/* Version */}
             <span className="status-item status-item--muted">
-              Hibiscus v0.2.1
+              {APP_NAME} v{APP_VERSION}
             </span>
           </div>
         </div>
