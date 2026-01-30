@@ -1,6 +1,6 @@
 [package]
 name = "hibiscus"
-version = "0.3.4"
+version = "0.3.5"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -26,3 +26,6 @@ notify = "7" # filesystem watching (read-only)
 tauri-plugin-dialog = "2.5.0"
 thiserror = "1" # Typed error handling
 tokio = { version = "1", features = ["fs", "sync"] } # Async I/O
+
+[dev-dependencies]
+tempfile = "3"

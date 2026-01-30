@@ -45,7 +45,16 @@ pub async fn load_workspace(path: String) -> Result<WorkspaceFile, HibiscusError
         .map_err(|e| HibiscusError::Io(format!("Failed to read workspace.json: {}", e)))?;
 
     // Parse JSON
-    let workspace: WorkspaceFile = serde_json::from_str(&content)?;
+    let workspace: WorkspaceFile = serde_json::from_str(&content)
+        .map_err(|e| HibiscusError::Workspace(format!("Invalid workspace format: {}", e)))?;
+
+    // Validate schema version
+    if workspace.schema_version != "1.0" {
+        return Err(HibiscusError::Workspace(format!(
+            "Unsupported workspace version: {}", 
+            workspace.schema_version
+        )));
+    }
 
     Ok(workspace)
 }
