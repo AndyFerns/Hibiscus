@@ -25,9 +25,12 @@ import { TreeView } from "./components/Tree/TreeView"
 import { EditorView, CursorPosition } from "./components/Editor/EditorView"
 import { RightPanelContainer } from "./components/RightPanel/RightPanelContainer"
 import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
+import { ThemeSelector } from "./components/StatusBar/ThemeSelector"
+import { ShortcutOverlay } from "./components/StatusBar/ShortcutOverlay"
 
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts"
 
 import versionInfo from "../version.json"
 
@@ -68,6 +71,7 @@ export default function App() {
   // ============================================================================
   const [showLeftPanel, setShowLeftPanel] = useState(true)
   const [showRightPanel, setShowRightPanel] = useState(false)
+  const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
 
   // ============================================================================
   // CURSOR POSITION STATE
@@ -116,150 +120,170 @@ export default function App() {
     })
   }, [handleFileOpen])
 
+  // ============================================================================
+  // KEYBOARD SHORTCUTS
+  // Global registry for app-wide shortcuts
+  // ============================================================================
+  useKeyboardShortcuts({
+    onOpenFolder: changeWorkspace,
+    onToggleLeftPanel: toggleLeftPanel,
+    onToggleRightPanel: toggleRightPanel,
+    onToggleShortcutOverlay: () => setShowShortcutOverlay((prev) => !prev),
+  })
+
   return (
-    <Workbench
-      /* ----------------------------------------------------------------
-       * TITLE BAR (Custom Window Titlebar)
-       * Application header with menus and window controls
-       * ---------------------------------------------------------------- */
-      top={
-        <TitleBar
-          workspaceRoot={workspaceRoot}
-          onOpenFolder={changeWorkspace}
-          onToggleLeftPanel={toggleLeftPanel}
-          onToggleRightPanel={toggleRightPanel}
-          showLeftPanel={showLeftPanel}
-          showRightPanel={showRightPanel}
-          onSave={saveCurrentFile}
-        />
-      }
-
-      /* ----------------------------------------------------------------
-       * LEFT PANEL - File Tree
-       * Displays the workspace file structure for navigation
-       * ---------------------------------------------------------------- */
-      left={
-        showLeftPanel ? (
-          <TreeView
-            tree={workspace.tree}
-            activeNodeId={workspace.session?.active_node}
-            onOpen={handleFileOpen}
+    <>
+      <Workbench
+        /* ----------------------------------------------------------------
+         * TITLE BAR (Custom Window Titlebar)
+         * Application header with menus and window controls
+         * ---------------------------------------------------------------- */
+        top={
+          <TitleBar
+            workspaceRoot={workspaceRoot}
+            onOpenFolder={changeWorkspace}
+            onToggleLeftPanel={toggleLeftPanel}
+            onToggleRightPanel={toggleRightPanel}
+            showLeftPanel={showLeftPanel}
+            showRightPanel={showRightPanel}
+            onSave={saveCurrentFile}
           />
-        ) : null
-      }
+        }
 
-      /* ----------------------------------------------------------------
-       * MAIN PANEL - Editor Area
-       * Monaco editor when a file is selected, placeholder otherwise
-       * ---------------------------------------------------------------- */
-      main={
-        <div className="editor-wrapper">
-          {activeFile && activeFilePath ? (
-            <>
-              {/* File header with name and dirty indicator */}
-              <div className="editor-header">
-                <span className="editor-header-title">
-                  <span className="editor-header-icon">📄</span>
-                  {activeFile.name}
-                  {isDirty && <span className="editor-dirty-indicator">*</span>}
-                </span>
-                <div className="editor-header-actions">
-                  {isDirty && (
-                    <span className="editor-unsaved-hint" title="Press Ctrl+S to save">
-                      Unsaved
-                    </span>
-                  )}
+        /* ----------------------------------------------------------------
+         * LEFT PANEL - File Tree
+         * Displays the workspace file structure for navigation
+         * ---------------------------------------------------------------- */
+        left={
+          showLeftPanel ? (
+            <TreeView
+              tree={workspace.tree}
+              activeNodeId={workspace.session?.active_node}
+              onOpen={handleFileOpen}
+            />
+          ) : null
+        }
+
+        /* ----------------------------------------------------------------
+         * MAIN PANEL - Editor Area
+         * Monaco editor when a file is selected, placeholder otherwise
+         * ---------------------------------------------------------------- */
+        main={
+          <div className="editor-wrapper">
+            {activeFile && activeFilePath ? (
+              <>
+                {/* File header with name and dirty indicator */}
+                <div className="editor-header">
+                  <span className="editor-header-title">
+                    <span className="editor-header-icon">📄</span>
+                    {activeFile.name}
+                    {isDirty && <span className="editor-dirty-indicator">*</span>}
+                  </span>
+                  <div className="editor-header-actions">
+                    {isDirty && (
+                      <span className="editor-unsaved-hint" title="Press Ctrl+S to save">
+                        Unsaved
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Monaco editor container */}
-              <div className="editor-container">
-                <EditorView
-                  path={activeFilePath}
-                  content={fileContent}
-                  onChange={onChange}
-                  onCursorChange={setCursorPosition}
-                  onSave={saveCurrentFile}
-                />
+                {/* Monaco editor container */}
+                <div className="editor-container">
+                  <EditorView
+                    path={activeFilePath}
+                    content={fileContent}
+                    onChange={onChange}
+                    onCursorChange={setCursorPosition}
+                    onSave={saveCurrentFile}
+                  />
+                </div>
+              </>
+            ) : (
+              /* Placeholder when no file is selected */
+              <div className="editor-placeholder">
+                <span className="editor-placeholder-icon">📂</span>
+                <span className="editor-placeholder-text">
+                  Select a file from the tree to start editing
+                </span>
               </div>
-            </>
-          ) : (
-            /* Placeholder when no file is selected */
-            <div className="editor-placeholder">
-              <span className="editor-placeholder-icon">📂</span>
-              <span className="editor-placeholder-text">
-                Select a file from the tree to start editing
+            )}
+          </div>
+        }
+
+        /* ----------------------------------------------------------------
+         * RIGHT PANEL - Calendar & Planner
+         * Split view for study planning
+         * ---------------------------------------------------------------- */
+        right={
+          <RightPanelContainer
+            workspaceRoot={workspaceRoot}
+            onOpenFile={openFileByPath}
+          />
+        }
+        showRightPanel={showRightPanel}
+
+        /* ----------------------------------------------------------------
+         * BOTTOM PANEL - Status Bar
+         * Displays status info, cursor position, and layout controls
+         * ---------------------------------------------------------------- */
+        bottom={
+          <div className="status-bar">
+            {/* Left: Workspace info */}
+            <div className="status-bar-left">
+              {workspaceRoot ? (
+                <span className="status-item">
+                  📁 {workspaceRoot.split(/[/\\]/).pop()}
+                </span>
+              ) : (
+                <span className="status-item status-item--muted">
+                  No workspace
+                </span>
+              )}
+            </div>
+
+            {/* Right: Cursor position, file info, layout controls, version */}
+            <div className="status-bar-right">
+              {/* Cursor Position (Line:Column) */}
+              {activeFile && (
+                <span className="status-item" title="Cursor position">
+                  Ln {cursorPosition.line}, Col {cursorPosition.column}
+                </span>
+              )}
+
+              {/* Current file name */}
+              {activeFile && (
+                <span className="status-item status-item--muted">
+                  {activeFile.name}
+                </span>
+              )}
+
+              {/* Theme Selector */}
+              <ThemeSelector />
+
+              {/* Separator */}
+              <span className="status-separator" />
+
+              {/* Layout Toggle */}
+              <LayoutToggle
+                showLeftPanel={showLeftPanel}
+                showRightPanel={showRightPanel}
+                onToggleLeftPanel={toggleLeftPanel}
+                onToggleRightPanel={toggleRightPanel}
+              />
+
+              {/* Version */}
+              <span className="status-item status-item--muted">
+                {APP_NAME} v{APP_VERSION}
               </span>
             </div>
-          )}
-        </div>
-      }
-
-      /* ----------------------------------------------------------------
-       * RIGHT PANEL - Calendar & Planner
-       * Split view for study planning
-       * ---------------------------------------------------------------- */
-      right={
-        <RightPanelContainer
-          workspaceRoot={workspaceRoot}
-          onOpenFile={openFileByPath}
-        />
-      }
-      showRightPanel={showRightPanel}
-
-      /* ----------------------------------------------------------------
-       * BOTTOM PANEL - Status Bar
-       * Displays status info, cursor position, and layout controls
-       * ---------------------------------------------------------------- */
-      bottom={
-        <div className="status-bar">
-          {/* Left: Workspace info */}
-          <div className="status-bar-left">
-            {workspaceRoot ? (
-              <span className="status-item">
-                📁 {workspaceRoot.split(/[/\\]/).pop()}
-              </span>
-            ) : (
-              <span className="status-item status-item--muted">
-                No workspace
-              </span>
-            )}
           </div>
-
-          {/* Right: Cursor position, file info, layout controls, version */}
-          <div className="status-bar-right">
-            {/* Cursor Position (Line:Column) */}
-            {activeFile && (
-              <span className="status-item" title="Cursor position">
-                Ln {cursorPosition.line}, Col {cursorPosition.column}
-              </span>
-            )}
-
-            {/* Current file name */}
-            {activeFile && (
-              <span className="status-item status-item--muted">
-                {activeFile.name}
-              </span>
-            )}
-
-            {/* Separator */}
-            <span className="status-separator" />
-
-            {/* Layout Toggle */}
-            <LayoutToggle
-              showLeftPanel={showLeftPanel}
-              showRightPanel={showRightPanel}
-              onToggleLeftPanel={toggleLeftPanel}
-              onToggleRightPanel={toggleRightPanel}
-            />
-
-            {/* Version */}
-            <span className="status-item status-item--muted">
-              {APP_NAME} v{APP_VERSION}
-            </span>
-          </div>
-        </div>
-      }
-    />
+        }
+      />
+      <ShortcutOverlay
+        isOpen={showShortcutOverlay}
+        onClose={() => setShowShortcutOverlay(false)}
+      />
+    </>
   )
 }

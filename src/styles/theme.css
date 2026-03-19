@@ -20,57 +20,39 @@
 
 :root {
   /* -------------------------------------------------------------------------
-   * COLOR PALETTE - Core Background Colors
-   * These form the layered depth system of the UI
+   * COLOR PALETTE - Default / Fallback Colors (Midnight Theme)
    * ------------------------------------------------------------------------- */
-  --bg: #0a0d12;                          /* Deepest background layer */
-  --bg-elevated: #0f1115;                 /* Raised surfaces (modals, dropdowns) */
-  --panel-bg: #131720;                    /* Side panels, secondary areas */
-  --panel-bg-hover: #1a1f2e;              /* Panel hover state */
-  --editor-bg: #0a0d12;                   /* Editor/main content area */
+  --bg: #0a0d12;
+  --bg-elevated: #0f1115;
+  --panel-bg: #131720;
+  --panel-bg-hover: #1a1f2e;
+  --editor-bg: #0a0d12;
 
-  /* -------------------------------------------------------------------------
-   * COLOR PALETTE - Border & Divider Colors
-   * Subtle separators that don't distract from content
-   * ------------------------------------------------------------------------- */
-  --border: rgba(255, 255, 255, 0.06);    /* Default subtle border */
-  --border-hover: rgba(255, 255, 255, 0.12); /* Border on hover */
-  --border-focus: rgba(122, 162, 247, 0.5);  /* Border when focused */
-  --divider: rgba(255, 255, 255, 0.04);   /* Section dividers */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(122, 162, 247, 0.5);
+  --divider: rgba(255, 255, 255, 0.04);
 
-  /* -------------------------------------------------------------------------
-   * COLOR PALETTE - Text Colors
-   * Hierarchical text system for readability
-   * ------------------------------------------------------------------------- */
-  --text: #e6e6eb;                        /* Primary text - high contrast */
-  --text-muted: #8b92a8;                  /* Secondary text - descriptions */
-  --text-subtle: #5c6370;                 /* Tertiary text - placeholders */
-  --text-disabled: #3e4451;               /* Disabled state text */
+  --text: #e6e6eb;
+  --text-muted: #8b92a8;
+  --text-subtle: #5c6370;
+  --text-disabled: #3e4451;
 
-  /* -------------------------------------------------------------------------
-   * COLOR PALETTE - Accent Colors
-   * Brand colors and interactive element highlights
-   * ------------------------------------------------------------------------- */
-  --accent: #7aa2f7;                      /* Primary accent - links, active */
-  --accent-hover: #89b4fa;                /* Accent hover state */
-  --accent-soft: rgba(122, 162, 247, 0.15); /* Soft accent for backgrounds */
-  --accent-glow: rgba(122, 162, 247, 0.25); /* Glow effect for focus states */
-  
-  /* Secondary accent for variety (purple tones) */
-  --accent-secondary: #bb9af7;            /* Secondary accent color */
+  --accent: #7aa2f7;
+  --accent-hover: #89b4fa;
+  --accent-soft: rgba(122, 162, 247, 0.15);
+  --accent-glow: rgba(122, 162, 247, 0.25);
+
+  --accent-secondary: #bb9af7;
   --accent-secondary-soft: rgba(187, 154, 247, 0.15);
 
-  /* -------------------------------------------------------------------------
-   * COLOR PALETTE - Semantic Colors
-   * Meaningful colors for status and feedback
-   * ------------------------------------------------------------------------- */
-  --success: #9ece6a;                     /* Success states */
+  --success: #9ece6a;
   --success-soft: rgba(158, 206, 106, 0.15);
-  --warning: #e0af68;                     /* Warning states */
+  --warning: #e0af68;
   --warning-soft: rgba(224, 175, 104, 0.15);
-  --error: #f7768e;                       /* Error states */
+  --error: #f7768e;
   --error-soft: rgba(247, 118, 142, 0.15);
-  --info: #7dcfff;                        /* Info states */
+  --info: #7dcfff;
   --info-soft: rgba(125, 207, 255, 0.15);
 
   /* -------------------------------------------------------------------------
@@ -84,13 +66,20 @@
    * TYPOGRAPHY - Font Sizes
    * Modular scale for consistent hierarchy
    * ------------------------------------------------------------------------- */
-  --text-xs: 11px;                        /* Badges, labels */
-  --text-sm: 12px;                        /* Secondary text, captions */
-  --text-base: 13px;                      /* Body text, UI elements */
-  --text-md: 14px;                        /* Emphasized body text */
-  --text-lg: 16px;                        /* Subheadings */
-  --text-xl: 18px;                        /* Section headings */
-  --text-2xl: 24px;                       /* Page titles */
+  --text-xs: 11px;
+  /* Badges, labels */
+  --text-sm: 12px;
+  /* Secondary text, captions */
+  --text-base: 13px;
+  /* Body text, UI elements */
+  --text-md: 14px;
+  /* Emphasized body text */
+  --text-lg: 16px;
+  /* Subheadings */
+  --text-xl: 18px;
+  /* Section headings */
+  --text-2xl: 24px;
+  /* Page titles */
 
   /* -------------------------------------------------------------------------
    * TYPOGRAPHY - Font Weights
@@ -119,11 +108,16 @@
    * BORDER RADIUS - Rounded corner scale
    * ------------------------------------------------------------------------- */
   --radius-none: 0;
-  --radius-sm: 4px;                       /* Subtle rounding */
-  --radius-md: 6px;                       /* Default rounding */
-  --radius-lg: 8px;                       /* Cards, panels */
-  --radius-xl: 12px;                      /* Modals, large containers */
-  --radius-full: 9999px;                  /* Pills, avatars */
+  --radius-sm: 4px;
+  /* Subtle rounding */
+  --radius-md: 6px;
+  /* Default rounding */
+  --radius-lg: 8px;
+  /* Cards, panels */
+  --radius-xl: 12px;
+  /* Modals, large containers */
+  --radius-full: 9999px;
+  /* Pills, avatars */
 
   /* -------------------------------------------------------------------------
    * SHADOWS - Elevation system
@@ -134,7 +128,7 @@
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
-  
+
   /* Glow shadows for interactive elements */
   --shadow-glow: 0 0 20px rgba(122, 162, 247, 0.15);
   --shadow-glow-accent: 0 0 30px rgba(122, 162, 247, 0.25);
@@ -143,9 +137,12 @@
    * TRANSITIONS - Animation timing
    * Consistent, smooth animations throughout the app
    * ------------------------------------------------------------------------- */
-  --transition-fast: 0.1s ease-out;       /* Micro-interactions */
-  --transition-normal: 0.15s ease-out;    /* Standard transitions */
-  --transition-slow: 0.25s ease-out;      /* Larger movements */
+  --transition-fast: 0.1s ease-out;
+  /* Micro-interactions */
+  --transition-normal: 0.15s ease-out;
+  /* Standard transitions */
+  --transition-slow: 0.25s ease-out;
+  /* Larger movements */
   --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
   /* -------------------------------------------------------------------------
@@ -166,7 +163,8 @@
   --topbar-height: 42px;
   --sidebar-width: 260px;
   --statusbar-height: 32px;
-  --tree-indent: 16px;                    /* Tree view indentation per level */
+  --tree-indent: 16px;
+  /* Tree view indentation per level */
 }
 
 /* ===========================================================================
@@ -236,4 +234,101 @@
 ::selection {
   background: var(--accent-soft);
   color: var(--text);
+}
+
+/* ===========================================================================
+ * THEMES
+ * =========================================================================== */
+
+[data-theme="midnight"] {
+  --bg: #0a0d12;
+  --bg-elevated: #0f1115;
+  --panel-bg: #131720;
+  --panel-bg-hover: #1a1f2e;
+  --editor-bg: #0a0d12;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(122, 162, 247, 0.5);
+  --divider: rgba(255, 255, 255, 0.04);
+  --text: #e6e6eb;
+  --text-muted: #8b92a8;
+  --text-subtle: #5c6370;
+  --text-disabled: #3e4451;
+  --accent: #7aa2f7;
+  --accent-hover: #89b4fa;
+  --accent-soft: rgba(122, 162, 247, 0.15);
+  --accent-glow: rgba(122, 162, 247, 0.25);
+  --accent-secondary: #bb9af7;
+  --accent-secondary-soft: rgba(187, 154, 247, 0.15);
+
+  --success: #9ece6a;
+  --success-soft: rgba(158, 206, 106, 0.15);
+  --warning: #e0af68;
+  --warning-soft: rgba(224, 175, 104, 0.15);
+  --error: #f7768e;
+  --error-soft: rgba(247, 118, 142, 0.15);
+  --info: #7dcfff;
+  --info-soft: rgba(125, 207, 255, 0.15);
+}
+
+[data-theme="dawn"] {
+  --bg: #f9fafb;
+  --bg-elevated: #ffffff;
+  --panel-bg: #f3f4f6;
+  --panel-bg-hover: #e5e7eb;
+  --editor-bg: #f9fafb;
+  --border: rgba(0, 0, 0, 0.1);
+  --border-hover: rgba(0, 0, 0, 0.2);
+  --border-focus: rgba(59, 130, 246, 0.5);
+  --divider: rgba(0, 0, 0, 0.08);
+  --text: #111827;
+  --text-muted: #4b5563;
+  --text-subtle: #9ca3af;
+  --text-disabled: #d1d5db;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-soft: rgba(59, 130, 246, 0.15);
+  --accent-glow: rgba(59, 130, 246, 0.25);
+  --accent-secondary: #8b5cf6;
+  --accent-secondary-soft: rgba(139, 92, 246, 0.15);
+
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-soft: rgba(239, 68, 68, 0.15);
+  --info: #0ea5e9;
+  --info-soft: rgba(14, 165, 233, 0.15);
+}
+
+[data-theme="forest"] {
+  --bg: #09120c;
+  --bg-elevated: #0f1c13;
+  --panel-bg: #122117;
+  --panel-bg-hover: #1a2f21;
+  --editor-bg: #09120c;
+  --border: rgba(167, 243, 208, 0.1);
+  --border-hover: rgba(167, 243, 208, 0.2);
+  --border-focus: rgba(52, 211, 153, 0.5);
+  --divider: rgba(167, 243, 208, 0.05);
+  --text: #ecfdf5;
+  --text-muted: #a7f3d0;
+  --text-subtle: #6ee7b7;
+  --text-disabled: #065f46;
+  --accent: #34d399;
+  --accent-hover: #10b981;
+  --accent-soft: rgba(52, 211, 153, 0.15);
+  --accent-glow: rgba(52, 211, 153, 0.25);
+  --accent-secondary: #818cf8;
+  --accent-secondary-soft: rgba(129, 140, 248, 0.15);
+
+  --success: #6ee7b7;
+  --success-soft: rgba(110, 231, 183, 0.15);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.15);
+  --error: #f87171;
+  --error-soft: rgba(248, 113, 113, 0.15);
+  --info: #38bdf8;
+  --info-soft: rgba(56, 189, 248, 0.15);
 }
