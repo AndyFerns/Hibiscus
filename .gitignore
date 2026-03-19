@@ -23,6 +23,29 @@ Thumbs.db
 desktop.ini
 
 
+# =========================
+# MkDocs
+# =========================
+
+# Build output
+site/
+
+# MkDocs cache (sometimes created)
+.cache/mkdocs/
+
+# Python virtual environments (if using one)
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# MkDocs material temp files (rare but safe)
+.mypy_cache/
+
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

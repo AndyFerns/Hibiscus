@@ -1,0 +1,50 @@
+site_name: Hibiscus
+site_description: A lightweight, high-performance study planner and code editor built with React, Tauri, and Rust.
+site_author: Andrew Ferns
+repo_name: AndrewFerns/Hibiscus
+repo_url: https://github.com/AndrewFerns/Hibiscus
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Welcome: index.md
+  - Guide:
+      - Getting Started: guide/getting-started.md
+      - Keyboard Shortcuts: guide/shortcuts.md
+      - Theming: guide/theming.md
+  - Developer:
+      - Architecture: dev/architecture.md
+      - API Reference: dev/api-reference.md
+      - Contributing: dev/contributing.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true

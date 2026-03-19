@@ -107,6 +107,7 @@ export interface CursorPosition {
 interface EditorViewProps {
   path: string
   content: string
+  version: number // STRICTLY controls when to reload externally
   onChange: (value: string) => void
   onCursorChange?: (position: CursorPosition) => void
   onSave?: () => void
@@ -115,6 +116,7 @@ interface EditorViewProps {
 export function EditorView({
   path,
   content,
+  version,
   onChange,
   onCursorChange,
   onSave,
@@ -224,8 +226,8 @@ export function EditorView({
   }, []) // Empty deps: only run on mount
 
   /**
-   * Sync content from parent when it changes externally
-   * (e.g., when switching files or reverting changes)
+   * Sync content from parent ONLY when 'version' bumps
+   * This prevents stale React 'content' prop echoes from wiping ongoing typing
    */
   useEffect(() => {
     const model = editorRef.current?.getModel()
@@ -237,7 +239,7 @@ export function EditorView({
         editorRef.current?.setPosition(position)
       }
     }
-  }, [content])
+  }, [version, path])
 
   /**
    * Update language mode when file path changes

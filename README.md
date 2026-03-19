@@ -6,77 +6,91 @@ It bridges the gap between a lightweight code editor and a dedicated study plann
 
 ![Hibiscus UI](public/Hibiscus%20v0.3.7.png)
 
-## ✨ Key Features
+## ✨ Features
 
-### Intelligent Study Planner
+- **🚀 High Performance**: Powered by a Rust backend for near-instant startup and low memory usage.
+- **📂 Workspace Management**: Native file explorer with recursive tree view and file watching.
+- **📝 Code Editor**: Integrated Monaco Editor (VS Code core) for a familiar editing experience.
+- **📅 Calendar & Planner**:
+  - Interactive monthly calendar with event indicators.
+  - Split-view daily planner and task list.
+  - Event types: Exam, Assignment, Study, Reminder.
+  - Data persistence to `.hibiscus/calendar.json`.
+- **🖥️ Custom UI**:
+  - Frameless custom window with native-feel controls.
+  - Creating a cohesive, modern aesthetic (Glassmorphism inspired).
+  - Resizable split-pane layouts.
 
-The integrated right-panel is built specifically for academic workflows:
+## 🛠️ Tech Stack
 
-- **Contextual File Linking**: Directly link lecture notes (`.md`) or project files to calendar events. Clicking "Physics Final" instantly opens your review notes in the editor.
-- **Academic Categorization**: Native support for **Exams** (Red), **Assignments** (Orange), and **Study Sessions** (Blue) so you can visualize your workload at a glance.
-- **Daily Focus View**: A split-pane "Today" view that filters out noise, showing only today's schedule and immediate tasks.
-- **Integrated Checklists**: Manage daily to-dos within the same interface as your code.
+### Frontend
+- **Framework**: React 19
+- **Build Tool**: Vite 7
+- **Language**: TypeScript
+- **Editor**: Monaco Editor (`@monaco-editor/react`)
+- **Styling**: Vanilla CSS (Variables, Grid, Flexbox)
 
-### Performance & Core
+### Backend
+- **Core**: Tauri v2.0 (Rust)
+- **Features**: 
+  - Async File I/O (`tokio`)
+  - Filesystem Watcher (`notify`)
+  - Command System for frontend-backend bridge
 
-- **Native Speed**: Powered by a **Rust** backend (Tauri v2) for instant startup and minimal resource usage.
-- **Monaco Editor**: The same robust editing engine as VS Code, supporting syntax highlighting and modern features.
-- **Recursive File Tree**: Fast, native filesystem explorer with real-time watching.
-- **Data Persistence**: Your calendar data stays local in your workspace (`.hibiscus/calendar.json`), ensuring privacy and portability.
+## 📂 Project Structure
 
-## �️ Project Architecture
+### `src/` (Frontend)
+- **`components/`**: Reusable UI components.
+  - `Editor/`: Monaco editor wrapper.
+  - `Layout/`: Main workbench grid.
+  - `RightPanel/`: Calendar and Planner logic.
+  - `TitleBar/`: Custom window controls.
+  - `TreeView/`: File explorer.
+- **`hooks/`**: Custom React hooks for business logic.
+  - `useCalendarController`: Manages events, tasks, and persistence.
+  - `useWorkspaceController`: Handles file tree and active files.
+- **`styles/`**: Global CSS variables and resets.
+- **`types/`**: Shared TypeScript definitions.
 
-Hibiscus follows a clean separation of concerns:
-
-### `src/` (Frontend - React + Vite)
-
-- **`components/RightPanel/`**: Contains the Calendar logic, `EventModal` form, and `DailyPlanner` components.
-- **`components/Editor/`**: Wrapper around Monaco Editor.
-- **`hooks/useCalendarController.ts`**: The brain of the planner; handles CRUD operations and auto-saving to disk.
-- **`layout/`**: Grid-based workbench layout system.
-
-### `src-tauri/` (Backend - Rust)
-
-- **`commands.rs`**: Secure, atomic file I/O operations and calendar data persistence.
-- **`watcher.rs`**: Efficient filesystem monitoring using `notify`.
-- **`tree.rs`**: Algorithms for building directory trees suitable for UI rendering.
+### `src-tauri/` (Backend)
+- **`src/`**: Rust source code.
+  - `main.rs`: Application entry point.
+  - `lib.rs`: Plugin and command registration.
+  - `commands.rs`: Tauri command implementations (File I/O, Calendar).
+  - `watcher.rs`: Recursive file watcher logic.
+  - `tree.rs`: Directory traversal algorithms.
 
 ## 🚀 Getting Started
 
-Follow these steps to set up the development environment.
+### Prerequisites
+- **Node.js**: v18 or newer
+- **Rust**: Latest stable (install via [rustup](https://rustup.rs/))
+- **Build Tools**:
+  - **Windows**: Visual Studio C++ Build Tools
+  - **macOS**: Xcode Command Line Tools
+  - **Linux**: `build-essential`, `libwebkit2gtk-4.0-dev`, etc. (Check Tauri docs)
 
-### 1. Prerequisites
+### Installation
 
-Ensure you have the following installed:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/hibiscus.git
+   cd hibiscus
+   ```
 
-- **Node.js** (v18+)
-- **Rust** (Stable) via [rustup.rs](https://rustup.rs/)
-- **C++ Build Tools** (Platform specific: VS Build Tools for Windows, Xcode for macOS)
-
-### 2. Setup
-
-#### **Clone the repository**
-
-```bash
-git clone https://github.com/yourusername/hibiscus.git
-cd hibiscus
-```
-
-#### **Install dependencies**
+2. **Install dependencies**:
 
 ```bash
-npm install
-```
+   npm install
+   ```
 
-#### 3. Run Locally
-
+### 3. Run Locally
 Start the app in development mode with hot-reloading:
 
-```bash
-npm run tauri dev
-```
-
-> This command starts the Vite dev server and the Tauri wrapper application simultaneously with hot-reload enabled.
+   ```bash
+   npm run tauri dev
+   ```
+   This command starts the Vite dev server and the Tauri wrapper application simultaneously with hot-reload enabled.
 
 ## 🤝 Contributing
 

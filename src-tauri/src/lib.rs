@@ -17,7 +17,9 @@ mod commands;
 mod error;
 mod tree;
 mod watcher;
-mod workspace;
+pub mod workspace;
+pub mod migration;
+pub mod backup;
 
 use watcher::WatcherState;
 

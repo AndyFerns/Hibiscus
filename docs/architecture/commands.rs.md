@@ -1,3 +1,10 @@
+# Old commands file
+
+kept for brevity and reference
+
+> REMOVE BEFORE FINAL RELEASE
+
+```rust
 //! ============================================================================
 //! Hibiscus Commands Module
 //! ============================================================================
@@ -488,3 +495,5 @@ pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result
 
     Ok(())
 }
+
+```

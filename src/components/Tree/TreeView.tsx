@@ -26,7 +26,9 @@ interface TreeViewProps {
   onOpen: (node: Node) => void
 }
 
-export function TreeView({
+import { memo } from "react"
+
+export const TreeView = memo(function TreeView({
   tree,
   activeNodeId,
   onOpen
@@ -57,5 +59,5 @@ export function TreeView({
       </div>
     </div>
   )
-}
+})
 
