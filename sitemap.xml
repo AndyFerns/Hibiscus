@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/changelog/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/changelog/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/workspace-schema-v1/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/workspace-schema-v1/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/architecture/commands.rs/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/architecture/commands.rs/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/dev/api-reference/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/dev/api-reference/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/dev/architecture/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/dev/architecture/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/dev/contributing/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/dev/contributing/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/guide/getting-started/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/guide/getting-started/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/guide/shortcuts/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/guide/shortcuts/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
     <url>
-         <loc>https://AndyFerns.github.io/Hibiscus/guide/theming/</loc>
+         <loc>https://andyferns.github.io/Hibiscus/guide/theming/</loc>
          <lastmod>2026-03-19</lastmod>
     </url>
 </urlset>
