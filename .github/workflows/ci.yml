@@ -53,6 +53,6 @@ jobs:
         with:
           tagName: app-v__VERSION__
           releaseName: 'Hibiscus v__VERSION__'
-          releaseBody: 'See the documentation for more information.'
+          releaseBody: 'See the documentation for more information; Documentation: https://andyferns.github.io/Hibiscus/'
           releaseDraft: true
           prerelease: false

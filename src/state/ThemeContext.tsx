@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { invoke } from "@tauri-apps/api/core";
 
 export type ThemeType = "midnight" | "dawn" | "forest" | string;
 
@@ -22,7 +21,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return localStorage.getItem("hibiscus:theme") || "midnight";
     });
 
-    const [customThemes, setCustomThemes] = useState<CustomTheme[]>([]);
+    const [customThemes] = useState<CustomTheme[]>([]);
 
     useEffect(() => {
         // Apply theme to document element

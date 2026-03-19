@@ -63,7 +63,7 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
  */
 function getMonthGrid(year: number, month: number): Date[] {
     const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
+    // const lastDay = new Date(year, month + 1, 0)
 
     // Start from the Sunday of the week containing the 1st
     const startDate = new Date(firstDay)
@@ -281,7 +281,7 @@ export function CalendarView({
                             {/* Event indicators */}
                             {dateEvents.length > 0 && (
                                 <div className="calendar-view-day-events">
-                                    {dateEvents.slice(0, 3).map((event, i) => (
+                                    {dateEvents.slice(0, 3).map((event) => (
                                         <span
                                             key={event.id}
                                             className="calendar-view-event-dot"
