@@ -49,6 +49,10 @@ pub enum HibiscusError {
     #[error("Workspace error: {0}")]
     Workspace(String),
 
+    /// Calendar-specific errors
+    #[error("Calendar error: {0}")]
+    Calendar(String),
+
     /// File watcher errors
     #[error("Watcher error: {0}")]
     Watcher(String),

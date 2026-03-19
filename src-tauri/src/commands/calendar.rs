@@ -34,7 +34,11 @@ pub async fn read_calendar_data(root: String) -> Result<serde_json::Value, Hibis
         .await
         .map_err(|e| HibiscusError::Io(format!("Failed to read calendar.json: {}", e)))?;
 
-    let data: serde_json::Value = serde_json::from_str(&content)?;
+    let mut data: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|e| HibiscusError::Calendar(format!("Invalid calendar format: {}", e)))?;
+
+    crate::migration::migrate_calendar(&mut data);
+
     Ok(data)
 }
 
@@ -53,6 +57,9 @@ pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result
             HibiscusError::Io(format!("Failed to create directory: {}", e))
         })?;
     }
+
+    // Create a backup before proceeding to save
+    let _ = crate::backup::create_backup(&path, &root).await;
 
     let json = serde_json::to_string_pretty(&data)?;
 

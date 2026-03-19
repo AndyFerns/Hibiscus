@@ -44,17 +44,16 @@ pub async fn load_workspace(path: String) -> Result<WorkspaceFile, HibiscusError
         .await
         .map_err(|e| HibiscusError::Io(format!("Failed to read workspace.json: {}", e)))?;
 
-    // Parse JSON
-    let workspace: WorkspaceFile = serde_json::from_str(&content)
-        .map_err(|e| HibiscusError::Workspace(format!("Invalid workspace format: {}", e)))?;
+    // Parse into a mutable DOM first for migration
+    let mut raw_json: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|e| HibiscusError::Workspace(format!("Invalid workspace JSON: {}", e)))?;
 
-    // Validate schema version
-    if workspace.schema_version != "1.0" {
-        return Err(HibiscusError::Workspace(format!(
-            "Unsupported workspace version: {}", 
-            workspace.schema_version
-        )));
-    }
+    // Apply schema migrations if necessary
+    crate::migration::migrate_workspace(&mut raw_json);
+
+    // Parse into our strongly-typed struct
+    let workspace: WorkspaceFile = serde_json::from_value(raw_json)
+        .map_err(|e| HibiscusError::Workspace(format!("Failed to parse workspace structure: {}", e)))?;
 
     Ok(workspace)
 }
@@ -83,6 +82,16 @@ pub async fn save_workspace(path: String, workspace: WorkspaceFile) -> Result<()
             HibiscusError::Io(format!("Failed to create workspace directory: {}", e))
         })?;
     }
+
+    // Get root from path for backup purposes
+    let root = path
+        .parent()
+        .and_then(|p| p.parent())
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."));
+
+    // Create a backup before proceeding to save
+    let _ = crate::backup::create_backup(&path, &root).await;
 
     // Serialize to pretty JSON
     let json = serde_json::to_string_pretty(&workspace)?;
