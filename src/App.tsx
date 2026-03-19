@@ -59,6 +59,7 @@ export default function App() {
     activeFile,
     activeFilePath,
     fileContent,
+    fileVersion,
     isDirty,
     openFile,
     onChange,
@@ -193,6 +194,7 @@ export default function App() {
                   <EditorView
                     path={activeFilePath}
                     content={fileContent}
+                    version={fileVersion}
                     onChange={onChange}
                     onCursorChange={setCursorPosition}
                     onSave={saveCurrentFile}

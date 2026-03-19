@@ -44,6 +44,7 @@ export function useEditorController(workspaceRoot: string | null) {
 
   // Current content (reactive state for rendering)
   const [fileContent, setFileContent] = useState("")
+  const [fileVersion, setFileVersion] = useState(0)
 
   // Dirty state for current file
   const [isDirty, setIsDirty] = useState(false)
@@ -145,6 +146,7 @@ export function useEditorController(workspaceRoot: string | null) {
           isDirty: false,
         }
         buffersRef.current.set(fullPath, buffer)
+        setFileVersion(v => v + 1)
       } catch (error) {
         console.error("[Hibiscus] Failed to open file:", error)
         return
@@ -162,6 +164,7 @@ export function useEditorController(workspaceRoot: string | null) {
     setActiveFilePath(fullPath)
     setFileContent(buffer.content)
     setIsDirty(buffer.isDirty)
+    setFileVersion(v => v + 1)
   }, [workspaceRoot])
 
   /**
@@ -304,6 +307,7 @@ export function useEditorController(workspaceRoot: string | null) {
                 if (filePath === activeFilePath) {
                   setFileContent(diskContent)
                   setIsDirty(false)
+                  setFileVersion(v => v + 1)
                 }
 
                 console.log(
@@ -328,6 +332,7 @@ export function useEditorController(workspaceRoot: string | null) {
     activeFile,
     activeFilePath,
     fileContent,
+    fileVersion, // Export fileVersion
     isDirty,
     openFile,
     onChange,
