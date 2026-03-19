@@ -2,9 +2,11 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
-## [v0.4.7] - Current
-- **Bug Fix**: Fixed controlled monaco text editor wiping recent key typing when an older queued React state echo occurred due to async lifecycle desyncs. The editor rendering dependency is now purely driven by an internal `fileVersion` which respects the user's keystrokes.
+## [v0.4.8] - Current
 - **Docs**: Comprehensive MkDocs hierarchy populated containing project architecture, endpoints, and tutorial guides.
+
+## [v0.4.7]
+- **Bug Fix**: Fixed controlled monaco text editor wiping recent key typing when an older queued React state echo occurred due to async lifecycle desyncs. The editor rendering dependency is now purely driven by an internal `fileVersion` which respects the user's keystrokes.
 
 ## [v0.4.6]
 - **Automation**: Created `scripts/hibiscus.cjs` terminal helper script encapsulating `dev`, `build`, `test`, `docs`, and `bump` functions.
