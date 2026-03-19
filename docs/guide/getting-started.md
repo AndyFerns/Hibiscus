@@ -13,7 +13,7 @@ Welcome to the **Hibiscus** workspace! This guide will help you install, configu
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/AndrewFerns/Hibiscus.git
+   git clone https://github.com/AndyFerns/Hibiscus.git
    cd Hibiscus
    ```
 

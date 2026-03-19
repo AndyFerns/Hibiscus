@@ -2,7 +2,7 @@
 
 Hibiscus is a highly opinionated, fast, and elegant study planner and markdown code editor built with [React](https://react.dev/), [Tauri](https://tauri.app/), and [Rust](https://www.rust-lang.org/).
 
-![Hibiscus Screen Shot](./Assets/Hibiscus%20Screenshot.png)
+![Hibiscus Screen Shot](./assets/Hibiscus%20Screenshot.png)
 
 ## Core Features
 

@@ -1,11 +1,16 @@
 site_name: Hibiscus
 site_description: A lightweight, high-performance study planner and code editor built with React, Tauri, and Rust.
 site_author: Andrew Ferns
-repo_name: AndrewFerns/Hibiscus
-repo_url: https://github.com/AndrewFerns/Hibiscus
+repo_name: AndyFerns/Hibiscus
+site_url: https://andyferns.github.io/Hibiscus/
+repo_url: https://github.com/AndyFerns/Hibiscus
+use_directory_urls: true
+docs_dir: docs
+site_dir: site
 
 theme:
   name: material
+  use_directory_urls: true
   features:
     - navigation.tabs
     - navigation.sections
