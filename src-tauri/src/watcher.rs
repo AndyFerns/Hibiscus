@@ -144,29 +144,59 @@ pub fn watch_workspace(path: String, window: tauri::Window, state: State<Watcher
 
         println!("[Hibiscus] File watcher started successfully");
 
-        // Track last emit time for debouncing
-        let mut last_emit = Instant::now() - Duration::from_secs(1);
+        // Accumulator for debouncing events
+        let mut accumulated_paths = std::collections::HashSet::new();
+        let mut last_event_time = Option::<Instant>::None;
 
         // Main event loop
         while running.load(Ordering::SeqCst) {
-            // Wait for events with timeout to check running flag periodically
-            match rx.recv_timeout(Duration::from_millis(RECV_TIMEOUT_MS)) {
+            // Determine timeout based on accumulation state
+            let timeout = if accumulated_paths.is_empty() {
+                Duration::from_millis(RECV_TIMEOUT_MS)
+            } else {
+                let elapsed = last_event_time.unwrap_or_else(Instant::now).elapsed();
+                let debounce = Duration::from_millis(DEBOUNCE_MS);
+                if elapsed >= debounce {
+                    Duration::from_millis(0)
+                } else {
+                    debounce - elapsed
+                }
+            };
+
+            match rx.recv_timeout(timeout) {
                 Ok(Ok(event)) => {
-                    // Process the event
-                    if let Err(e) = process_event(&event, &window, &mut last_emit) {
-                        eprintln!("[Hibiscus] Warning: Error processing event: {}", e);
+                    // Filter and accumulate events
+                    match event.kind {
+                        EventKind::Access(_) | EventKind::Other => continue,
+                        _ => {}
+                    }
+                    for path in event.paths {
+                        if !should_ignore_path(&path) {
+                            accumulated_paths.insert(path.to_string_lossy().to_string());
+                        }
+                    }
+                    if !accumulated_paths.is_empty() {
+                        last_event_time = Some(Instant::now());
                     }
                 }
                 Ok(Err(e)) => {
-                    // Watcher error
                     eprintln!("[Hibiscus] Warning: Watcher error: {}", e);
-                    // Don't stop on transient errors, just log them
                 }
                 Err(RecvTimeoutError::Timeout) => {
-                    // Normal timeout - continue loop to check running flag
+                    // Check if we need to flush accumulated events
+                    if !accumulated_paths.is_empty() {
+                        if let Some(time) = last_event_time {
+                            if time.elapsed() >= Duration::from_millis(DEBOUNCE_MS) {
+                                let paths: Vec<String> = accumulated_paths.drain().collect();
+                                if let Err(e) = window.emit("fs-changed", &paths) {
+                                    eprintln!("[Hibiscus] Error emitting event: {}", e);
+                                }
+                                last_event_time = None;
+                            }
+                        }
+                    }
                 }
                 Err(RecvTimeoutError::Disconnected) => {
-                    // Channel disconnected - watcher stopped
                     eprintln!("[Hibiscus] Warning: Watcher channel disconnected");
                     break;
                 }

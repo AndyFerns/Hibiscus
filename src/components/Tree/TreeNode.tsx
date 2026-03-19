@@ -30,7 +30,9 @@ interface TreeNodeProps {
   depth?: number
 }
 
-export function TreeNode({
+import { memo } from "react"
+
+export const TreeNode = memo(function TreeNode({
   node,
   activeNodeId,
   onOpen,
@@ -113,5 +115,5 @@ export function TreeNode({
       )}
     </div>
   )
-}
+})
 
