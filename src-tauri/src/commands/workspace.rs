@@ -134,3 +134,87 @@ pub fn discover_workspace(root: String) -> WorkspaceDiscovery {
         }
     }
 }
+
+// =============================================================================
+// UNIT TESTS
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+    use std::fs;
+
+    #[test]
+    fn test_discover_workspace_found() {
+        let dir = tempdir().unwrap();
+        let hibiscus_dir = dir.path().join(".hibiscus");
+        fs::create_dir_all(&hibiscus_dir).unwrap();
+        fs::write(hibiscus_dir.join("workspace.json"), "{}").unwrap();
+
+        let result = discover_workspace(dir.path().to_string_lossy().to_string());
+        assert!(result.found);
+        assert!(result.path.is_some());
+        assert!(result.path.unwrap().contains("workspace.json"));
+    }
+
+    #[test]
+    fn test_discover_workspace_not_found() {
+        let dir = tempdir().unwrap();
+        let result = discover_workspace(dir.path().to_string_lossy().to_string());
+        assert!(!result.found);
+        assert!(result.path.is_none());
+    }
+
+    #[test]
+    fn test_discover_workspace_empty_hibiscus_dir() {
+        let dir = tempdir().unwrap();
+        let hibiscus_dir = dir.path().join(".hibiscus");
+        fs::create_dir_all(&hibiscus_dir).unwrap();
+        // .hibiscus exists but workspace.json doesn't
+
+        let result = discover_workspace(dir.path().to_string_lossy().to_string());
+        assert!(!result.found);
+    }
+
+    #[tokio::test]
+    async fn test_save_and_load_workspace_roundtrip() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join(".hibiscus").join("workspace.json");
+
+        let workspace = WorkspaceFile {
+            schema_version: "1.0".to_string(),
+            workspace: crate::workspace::WorkspaceInfo {
+                id: "test-id".to_string(),
+                name: "Test Workspace".to_string(),
+                root: dir.path().to_string_lossy().to_string(),
+                created_at: None,
+                updated_at: None,
+            },
+            settings: None,
+            tree: vec![],
+            session: None,
+        };
+
+        // Save
+        let save_result = save_workspace(
+            path.to_string_lossy().to_string(),
+            workspace,
+        ).await;
+        assert!(save_result.is_ok());
+
+        // Load
+        let load_result = load_workspace(path.to_string_lossy().to_string()).await;
+        assert!(load_result.is_ok());
+
+        let loaded = load_result.unwrap();
+        assert_eq!(loaded.schema_version, "1.0");
+        assert_eq!(loaded.workspace.name, "Test Workspace");
+    }
+
+    #[tokio::test]
+    async fn test_load_workspace_file_not_found() {
+        let result = load_workspace("C:\\nonexistent\\workspace.json".to_string()).await;
+        assert!(result.is_err());
+    }
+}

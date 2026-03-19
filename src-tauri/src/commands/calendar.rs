@@ -69,3 +69,67 @@ pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result
 
     Ok(())
 }
+
+// =============================================================================
+// UNIT TESTS
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[tokio::test]
+    async fn test_read_calendar_returns_defaults_when_no_file() {
+        let dir = tempdir().unwrap();
+        let result = read_calendar_data(dir.path().to_string_lossy().to_string()).await;
+
+        assert!(result.is_ok());
+        let data = result.unwrap();
+        // Should return default structure with empty events/tasks
+        assert!(data["events"].is_array());
+        assert!(data["tasks"].is_array());
+        assert_eq!(data["events"].as_array().unwrap().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_save_and_read_calendar_roundtrip() {
+        let dir = tempdir().unwrap();
+        let root = dir.path().to_string_lossy().to_string();
+
+        let data = serde_json::json!({
+            "events": [
+                { "id": "evt-1", "title": "Midterm Exam", "date": "2026-03-20", "type": "exam" }
+            ],
+            "tasks": [],
+            "settings": { "view": "month" }
+        });
+
+        // Save
+        let save_result = save_calendar_data(root.clone(), data.clone()).await;
+        assert!(save_result.is_ok());
+
+        // Verify the file was actually created
+        let cal_path = dir.path().join(".hibiscus").join("calendar.json");
+        assert!(cal_path.exists());
+
+        // Read back
+        let read_result = read_calendar_data(root).await;
+        assert!(read_result.is_ok());
+
+        let loaded = read_result.unwrap();
+        assert_eq!(loaded["events"][0]["title"], "Midterm Exam");
+    }
+
+    #[tokio::test]
+    async fn test_save_calendar_creates_hibiscus_dir() {
+        let dir = tempdir().unwrap();
+        let hibiscus_dir = dir.path().join(".hibiscus");
+        assert!(!hibiscus_dir.exists());
+
+        let data = serde_json::json!({ "events": [], "tasks": [] });
+        let result = save_calendar_data(dir.path().to_string_lossy().to_string(), data).await;
+        assert!(result.is_ok());
+        assert!(hibiscus_dir.exists());
+    }
+}

@@ -29,3 +29,4 @@ tokio = { version = "1", features = ["fs", "sync"] } # Async I/O
 
 [dev-dependencies]
 tempfile = "3"
+tokio = { version = "1", features = ["rt", "macros"] }

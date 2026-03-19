@@ -80,3 +80,75 @@ fn validate_path_within_root(path: &Path, root: &Path) -> Result<(), HibiscusErr
 
     Ok(())
 }
+
+// =============================================================================
+// UNIT TESTS
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ---- validate_path tests ----
+
+    #[test]
+    fn test_normal_path_passes() {
+        let path = Path::new("C:\\Users\\test\\project\\file.txt");
+        assert!(validate_path(path).is_ok());
+    }
+
+    #[test]
+    fn test_rejects_path_traversal() {
+        let path = Path::new("C:\\Users\\test\\..\\..\\etc\\passwd");
+        let result = validate_path(path);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Path traversal not allowed"));
+    }
+
+    #[test]
+    fn test_rejects_embedded_dotdot() {
+        let path = Path::new("/home/user/../secrets/key");
+        assert!(validate_path(path).is_err());
+    }
+
+    #[test]
+    fn test_allows_dots_in_filenames() {
+        // A filename with dots (not ..) should be fine
+        let path = Path::new("C:\\Users\\test\\file.backup.tar.gz");
+        assert!(validate_path(path).is_ok());
+    }
+
+    #[test]
+    fn test_rejects_excessive_depth() {
+        // Build a path deeper than MAX_PATH_DEPTH
+        let deep: String = (0..=MAX_PATH_DEPTH + 1)
+            .map(|i| format!("d{}", i))
+            .collect::<Vec<_>>()
+            .join("\\");
+        let path = PathBuf::from(deep);
+        let result = validate_path(&path);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Path depth"));
+    }
+
+    #[test]
+    fn test_normal_depth_passes() {
+        let path = Path::new("C:\\a\\b\\c\\d\\e\\file.txt");
+        assert!(validate_path(path).is_ok());
+    }
+
+    // ---- validate_path_within_root tests ----
+
+    #[test]
+    fn test_path_within_root_rejects_traversal() {
+        let path = Path::new("C:\\workspace\\..\\secrets\\key");
+        let root = Path::new("C:\\workspace");
+        assert!(validate_path_within_root(path, root).is_err());
+    }
+}
