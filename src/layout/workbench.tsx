@@ -27,7 +27,7 @@
  */
 
 import { ReactNode, useState, useCallback, useRef, useEffect } from "react"
-import "./Workbench.css"
+import "./workbench.css"
 
 /**
  * Workbench Props Interface
