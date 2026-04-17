@@ -20,6 +20,11 @@
 
 import * as monaco from "monaco-editor"
 import { useEffect, useRef } from "react"
+import {
+  getStudyEditorOptions,
+  registerHibiscusThemes,
+} from "../Editor/monacoStudyConfig"
+
 import "./EditorView.css"
 
 /**
@@ -157,37 +162,15 @@ export function EditorView({
   useEffect(() => {
     if (!containerRef.current) return
 
+    // register theme (only once)
+    registerHibiscusThemes()
+
     // Create Monaco editor instance with dark theme
-    editorRef.current = monaco.editor.create(containerRef.current, {
-      value: content,
-      language: getLanguageFromPath(path),
-      theme: "vs-dark",
-
-      // Auto-resize when container changes
-      automaticLayout: true,
-
-      // Editor appearance settings
-      minimap: { enabled: false },
-      fontSize: 14,
-      fontFamily: "var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace)",
-      lineHeight: 1.6,
-
-      // Text behavior
-      wordWrap: "on",
-      tabSize: 2,
-
-      // UI enhancements
-      smoothScrolling: true,
-      cursorBlinking: "smooth",
-      cursorSmoothCaretAnimation: "on",
-
-      // Padding for breathing room
-      padding: { top: 12, bottom: 12 },
-
-      // Hide unnecessary UI elements
-      renderLineHighlight: "line",
-      scrollBeyondLastLine: false,
-    })
+    editorRef.current = monaco.editor.create(
+      containerRef.current,
+      getStudyEditorOptions(content, getLanguageFromPath(path))
+    )
+    // moved all editor initializing logic to src/components/Editor/monacoStudyConfig
 
     // ===========================================================================
     // CRITICAL: Content change handler uses ref to always call latest onChange

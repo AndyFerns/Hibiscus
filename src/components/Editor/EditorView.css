@@ -193,3 +193,31 @@
   padding: 12px;
   box-sizing: border-box;
 }
+
+/* =========================
+   MONACO STUDY MODE OVERRIDES
+   ========================= */
+
+.monaco-editor {
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.monaco-editor .view-lines {
+  letter-spacing: 0.3px;
+}
+
+.monaco-editor .cursor {
+  opacity: 0.6;
+}
+
+.monaco-editor .current-line {
+  background: transparent !important;
+}
+
+/* Optional: let app theme control background */
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .margin {
+  background-color: transparent !important;
+} 
