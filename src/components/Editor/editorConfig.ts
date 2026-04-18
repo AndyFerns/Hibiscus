@@ -2,35 +2,19 @@ import * as monaco from "monaco-editor"
 
 /**
  * ============================================================================
- * 🎨 THEME SETUP
+ * ⚙️ BASE EDITOR CONFIG
+ * ============================================================================
+ *
+ * Returns the Monaco editor construction options for study-focused editing.
+ * Theme is set to 'hibiscus-dynamic' which is defined by the
+ * editorThemeAdapter.ts module from CSS variables.
+ *
+ * NOTE: registerHibiscusThemes() was removed — the dynamic CSS adapter
+ * (applyEditorThemeFromCSS) now handles all theme registration.
  * ============================================================================
  */
 
-export function registerHibiscusThemes() {
-  monaco.editor.defineTheme("hibiscus-soft", {
-    base: "vs",
-    inherit: true,
-    rules: [
-      { token: "", foreground: "444444" },
-      { token: "keyword", foreground: "7A8BA3" },
-      { token: "string", foreground: "A3BE8C" },
-      { token: "comment", foreground: "B0B0B0", fontStyle: "italic" },
-    ],
-    colors: {
-      "editor.background": "#FAFAF8",
-      "editor.lineHighlightBackground": "#00000000",
-      "editorCursor.foreground": "#888888",
-    },
-  })
-}
-
-/**
- * ============================================================================
- * ⚙️ BASE STUDY CONFIG
- * ============================================================================
- */
-
-export function getStudyEditorOptions(
+export function getEditorConfig(
   content: string,
   language: string
 ): monaco.editor.IStandaloneEditorConstructionOptions {
@@ -38,7 +22,8 @@ export function getStudyEditorOptions(
     value: content,
     language,
 
-    theme: "hibiscus-soft",
+    // Theme is defined dynamically by editorThemeAdapter.ts from CSS variables
+    theme: "hibiscus-dynamic",
     automaticLayout: true,
 
     // Strip IDE feel
@@ -59,7 +44,7 @@ export function getStudyEditorOptions(
     // Typography
     fontSize: 16,
     lineHeight: 26,
-    fontFamily: "Inter, system-ui, sans-serif",
+    fontFamily: "var(--font-ui)",
     fontLigatures: false,
 
     // Cursor feel
@@ -101,30 +86,4 @@ export function setFocusMode(
     minimap: { enabled: !enabled },
     renderLineHighlight: enabled ? "none" : "line",
   })
-}
-
-/**
- * ============================================================================
- * 🔮 PRESET SYSTEM (future-ready)
- * ============================================================================
- */
-
-export const editorPresets = {
-  study: {
-    lineNumbers: "off",
-    minimap: { enabled: false },
-    renderLineHighlight: "none",
-  },
-  dev: {
-    lineNumbers: "on",
-    minimap: { enabled: true },
-    renderLineHighlight: "line",
-  },
-}
-
-export function applyPreset(
-  editor: monaco.editor.IStandaloneCodeEditor,
-  preset: keyof typeof editorPresets
-) {
-  editor.updateOptions(editorPresets[preset])
 }

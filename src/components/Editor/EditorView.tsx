@@ -20,10 +20,9 @@
 
 import * as monaco from "monaco-editor"
 import { useEffect, useRef } from "react"
-import {
-  getStudyEditorOptions,
-  registerHibiscusThemes,
-} from "../Editor/monacoStudyConfig"
+
+import { getEditorConfig } from "../Editor/editorConfig"
+import { applyEditorThemeFromCSS } from "../Editor/editorThemeAdapter"
 
 import "./EditorView.css"
 
@@ -163,12 +162,13 @@ export function EditorView({
     if (!containerRef.current) return
 
     // register theme (only once)
-    registerHibiscusThemes()
+    applyEditorThemeFromCSS()
+    // registerHibiscusThemes()
 
     // Create Monaco editor instance with dark theme
     editorRef.current = monaco.editor.create(
       containerRef.current,
-      getStudyEditorOptions(content, getLanguageFromPath(path))
+      getEditorConfig(content, getLanguageFromPath(path))
     )
     // moved all editor initializing logic to src/components/Editor/monacoStudyConfig
 
