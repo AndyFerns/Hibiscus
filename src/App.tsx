@@ -27,6 +27,8 @@ import { RightPanelContainer } from "./components/RightPanel/RightPanelContainer
 import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
 import { ThemeSelector } from "./components/StatusBar/ThemeSelector"
 import { ShortcutOverlay } from "./components/StatusBar/ShortcutOverlay"
+import { ThemeEditor } from "./components/ThemeEditor/ThemeEditor"
+import { ThemeProvider } from "./state/ThemeContext"
 
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
@@ -133,7 +135,7 @@ export default function App() {
   })
 
   return (
-    <>
+    <ThemeProvider workspaceRoot={workspaceRoot}>
       <Workbench
         /* ----------------------------------------------------------------
          * TITLE BAR (Custom Window Titlebar)
@@ -286,6 +288,8 @@ export default function App() {
         isOpen={showShortcutOverlay}
         onClose={() => setShowShortcutOverlay(false)}
       />
-    </>
+      {/* Theme Editor Modal — controlled by ThemeContext */}
+      <ThemeEditor />
+    </ThemeProvider>
   )
 }
