@@ -215,9 +215,9 @@
   background: transparent !important;
 }
 
-/* Optional: let app theme control background */
-.monaco-editor,
-.monaco-editor-background,
-.monaco-editor .margin {
-  background-color: transparent !important;
-} 
+/* 
+ * NOTE: The previous `background-color: transparent !important` override
+ * was removed here. The dynamic theme adapter (editorThemeAdapter.ts) now
+ * correctly sets editor.background from CSS variables. The !important
+ * override was conflicting with theme-driven backgrounds.
+ */

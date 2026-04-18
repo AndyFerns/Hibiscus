@@ -25,6 +25,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { WindowControls } from "./WindowControls"
+import { useTheme } from "../../state/ThemeContext"
 import "./TitleBar.css"
 
 /**
@@ -78,6 +79,7 @@ export function TitleBar({
     // Track which menu is currently open
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
     const menuRef = useRef<HTMLDivElement>(null)
+    const { setThemeEditorOpen } = useTheme()
 
     /**
      * Menu sections configuration
@@ -167,6 +169,11 @@ export function TitleBar({
                 { label: "Zoom In", shortcut: "Ctrl+=" },
                 { label: "Zoom Out", shortcut: "Ctrl+-" },
                 { label: "Reset Zoom", shortcut: "Ctrl+0" },
+                { divider: true, label: "" },
+                {
+                    label: "Theme...",
+                    action: () => setThemeEditorOpen(true),
+                },
             ],
         },
         {

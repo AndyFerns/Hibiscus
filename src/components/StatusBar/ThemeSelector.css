@@ -1,81 +1,146 @@
+/**
+ * ============================================================================
+ * ThemeSelector Styles
+ * ============================================================================
+ *
+ * Status bar theme dropdown styling.
+ * Updated in v0.5.0 to support section headers, action items,
+ * active checkmarks, and user theme sections.
+ * ============================================================================
+ */
+
 .theme-selector-container {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .theme-selector-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: var(--text-xs);
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
 }
 
 .theme-selector-btn:hover {
-    background: var(--panel-bg-hover);
-    color: var(--text);
+  background: var(--panel-bg-hover);
+  color: var(--text);
 }
 
 .theme-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.theme-name {
+  white-space: nowrap;
 }
 
 .theme-dropdown {
-    position: absolute;
-    bottom: 100%;
-    right: 0;
-    margin-bottom: 8px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    width: 160px;
-    padding: 4px;
-    z-index: var(--z-dropdown);
-    display: flex;
-    flex-direction: column;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 190px;
+  padding: 4px;
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+
+  /* Entrance animation */
+  animation: theme-dropdown-in 0.12s ease-out;
+}
+
+@keyframes theme-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .theme-dropdown-header {
-    padding: 6px 10px;
-    font-size: 10px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--divider);
-    margin-bottom: 4px;
+  padding: 6px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.theme-dropdown-header:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--divider);
+  padding-top: 8px;
+}
+
+.theme-dropdown-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 4px 6px;
 }
 
 .theme-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-size: var(--text-sm);
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    text-align: left;
-    transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: var(--text-sm);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition-fast);
+  width: 100%;
 }
 
 .theme-option:hover {
-    background: var(--panel-bg-hover);
+  background: var(--panel-bg-hover);
 }
 
 .theme-option.active {
-    background: var(--accent-soft);
-    color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.theme-option-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-option-check {
+  font-size: var(--text-xs);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Action items (Edit Theme..., Import...) */
+.theme-option-action {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.theme-option-action:hover {
+  color: var(--text);
 }

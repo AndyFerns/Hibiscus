@@ -8,6 +8,7 @@
 // ! - workspace: workspace.json operations
 // ! - tree: directory tree builder
 // ! - calendar: calendar persistence
+// ! - themes: user theme persistence
 // ! - path: shared path validation utilities
 // ! ============================================================================
 
@@ -16,9 +17,11 @@ mod files;
 mod workspace;
 mod tree;
 mod calendar;
+mod themes;
 
 // Re-export commands so lib.rs can keep using `commands::xyz`
 pub use files::*;
 pub use workspace::*;
 pub use tree::*;
 pub use calendar::*;
+pub use themes::*;

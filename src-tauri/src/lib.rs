@@ -53,6 +53,10 @@ pub fn run() {
             // Calendar operations
             commands::read_calendar_data,
             commands::save_calendar_data,
+            // Theme persistence
+            commands::save_theme,
+            commands::load_themes,
+            commands::delete_theme,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");
