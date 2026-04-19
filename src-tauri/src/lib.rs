@@ -57,6 +57,9 @@ pub fn run() {
             commands::save_theme,
             commands::load_themes,
             commands::delete_theme,
+            // Study data persistence
+            commands::read_study_data,
+            commands::save_study_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");
