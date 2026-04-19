@@ -15,6 +15,8 @@
  */
 
 import { useState, useRef, useEffect } from "react"
+import { openUrl } from "@tauri-apps/plugin-opener"
+
 import "./TopBar.css"
 
 /**
@@ -42,6 +44,11 @@ interface MenuSection {
 interface TopBarProps {
   workspaceRoot: string | null
   onChangeWorkspace: () => void
+}
+
+const openExternal = async (url: string) => {
+  console.log("Function called, Url opening")
+  await openUrl(url)
 }
 
 /**
@@ -142,7 +149,7 @@ const menuSections: MenuSection[] = [
     label: "Help",
     items: [
       { label: "Welcome" },
-      { label: "Documentation" },
+      { label: "Documentation", action: () => openExternal("https://andyferns.github.io/Hibiscus/")},
       { label: "Keyboard Shortcuts Reference" },
       { divider: true, label: "" },
       { label: "Release Notes" },
