@@ -2,6 +2,34 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.7.0] - New Item Modal System
+
+### New Features
+
+- **Production-Grade Modal System**: Implemented a Notion × VS Code hybrid modal for creating new files and folders, replacing browser-native `prompt()` calls with a custom React component.
+- **Enhanced File Creation Workflow**: Added comprehensive input validation, duplicate prevention, and smooth animations for new file/folder creation.
+- **Keyboard Shortcuts**: Implemented Ctrl+N (new file) and Ctrl+Shift+N (new folder) keyboard shortcuts for improved productivity.
+- **Modal Design System**: Created a reusable modal component with backdrop blur, smooth animations, and responsive design using theme CSS variables.
+
+### Architecture Improvements
+
+- **Controller-Driven Design**: Maintained clean separation between UI and business logic - modal handles presentation, controllers handle filesystem operations.
+- **State Management**: Implemented proper modal state management with controlled components and callback patterns.
+- **Input Validation**: Added comprehensive filename validation including invalid character checks and duplicate detection.
+- **Accessibility**: Included proper ARIA attributes, keyboard navigation (Enter/Escape), and focus management.
+
+### Breaking Changes
+
+- **Removed Browser Prompts**: Eliminated all `prompt()` usage in favor of the new modal system for desktop-appropriate UI patterns.
+- **Updated File Menu Handlers**: File menu actions now use modal-based input instead of browser dialogs.
+
+### Technical Details
+
+- **NewItemModal Component**: New reusable modal at `src/components/Modals/NewItemModal.tsx` with TypeScript interfaces for mode support.
+- **CSS Styling**: Dedicated stylesheet with Notion-inspired design using theme variables and smooth animations.
+- **Integration Points**: Updated App.tsx with modal state management and keyboard shortcut listeners.
+- **Validation Logic**: Added duplicate name checking against existing workspace items.
+
 ## [v0.6.1]
 
 - bugfix: fixed incorrect link redirection for help -> documentation

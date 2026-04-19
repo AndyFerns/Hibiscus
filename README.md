@@ -9,17 +9,22 @@ It bridges the gap between a lightweight code editor and a dedicated study plann
 ## ✨ Features
 
 - **🚀 High Performance**: Powered by a Rust backend for near-instant startup and low memory usage.
-- **📂 Workspace Management**: Native file explorer with recursive tree view and file watching.
+- **📂 Workspace Management**: Native file explorer with recursive tree view and collapsible folders.
 - **📝 Code Editor**: Integrated Monaco Editor (VS Code core) for a familiar editing experience.
-- **📅 Calendar & Planner**:
+- **� Modern Modal System**: Production-grade Notion × VS Code hybrid modals for file/folder creation with validation and keyboard shortcuts.
+- **🗂️ File Menu Operations**: Complete file management including New File/Folder, Open, Save, Save As, and Exit with unsaved changes protection.
+- **�📅 Calendar & Planner**:
   - Interactive monthly calendar with event indicators.
   - Split-view daily planner and task list.
   - Event types: Exam, Assignment, Study, Reminder.
   - Data persistence to `.hibiscus/calendar.json`.
+- **📚 Study Tools Integration**: Pomodoro timer, flashcards, notes synthesis, and study statistics.
+- **🎨 Theme System**: Dynamic theming with live editor and custom theme support.
 - **🖥️ Custom UI**:
   - Frameless custom window with native-feel controls.
   - Creating a cohesive, modern aesthetic (Glassmorphism inspired).
   - Resizable split-pane layouts.
+  - Keyboard shortcuts (Ctrl+N for new file, Ctrl+Shift+N for new folder).
 
 ## 🛠️ Tech Stack
 
