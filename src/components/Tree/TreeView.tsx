@@ -26,13 +26,28 @@ interface TreeViewProps {
   onOpen: (node: Node) => void
 }
 
-import { memo } from "react"
+import { memo, useState, useCallback } from "react"
 
 export const TreeView = memo(function TreeView({
   tree,
   activeNodeId,
   onOpen
 }: TreeViewProps) {
+  // State to track which folders are expanded
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
+
+  // Toggle folder expansion state
+  const handleToggleExpand = useCallback((nodeId: string) => {
+    setExpandedNodes(prev => {
+      const next = new Set(prev)
+      if (next.has(nodeId)) {
+        next.delete(nodeId)
+      } else {
+        next.add(nodeId)
+      }
+      return next
+    })
+  }, [])
   return (
     <div className="tree-view" role="tree" aria-label="File explorer">
       {/* Optional header - can be extended for search/filter */}
@@ -49,6 +64,8 @@ export const TreeView = memo(function TreeView({
               node={node}
               activeNodeId={activeNodeId}
               onOpen={onOpen}
+              expandedNodes={expandedNodes}
+              onToggleExpand={handleToggleExpand}
             />
           ))
         ) : (

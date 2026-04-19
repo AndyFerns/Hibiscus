@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
+import { open } from "@tauri-apps/plugin-dialog"
 
 import { WorkspaceFile, Node } from "../types/workspace"
 import { discoverWorkspace } from "./discoverWorkspace"
 import { persistWorkspace } from "./useWorkspacePersistence"
 import { pickWorkspaceRoot, getLastWorkspaceRoot } from "./useWorkspaceRoot"
 import { updateSession } from "../state/session"
+import { useRecentFiles } from "./useRecentFiles"
 
 const emptyWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -18,6 +20,9 @@ const emptyWorkspace: WorkspaceFile = {
 export function useWorkspaceController() {
   const [workspace, setWorkspace] = useState<WorkspaceFile>(emptyWorkspace)
   const [workspaceRoot, setWorkspaceRoot] = useState<string | null>(null)
+  
+  // Recent files management
+  const { addRecentFile, addRecentFolder, recentFiles, recentFolders } = useRecentFiles()
 
   const workspacePath = workspaceRoot
     ? `${workspaceRoot}/.hibiscus/workspace.json`
@@ -113,6 +118,84 @@ export function useWorkspaceController() {
     })
   }
 
+  // ---- file menu operations ----
+  
+  /**
+   * Open file dialog and return selected file path
+   */
+  const openFileDialog = async (): Promise<string | null> => {
+    try {
+      const result = await open({
+        multiple: false,
+        directory: false,
+        filters: [{
+          name: "All Files",
+          extensions: ["*"]
+        }]
+      })
+      
+      const filePath = typeof result === "string" ? result : (Array.isArray(result) ? result[0] : null)
+      if (filePath) {
+        addRecentFile(filePath)
+      }
+      return filePath
+    } catch (error) {
+      console.error("[Hibiscus] Failed to open file dialog:", error)
+      return null
+    }
+  }
+
+  /**
+   * Create a new file in the workspace
+   */
+  const createFile = async (relativePath: string): Promise<boolean> => {
+    if (!workspaceRoot) return false
+    
+    try {
+      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
+      await invoke("create_file", { path: fullPath })
+      
+      // Refresh tree
+      const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
+      setWorkspace(prev => ({ ...prev, tree }))
+      
+      return true
+    } catch (error) {
+      console.error("[Hibiscus] Failed to create file:", error)
+      return false
+    }
+  }
+
+  /**
+   * Create a new folder in the workspace
+   */
+  const createFolder = async (relativePath: string): Promise<boolean> => {
+    if (!workspaceRoot) return false
+    
+    try {
+      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
+      await invoke("create_folder", { path: fullPath })
+      
+      // Refresh tree
+      const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
+      setWorkspace(prev => ({ ...prev, tree }))
+      
+      return true
+    } catch (error) {
+      console.error("[Hibiscus] Failed to create folder:", error)
+      return false
+    }
+  }
+
+  /**
+   * Close current workspace
+   */
+  const closeWorkspace = () => {
+    setWorkspaceRoot(null)
+    setWorkspace(emptyWorkspace)
+    localStorage.removeItem("hibiscus:lastWorkspace")
+  }
+
   return {
     workspace,
     workspaceRoot,
@@ -120,5 +203,17 @@ export function useWorkspaceController() {
     changeWorkspace,
     openNode,
     setWorkspace, // intentionally exposed (editor uses this)
+    
+    // File menu operations
+    openFileDialog,
+    createFile,
+    createFolder,
+    closeWorkspace,
+    
+    // Recent files
+    recentFiles,
+    recentFolders,
+    addRecentFile,
+    addRecentFolder,
   }
 }

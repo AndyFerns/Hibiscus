@@ -153,6 +153,32 @@
 }
 
 /* =============================================================================
+ * CHEVRON ICON
+ * Expand/collapse indicator for folders
+ * ============================================================================= */
+
+.tree-node-chevron {
+  /* Fixed size for alignment */
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-right: var(--space-1, 4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Smooth rotation animation */
+  transition: transform var(--transition-fast, 0.15s ease-out);
+}
+
+/* Rotate chevron when expanded */
+.tree-node--folder .tree-node-chevron {
+  transform: rotate(90deg);
+}
+
+/* =============================================================================
  * NODE ICON
  * Emoji icon (folder or file)
  * ============================================================================= */
@@ -172,6 +198,32 @@
 }
 
 /* =============================================================================
+ * CHILDREN CONTAINER
+ * Wrapper for nested child nodes with Reddit-style hierarchy
+ * ============================================================================= */
+
+.tree-node-children {
+  /* Add left border for visual hierarchy */
+  border-left: 1px solid var(--border-subtle);
+  margin-left: 8px;
+  padding-left: var(--space-2, 8px);
+  
+  /* Smooth expand/collapse animation */
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: 
+    max-height var(--transition-normal, 0.2s ease-out),
+    opacity var(--transition-normal, 0.2s ease-out);
+}
+
+/* Show children when parent is expanded */
+.tree-node-container:has(.tree-node[aria-expanded="true"]) > .tree-node-children {
+  max-height: 2000px;
+  opacity: 1;
+}
+
+/* =============================================================================
  * NODE NAME
  * File/folder name text
  * ============================================================================= */
@@ -185,30 +237,4 @@
   /* Allow shrinking */
   min-width: 0;
   flex: 1;
-}
-
-/* =============================================================================
- * CHILDREN CONTAINER
- * Wrapper for nested child nodes
- * ============================================================================= */
-
-.tree-node-children {
-  /* Smooth height animation for expand/collapse (future feature) */
-  overflow: hidden;
-}
-
-/* =============================================================================
- * LEGACY CLASS COMPATIBILITY
- * Previous class selectors - kept for any external references
- * ============================================================================= */
-
-/* Original .tree-node class structure */
-.tree-node.folder {
-  font-weight: 500;
-  color: var(--text);
-}
-
-.tree-node.active {
-  background: var(--accent-soft);
-  color: var(--text);
 }

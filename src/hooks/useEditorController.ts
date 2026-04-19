@@ -20,6 +20,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
+import { save, open } from "@tauri-apps/plugin-dialog"
 import { Node } from "../types/workspace"
 
 /**
@@ -328,6 +329,125 @@ export function useEditorController(workspaceRoot: string | null) {
     }
   }, [workspaceRoot, activeFilePath])
 
+  /**
+   * Save the current file with a new name/location (Save As)
+   */
+  const saveAsFile = useCallback(async (): Promise<boolean> => {
+    if (!activeFilePath || !activeFile) return false
+
+    try {
+      const result = await save({
+        defaultPath: activeFile.name,
+        filters: [{
+          name: "All Files",
+          extensions: ["*"]
+        }]
+      })
+
+      if (result) {
+        const newPath = typeof result === "string" ? result : (Array.isArray(result) ? result[0] : null)
+        if (newPath) {
+          const buffer = buffersRef.current.get(activeFilePath)
+          if (buffer) {
+            await invoke("write_text_file", { path: newPath, contents: buffer.content })
+            
+            // Update buffer to new path
+            buffersRef.current.delete(activeFilePath)
+            buffersRef.current.set(newPath, {
+              ...buffer,
+              savedContent: buffer.content,
+              isDirty: false
+            })
+
+            // Update active file path
+            setActiveFilePath(newPath)
+            setIsDirty(false)
+
+            console.log(`[Hibiscus] Saved as: ${newPath.split(/[/\\]/).pop()}`)
+            return true
+          }
+        }
+      }
+      return false
+    } catch (error) {
+      console.error("[Hibiscus] Failed to save file as:", error)
+      return false
+    }
+  }, [activeFilePath, activeFile])
+
+  /**
+   * Close the current file
+   */
+  const closeFile = useCallback(async (): Promise<boolean> => {
+    if (!activeFilePath) return true
+
+    const buffer = buffersRef.current.get(activeFilePath)
+    if (buffer && buffer.isDirty) {
+      // TODO: Show confirmation dialog before closing unsaved file
+      const shouldClose = confirm(`Save changes to ${activeFile?.name} before closing?`)
+      if (shouldClose) {
+        await saveFile(activeFilePath, buffer.content, true)
+      }
+    }
+
+    // Remove from buffers and reset active file
+    buffersRef.current.delete(activeFilePath)
+    setActiveFile(null)
+    setActiveFilePath(null)
+    setFileContent("")
+    setIsDirty(false)
+
+    console.log(`[Hibiscus] Closed file: ${activeFile?.name}`)
+    return true
+  }, [activeFilePath, activeFile, saveFile])
+
+  /**
+   * Check if any files have unsaved changes
+   */
+  const hasUnsavedFiles = useCallback((): boolean => {
+    for (const buffer of buffersRef.current.values()) {
+      if (buffer.isDirty) return true
+    }
+    return false
+  }, [])
+
+  /**
+   * Get list of files with unsaved changes
+   */
+  const getUnsavedFiles = useCallback((): string[] => {
+    const unsaved: string[] = []
+    for (const [path, buffer] of buffersRef.current.entries()) {
+      if (buffer.isDirty) {
+        unsaved.push(path.split(/[/\\]/).pop() || path)
+      }
+    }
+    return unsaved
+  }, [])
+
+  /**
+   * Handle application exit with unsaved changes check
+   */
+  const handleExit = useCallback(async (): Promise<boolean> => {
+    const unsavedFiles = getUnsavedFiles()
+    
+    if (unsavedFiles.length > 0) {
+      const fileList = unsavedFiles.join(", ")
+      const action = confirm(
+        `You have unsaved changes in: ${fileList}\n\n` +
+        "Click OK to save all changes and exit,\n" +
+        "or Cancel to continue working."
+      )
+      
+      if (action) {
+        await saveAllFiles()
+        return true
+      }
+      return false
+    }
+    
+    return true
+  }, [getUnsavedFiles, saveAllFiles])
+
   return {
     activeFile,
     activeFilePath,
@@ -338,5 +458,12 @@ export function useEditorController(workspaceRoot: string | null) {
     onChange,
     saveCurrentFile,
     saveAllFiles,
+    
+    // File menu operations
+    saveAsFile,
+    closeFile,
+    hasUnsavedFiles,
+    getUnsavedFiles,
+    handleExit,
   }
 }

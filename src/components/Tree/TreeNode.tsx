@@ -22,12 +22,16 @@ import "./TreeNode.css"
  * @property activeNodeId - ID of the currently selected node (for highlighting)
  * @property onOpen - Callback fired when a file node is clicked
  * @property depth - Current nesting depth (used for indentation, default: 0)
+ * @property expandedNodes - Set of expanded folder node IDs
+ * @property onToggleExpand - Callback fired when folder is expanded/collapsed
  */
 interface TreeNodeProps {
   node: Node
   activeNodeId?: string
   onOpen: (node: Node) => void
   depth?: number
+  expandedNodes?: Set<string>
+  onToggleExpand?: (nodeId: string) => void
 }
 
 import { memo } from "react"
@@ -36,23 +40,27 @@ export const TreeNode = memo(function TreeNode({
   node,
   activeNodeId,
   onOpen,
-  depth = 0
+  depth = 0,
+  expandedNodes = new Set(),
+  onToggleExpand
 }: TreeNodeProps) {
   // Determine node type for styling and behavior
   const isFolder = node.type === "folder"
   const isActive = node.id === activeNodeId
   const hasChildren = isFolder && node.children && node.children.length > 0
+  const isExpanded = expandedNodes.has(node.id)
 
   /**
    * Handle node click events
    * - Files: Trigger onOpen callback
-   * - Folders: Currently no-op (TODO: implement expand/collapse)
+   * - Folders: Toggle expand/collapse state
    */
   const handleClick = () => {
     if (!isFolder) {
       onOpen(node)
+    } else if (hasChildren) {
+      onToggleExpand?.(node.id)
     }
-    // TODO: Add folder expand/collapse functionality
   }
 
   /**
@@ -86,8 +94,15 @@ export const TreeNode = memo(function TreeNode({
         role={isFolder ? "treeitem" : "button"}
         tabIndex={0}
         aria-selected={isActive}
-        aria-expanded={isFolder ? true : undefined}
+        aria-expanded={isFolder ? isExpanded : undefined}
       >
+        {/* Chevron icon for folders */}
+        {isFolder && (
+          <span className="tree-node-chevron">
+            {isExpanded ? "▼" : "▶"}
+          </span>
+        )}
+
         {/* Icon: folder or file emoji */}
         <span className="tree-node-icon">
           {isFolder ? "📁" : "📄"}
@@ -99,8 +114,8 @@ export const TreeNode = memo(function TreeNode({
         </span>
       </div>
 
-      {/* Recursively render children for folders */}
-      {hasChildren && (
+      {/* Recursively render children for folders if expanded */}
+      {hasChildren && isExpanded && (
         <div className="tree-node-children" role="group">
           {node.children!.map(child => (
             <TreeNode
@@ -109,6 +124,8 @@ export const TreeNode = memo(function TreeNode({
               activeNodeId={activeNodeId}
               onOpen={onOpen}
               depth={depth + 1}
+              expandedNodes={expandedNodes}
+              onToggleExpand={onToggleExpand}
             />
           ))}
         </div>
