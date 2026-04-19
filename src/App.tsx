@@ -23,7 +23,7 @@
  * ============================================================================
  */
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
@@ -34,6 +34,7 @@ import { ThemeSelector } from "./components/StatusBar/ThemeSelector"
 import { ShortcutOverlay } from "./components/StatusBar/ShortcutOverlay"
 import { ThemeEditor } from "./components/ThemeEditor/ThemeEditor"
 import { ThemeProvider } from "./state/ThemeContext"
+import { NewItemModal, NewItemModalMode } from "./components/Modals/NewItemModal"
 
 // Study tools imports
 import { StudyProvider, useStudy } from "./features/shared/StudyContext"
@@ -63,6 +64,19 @@ import "./App.css"
  */
 function AppInner() {
   // ============================================================================
+  // MODAL STATE
+  // New file/folder creation modal
+  // ============================================================================
+  const [newItemModal, setNewItemModal] = useState<{
+    open: boolean
+    mode: NewItemModalMode
+  }>({
+    open: false,
+    mode: "file"
+  })
+
+  
+  // ============================================================================
   // WORKSPACE STATE
   // Tree structure, root path, and navigation
   // ============================================================================
@@ -71,6 +85,10 @@ function AppInner() {
     workspaceRoot,
     changeWorkspace,
     openNode,
+    openFileDialog,
+    createFile,
+    createFolder,
+    closeWorkspace,
   } = useWorkspaceController()
 
   // ============================================================================
@@ -86,6 +104,10 @@ function AppInner() {
     openFile,
     onChange,
     saveCurrentFile,
+    saveAllFiles,
+    saveAsFile,
+    closeFile,
+    handleExit: handleEditorExit,
   } = useEditorController(workspaceRoot)
 
   // ============================================================================
@@ -184,6 +206,123 @@ function AppInner() {
   }, [handleFileOpen])
 
   /**
+   * Handle file menu actions
+   */
+  const handleNewFile = useCallback(() => {
+    if (!workspaceRoot) {
+      // TODO: Show proper notification instead of alert
+      console.warn("Please open a workspace first")
+      return
+    }
+    
+    setNewItemModal({ open: true, mode: "file" })
+  }, [workspaceRoot])
+
+  const handleNewFolder = useCallback(() => {
+    if (!workspaceRoot) {
+      // TODO: Show proper notification instead of alert
+      console.warn("Please open a workspace first")
+      return
+    }
+    
+    setNewItemModal({ open: true, mode: "folder" })
+  }, [workspaceRoot])
+
+  /**
+   * Handle modal close
+   */
+  const handleModalClose = useCallback(() => {
+    setNewItemModal({ open: false, mode: "file" })
+  }, [])
+
+  /**
+   * Get existing names for duplicate validation
+   */
+  const getExistingNames = useCallback((): string[] => {
+    if (!workspace.tree) return []
+    
+    const collectNames = (nodes: any[]): string[] => {
+      const names: string[] = []
+      for (const node of nodes) {
+        names.push(node.name)
+        if (node.children) {
+          names.push(...collectNames(node.children))
+        }
+      }
+      return names
+    }
+    
+    return collectNames(workspace.tree)
+  }, [workspace.tree])
+
+  /**
+   * Handle item creation from modal
+   */
+  const handleModalCreate = useCallback(async (name: string) => {
+    if (newItemModal.mode === "file") {
+      await createFile(name)
+    } else {
+      await createFolder(name)
+    }
+  }, [newItemModal.mode, createFile, createFolder])
+
+  // ============================================================================
+  // KEYBOARD SHORTCUTS
+  // Handle Ctrl+N (new file) and Ctrl+Shift+N (new folder)
+  // ============================================================================
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+N -> New File
+      if (e.ctrlKey && e.key === 'n' && !e.shiftKey && !e.altKey) {
+        e.preventDefault()
+        handleNewFile()
+      }
+      // Ctrl+Shift+N -> New Folder
+      else if (e.ctrlKey && e.shiftKey && e.key === 'n' && !e.altKey) {
+        e.preventDefault()
+        handleNewFolder()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleNewFile, handleNewFolder])
+
+  const handleOpenFile = useCallback(async () => {
+    const filePath = await openFileDialog()
+    if (filePath) {
+      const name = filePath.split(/[/\\]/).pop() || filePath
+      handleFileOpen({
+        id: filePath,
+        name,
+        path: filePath,
+        type: "file"
+      })
+    }
+  }, [openFileDialog, handleFileOpen])
+
+  const handleSaveAs = useCallback(async () => {
+    await saveAsFile()
+  }, [saveAsFile])
+
+  const handleCloseFile = useCallback(async () => {
+    await closeFile()
+  }, [closeFile])
+
+  const handleCloseFolder = useCallback(() => {
+    closeWorkspace()
+  }, [closeWorkspace])
+
+  const handleAppExit = useCallback(async () => {
+    const shouldExit = await handleEditorExit()
+    if (shouldExit) {
+      // In a real app, this would close the application
+      // For now, we'll just close the workspace
+      closeWorkspace()
+    }
+  }, [handleEditorExit, closeWorkspace])
+
+  /**
    * Open a study tool panel in the right sidebar.
    * Also ensures the right panel is visible.
    */
@@ -237,6 +376,14 @@ function AppInner() {
             showLeftPanel={showLeftPanel}
             showRightPanel={showRightPanel}
             onSave={saveCurrentFile}
+            onSaveAs={handleSaveAs}
+            onSaveAll={saveAllFiles}
+            onCloseFile={handleCloseFile}
+            onOpenFile={handleOpenFile}
+            onNewFile={handleNewFile}
+            onNewFolder={handleNewFolder}
+            onCloseFolder={handleCloseFolder}
+            onExit={handleAppExit}
             onOpenStudyTool={openStudyTool}
             onToggleFocusMode={toggleFocusMode}
             focusMode={focusMode}
@@ -405,6 +552,15 @@ function AppInner() {
         settings={settings}
         onUpdate={updateSettings}
         onReset={resetToDefaults}
+      />
+      {/* New Item Modal */}
+      <NewItemModal
+        open={newItemModal.open}
+        mode={newItemModal.mode}
+        onClose={handleModalClose}
+        onCreate={handleModalCreate}
+        defaultPath={workspaceRoot || undefined}
+        existingNames={getExistingNames()}
       />
     </>
   )
