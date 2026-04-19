@@ -1,0 +1,146 @@
+/**
+ * ============================================================================
+ * FlashcardPanel Styles
+ * ============================================================================
+ */
+
+.fc-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.fc-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.fc-panel-emoji { font-size: 18px; }
+
+.fc-panel-title {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Deck list */
+.fc-deck-list {
+  padding: var(--space-2, 8px);
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.fc-deck-item {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.fc-deck-item.active {
+  background: var(--accent-soft);
+}
+
+.fc-deck-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: 5px var(--space-2, 8px);
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: var(--text-xs, 11px);
+  cursor: pointer;
+  text-align: left;
+}
+
+.fc-deck-item.active .fc-deck-btn {
+  color: var(--accent);
+}
+
+.fc-deck-count {
+  font-size: 9px;
+  color: var(--text-subtle);
+  background: var(--panel-bg-hover);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm, 4px);
+  margin-left: auto;
+}
+
+.fc-deck-delete {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: var(--radius-sm, 4px);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.fc-deck-item:hover .fc-deck-delete {
+  opacity: 1;
+}
+
+.fc-deck-delete:hover {
+  color: var(--error);
+  background: var(--panel-bg-hover);
+}
+
+/* New deck */
+.fc-deck-new {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.fc-deck-input {
+  flex: 1;
+  padding: 4px var(--space-2, 8px);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: var(--text-xs, 11px);
+  border-radius: var(--radius-sm, 4px);
+  font-family: var(--font-ui);
+}
+
+.fc-deck-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.fc-btn-generate {
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+  font-size: var(--text-xs, 11px);
+  padding: 5px;
+  text-align: center;
+}
+
+/* Viewer area */
+.fc-panel-viewer {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

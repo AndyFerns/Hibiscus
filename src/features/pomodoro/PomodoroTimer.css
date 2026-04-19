@@ -1,0 +1,38 @@
+/**
+ * ============================================================================
+ * PomodoroTimer Mini Widget Styles
+ * ============================================================================
+ */
+
+.pomo-mini {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-xs, 11px);
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm, 4px);
+  transition: var(--transition-fast);
+}
+
+.pomo-mini:hover {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+.pomo-mini-ring {
+  flex-shrink: 0;
+}
+
+.pomo-mini-progress {
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.pomo-mini-time {
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}

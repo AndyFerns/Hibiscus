@@ -1,0 +1,160 @@
+/**
+ * ============================================================================
+ * PomodoroPanel Styles
+ * ============================================================================
+ * Full timer view that renders inside the right panel.
+ * Designed to be vertically centered and visually clean.
+ * ============================================================================
+ */
+
+.pomo-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5, 20px) var(--space-4, 16px);
+  gap: var(--space-5, 20px);
+  height: 100%;
+  min-height: 300px;
+}
+
+/* Header */
+.pomo-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  text-align: center;
+}
+
+.pomo-panel-emoji {
+  font-size: 20px;
+}
+
+.pomo-panel-status {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Timer circle */
+.pomo-panel-timer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pomo-panel-timer--active .pomo-panel-svg {
+  filter: drop-shadow(0 0 8px rgba(247, 118, 142, 0.15));
+}
+
+.pomo-panel-svg {
+  transition: filter 0.3s ease;
+}
+
+.pomo-panel-arc {
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.pomo-panel-time-overlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.pomo-panel-time {
+  font-size: 36px;
+  font-weight: var(--font-semibold, 600);
+  font-family: var(--font-mono, monospace);
+  color: var(--text);
+  letter-spacing: 2px;
+}
+
+.pomo-panel-phase {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Controls */
+.pomo-panel-controls {
+  display: flex;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pomo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  padding: 8px var(--space-4, 16px);
+  font-size: var(--text-sm, 12px);
+  font-family: var(--font-ui);
+  border-radius: var(--radius-md, 6px);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pomo-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.pomo-btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.pomo-btn-secondary {
+  background: var(--panel-bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.pomo-btn-secondary:hover {
+  background: var(--panel-bg);
+  color: var(--text);
+}
+
+.pomo-btn-danger {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error-soft, rgba(247, 118, 142, 0.15));
+}
+
+.pomo-btn-danger:hover {
+  background: var(--error-soft, rgba(247, 118, 142, 0.15));
+}
+
+/* Session counter */
+.pomo-panel-sessions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  background: var(--panel-bg);
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border);
+}
+
+.pomo-panel-sessions-label {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pomo-panel-sessions-count {
+  font-size: 24px;
+  font-weight: var(--font-semibold, 600);
+  font-family: var(--font-mono, monospace);
+  color: var(--accent);
+}

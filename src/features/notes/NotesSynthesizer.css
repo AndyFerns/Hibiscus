@@ -1,0 +1,199 @@
+/**
+ * ============================================================================
+ * NotesSynthesizer Styles
+ * ============================================================================
+ */
+
+.notes-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.notes-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.notes-panel-emoji { font-size: 18px; }
+
+.notes-panel-title {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* File list */
+.notes-file-list {
+  padding: var(--space-2, 8px);
+  flex-shrink: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.notes-empty {
+  font-size: var(--text-sm, 12px);
+  color: var(--text-subtle);
+  text-align: center;
+  padding: var(--space-4, 16px);
+  line-height: 1.5;
+}
+
+.notes-file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: 5px var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--text-xs, 11px);
+}
+
+.notes-file-item:hover {
+  background: var(--panel-bg-hover);
+}
+
+.notes-file-icon { font-size: 12px; }
+
+.notes-file-name {
+  flex: 1;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes-file-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  background: var(--panel-bg-hover);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.notes-file-badge.unsupported {
+  color: var(--warning);
+  background: var(--warning-soft, rgba(224, 175, 104, 0.15));
+}
+
+.notes-file-remove {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: var(--radius-sm, 4px);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.notes-file-item:hover .notes-file-remove {
+  opacity: 1;
+}
+
+.notes-file-remove:hover {
+  color: var(--error);
+}
+
+/* Actions */
+.notes-actions {
+  display: flex;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.notes-btn {
+  padding: 6px var(--space-3, 12px);
+  font-size: var(--text-xs, 11px);
+  font-family: var(--font-ui);
+  border-radius: var(--radius-md, 6px);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.notes-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.notes-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.notes-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.notes-btn-secondary {
+  background: var(--panel-bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.notes-btn-secondary:hover {
+  color: var(--text);
+}
+
+/* Error */
+.notes-error {
+  margin: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: var(--error-soft, rgba(247, 118, 142, 0.15));
+  color: var(--error);
+  font-size: var(--text-xs, 11px);
+  border-radius: var(--radius-md, 6px);
+}
+
+/* Output preview */
+.notes-output {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--space-2, 8px);
+}
+
+.notes-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2, 8px) 0;
+  flex-shrink: 0;
+}
+
+.notes-output-title {
+  font-size: var(--text-xs, 11px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-muted);
+}
+
+.notes-output-preview {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 6px);
+  padding: var(--space-3, 12px);
+  font-size: var(--text-xs, 11px);
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
