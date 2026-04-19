@@ -1,4 +1,3 @@
-
 // ============================================================================
 // FILE OPERATIONS
 // ============================================================================
@@ -164,5 +163,166 @@ pub async fn write_text_file(path: String, contents: String) -> Result<(), Hibis
         )));
     }
 
+    Ok(())
+}
+
+/// Creates a new empty file at the specified path.
+///
+/// # Arguments
+/// * `path` - Absolute path where the file should be created
+///
+/// # Returns
+/// * `Ok(())` - If the file was created successfully
+/// * `Err(HibiscusError)` - If the file could not be created
+#[tauri::command]
+pub async fn create_file(path: String) -> Result<(), HibiscusError> {
+    let path = PathBuf::from(&path);
+    
+    // Validate the path
+    validate_path(&path)?;
+    
+    // Check if file already exists
+    if path.exists() {
+        return Err(HibiscusError::Io(format!(
+            "File already exists: '{}'", 
+            path.display()
+        )));
+    }
+    
+    // Create parent directories if needed
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).await.map_err(|e| {
+            HibiscusError::Io(format!(
+                "Failed to create parent directories for '{}': {}",
+                path.display(),
+                e
+            ))
+        })?;
+    }
+    
+    // Create empty file
+    fs::File::create(&path).await.map_err(|e| {
+        HibiscusError::Io(format!(
+            "Failed to create file '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    
+    Ok(())
+}
+
+/// Creates a new directory at the specified path.
+///
+/// # Arguments
+/// * `path` - Absolute path where the directory should be created
+///
+/// # Returns
+/// * `Ok(())` - If the directory was created successfully
+/// * `Err(HibiscusError)` - If the directory could not be created
+#[tauri::command]
+pub async fn create_folder(path: String) -> Result<(), HibiscusError> {
+    let path = PathBuf::from(&path);
+    
+    // Validate the path
+    validate_path(&path)?;
+    
+    // Check if directory already exists
+    if path.exists() {
+        return Err(HibiscusError::Io(format!(
+            "Directory already exists: '{}'", 
+            path.display()
+        )));
+    }
+    
+    // Create directory with parents
+    fs::create_dir_all(&path).await.map_err(|e| {
+        HibiscusError::Io(format!(
+            "Failed to create directory '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    
+    Ok(())
+}
+
+/// Deletes a file at the specified path.
+///
+/// # Arguments
+/// * `path` - Absolute path to the file to delete
+///
+/// # Returns
+/// * `Ok(())` - If the file was deleted successfully
+/// * `Err(HibiscusError)` - If the file could not be deleted
+#[tauri::command]
+pub async fn delete_file(path: String) -> Result<(), HibiscusError> {
+    let path = PathBuf::from(&path);
+    
+    // Validate the path
+    validate_path(&path)?;
+    
+    // Check if path exists and is a file
+    if !path.exists() {
+        return Err(HibiscusError::FileNotFound(path.to_string_lossy().into()));
+    }
+    
+    if !path.is_file() {
+        return Err(HibiscusError::InvalidPathType {
+            path: path.to_string_lossy().into(),
+            expected: "file".into(),
+            actual: "directory".into(),
+        });
+    }
+    
+    // Delete the file
+    fs::remove_file(&path).await.map_err(|e| {
+        HibiscusError::Io(format!(
+            "Failed to delete file '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    
+    Ok(())
+}
+
+/// Deletes a directory at the specified path.
+///
+/// # Arguments
+/// * `path` - Absolute path to the directory to delete
+///
+/// # Returns
+/// * `Ok(())` - If the directory was deleted successfully
+/// * `Err(HibiscusError)` - If the directory could not be deleted
+#[tauri::command]
+pub async fn delete_folder(path: String) -> Result<(), HibiscusError> {
+    let path = PathBuf::from(&path);
+    
+    // Validate the path
+    validate_path(&path)?;
+    
+    // Check if path exists and is a directory
+    if !path.exists() {
+        return Err(HibiscusError::FileNotFound(path.to_string_lossy().into()));
+    }
+    
+    if !path.is_dir() {
+        return Err(HibiscusError::InvalidPathType {
+            path: path.to_string_lossy().into(),
+            expected: "directory".into(),
+            actual: "file".into(),
+        });
+    }
+    
+    // Delete the directory and all its contents
+    fs::remove_dir_all(&path).await.map_err(|e| {
+        HibiscusError::Io(format!(
+            "Failed to delete directory '{}': {}",
+            path.display(),
+            e
+        ))
+    })?;
+    
     Ok(())
 }
