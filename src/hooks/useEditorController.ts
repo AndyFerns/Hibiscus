@@ -20,7 +20,7 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
-import { save, open } from "@tauri-apps/plugin-dialog"
+import { save } from "@tauri-apps/plugin-dialog"
 import { Node } from "../types/workspace"
 
 /**

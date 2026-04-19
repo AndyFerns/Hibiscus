@@ -2,6 +2,10 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.7.2]
+
+- **Bugfix**: Removed unused Open function causing typescript errors (lol)
+
 ## [v0.7.1]
 
 - **Bugfix**:  Fixed bg selection and text selection inconsistency wherein the selection text was stuck at a bright red despite theme changes
