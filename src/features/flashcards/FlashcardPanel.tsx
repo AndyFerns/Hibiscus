@@ -80,7 +80,6 @@ export function FlashcardPanel({ flashcards }: FlashcardPanelProps) {
     <div className="fc-panel" ref={panelRef}>
       {/* Header */}
       <div className="fc-panel-header">
-        <span className="fc-panel-emoji">🃏</span>
         <span className="fc-panel-title">Flashcards</span>
       </div>
 
@@ -95,7 +94,7 @@ export function FlashcardPanel({ flashcards }: FlashcardPanelProps) {
               className="fc-deck-btn"
               onClick={() => selectDeck(d.id)}
             >
-              📚 {d.name}
+              {d.name}
               <span className="fc-deck-count">{d.cards.length}</span>
             </button>
             <button
@@ -126,7 +125,7 @@ export function FlashcardPanel({ flashcards }: FlashcardPanelProps) {
           onClick={() => generateFlashcardsFromNotes([])}
           title="Generate sample flashcards (stub)"
         >
-          ✨ Generate from Notes
+          Generate from Notes
         </button>
       </div>
 

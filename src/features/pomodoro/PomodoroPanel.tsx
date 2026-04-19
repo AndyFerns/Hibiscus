@@ -47,17 +47,6 @@ function statusLabel(status: PomodoroState["status"]): string {
   }
 }
 
-/**
- * Status emoji
- */
-function statusEmoji(status: PomodoroState["status"]): string {
-  switch (status) {
-    case "work": return "🔥"
-    case "break": return "☕"
-    case "long-break": return "🌴"
-    default: return "⏱️"
-  }
-}
 
 export function PomodoroPanel({ state, actions }: PomodoroPanelProps) {
   // SVG arc parameters
@@ -83,7 +72,6 @@ export function PomodoroPanel({ state, actions }: PomodoroPanelProps) {
     <div className="pomo-panel">
       {/* Header */}
       <div className="pomo-panel-header">
-        <span className="pomo-panel-emoji">{statusEmoji(state.status)}</span>
         <span className="pomo-panel-status">{statusLabel(state.status)}</span>
       </div>
 

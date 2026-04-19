@@ -44,7 +44,6 @@ export function NotesSynthesizer({ notes }: NotesSynthesizerProps) {
     <div className="notes-panel">
       {/* Header */}
       <div className="notes-panel-header">
-        <span className="notes-panel-emoji">📝</span>
         <span className="notes-panel-title">Notes Synthesis</span>
       </div>
 
@@ -57,7 +56,6 @@ export function NotesSynthesizer({ notes }: NotesSynthesizerProps) {
         ) : (
           inputs.map((input) => (
             <div key={input.path} className="notes-file-item">
-              <span className="notes-file-icon">📄</span>
               <span className="notes-file-name">{input.name}</span>
               <span className={`notes-file-badge ${input.content === undefined ? "unsupported" : ""}`}>
                 {formatBadge(input.format)}
@@ -81,7 +79,7 @@ export function NotesSynthesizer({ notes }: NotesSynthesizerProps) {
           onClick={synthesize}
           disabled={inputs.length === 0 || isProcessing}
         >
-          {isProcessing ? "Processing..." : "🔗 Synthesize"}
+          {isProcessing ? "Processing..." : "Synthesize"}
         </button>
         {inputs.length > 0 && (
           <button className="notes-btn notes-btn-secondary" onClick={clearAll}>
@@ -102,7 +100,7 @@ export function NotesSynthesizer({ notes }: NotesSynthesizerProps) {
               className="notes-btn notes-btn-primary"
               onClick={() => saveOutput()}
             >
-              💾 Save .md
+              Save .md
             </button>
           </div>
           <pre className="notes-output-preview">{output.content}</pre>

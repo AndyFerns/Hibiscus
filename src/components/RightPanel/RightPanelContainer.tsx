@@ -61,12 +61,12 @@ interface RightPanelContainerProps {
 /**
  * Tab definitions for the right panel view switcher.
  */
-const VIEW_TABS: { id: RightPanelView; label: string; icon: string }[] = [
-    { id: "calendar", label: "Calendar", icon: "📅" },
-    { id: "pomodoro", label: "Pomodoro", icon: "⏱️" },
-    { id: "flashcards", label: "Cards", icon: "🃏" },
-    { id: "notes", label: "Notes", icon: "📝" },
-    { id: "stats", label: "Stats", icon: "📊" },
+const VIEW_TABS: { id: RightPanelView; label: string }[] = [
+    { id: "calendar", label: "Calendar" },
+    { id: "pomodoro", label: "Pomodoro" },
+    { id: "flashcards", label: "Cards" },
+    { id: "notes", label: "Notes" },
+    { id: "stats", label: "Stats" },
 ]
 
 export function RightPanelContainer({
@@ -180,7 +180,6 @@ export function RightPanelContainer({
                         onClick={() => setRightPanelView(tab.id)}
                         title={tab.label}
                     >
-                        <span className="right-panel-tab-icon">{tab.icon}</span>
                         <span className="right-panel-tab-label">{tab.label}</span>
                     </button>
                 ))}

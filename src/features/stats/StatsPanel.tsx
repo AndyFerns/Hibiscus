@@ -48,7 +48,6 @@ export function StatsPanel({
     <div className="stats-panel">
       {/* Header */}
       <div className="stats-panel-header">
-        <span className="stats-panel-emoji">📊</span>
         <span className="stats-panel-title">Study Statistics</span>
       </div>
 
@@ -88,7 +87,7 @@ export function StatsPanel({
             {recentSessions.slice(-10).reverse().map((s) => (
               <div key={s.id} className="stats-session-item">
                 <span className="stats-session-type">
-                  {s.type === "pomodoro" ? "🍅" : s.type === "flashcard" ? "🃏" : "🔍"}
+                  {s.type === "pomodoro" ? "Pomodoro" : s.type === "flashcard" ? "Flashcard" : "Focus"}
                 </span>
                 <span className="stats-session-date">{s.date}</span>
                 <span className="stats-session-duration">
