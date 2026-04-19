@@ -37,6 +37,7 @@ nav:
       - Getting Started: guide/getting-started.md
       - Keyboard Shortcuts: guide/shortcuts.md
       - Theming: guide/theming.md
+      - Study Tools: guide/study-tools.md
   - Developer:
       - Architecture: dev/architecture.md
       - API Reference: dev/api-reference.md
