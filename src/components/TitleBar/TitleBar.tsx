@@ -24,6 +24,7 @@
  */
 
 import { useState, useRef, useEffect } from "react"
+import { openUrl } from "@tauri-apps/plugin-opener"
 import { WindowControls } from "./WindowControls"
 import { useTheme } from "../../state/ThemeContext"
 import "./TitleBar.css"
@@ -206,7 +207,7 @@ export function TitleBar({
             label: "Help",
             items: [
                 { label: "Welcome" },
-                { label: "Documentation" },
+                { label: "Documentation", action: () => openUrl("https://andyferns.github.io/Hibiscus/") },
                 { label: "Keyboard Shortcuts Reference" },
                 { divider: true, label: "" },
                 { label: "Release Notes" },
