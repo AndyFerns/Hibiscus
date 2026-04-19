@@ -2,6 +2,10 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.7.1]
+
+- **Bugfix**:  Fixed bg selection and text selection inconsistency wherein the selection text was stuck at a bright red despite theme changes
+
 ## [v0.7.0] - New Item Modal System
 
 ### New Features
@@ -32,8 +36,8 @@ All notable changes to the **Hibiscus** project will be documented in this file.
 
 ## [v0.6.1]
 
-- bugfix: fixed incorrect link redirection for help -> documentation
-- removed excessive emojis from right bar
+- **bugfix**: fixed incorrect link redirection for help -> documentation
+- **minor fix**: removed excessive emojis from right bar
 
 ## [v0.6.0] - Study Tools System
 
