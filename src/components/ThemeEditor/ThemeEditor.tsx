@@ -63,6 +63,8 @@ const EDITOR_COLORS: ColorField[] = [
   { token: "--editor-string", label: "String" },
   { token: "--editor-comment", label: "Comment" },
   { token: "--editor-cursor", label: "Cursor" },
+  { token: "--selection-bg", label: "Selection BG" },
+  { token: "--selection-text", label: "Selection Text" },
 ]
 
 const SEMANTIC_COLORS: ColorField[] = [

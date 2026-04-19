@@ -180,6 +180,10 @@
   --editor-selection: rgba(122, 162, 247, 0.15);
   --editor-line-highlight: rgba(255, 255, 255, 0.03);
   --editor-cursor: #8b92a8;
+
+  /* Selection colors */
+  --selection-bg: rgba(122, 162, 247, 0.25);
+  --selection-text: #ffffff;
 }
 
 /* ===========================================================================
@@ -247,10 +251,9 @@
  * =========================================================================== */
 
 ::selection {
-  background: var(--accent-soft);
-  color: var(--text);
+  background: var(--selection-bg);
+  color: var(--selection-text);
 }
-
 
 /* ===========================================================================
  * THEMES
@@ -295,6 +298,10 @@
   --editor-selection: rgba(122, 162, 247, 0.15);
   --editor-line-highlight: rgba(255, 255, 255, 0.03);
   --editor-cursor: #8b92a8;
+
+  /* Selection colors — Midnight */
+  --selection-bg: rgba(122, 162, 247, 0.25);
+  --selection-text: #ffffff;
 }
 
 [data-theme="dawn"] {
@@ -336,6 +343,10 @@
   --editor-selection: rgba(59, 130, 246, 0.2);
   --editor-line-highlight: rgba(0, 0, 0, 0.03);
   --editor-cursor: #4b5563;
+
+  /* Selection colors — Dawn */
+  --selection-bg: rgba(59, 130, 246, 0.3);
+  --selection-text: #ffffff;
 }
 
 [data-theme="forest"] {
@@ -377,4 +388,8 @@
   --editor-selection: rgba(52, 211, 153, 0.2);
   --editor-line-highlight: rgba(167, 243, 208, 0.03);
   --editor-cursor: #a7f3d0;
+
+  /* Selection colors — Forest */
+  --selection-bg: rgba(52, 211, 153, 0.3);
+  --selection-text: #ffffff;
 }

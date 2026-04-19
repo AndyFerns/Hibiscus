@@ -89,10 +89,11 @@ export function applyEditorThemeFromCSS(): void {
   const keyword = getCSSVar("--editor-keyword") || getCSSVar("--accent") || "#7aa2f7"
   const string = getCSSVar("--editor-string") || getCSSVar("--success") || "#9ece6a"
   const comment = getCSSVar("--editor-comment") || getCSSVar("--text-subtle") || "#5c6370"
-  const selection = getCSSVar("--editor-selection") || getCSSVar("--accent-soft") || "rgba(122,162,247,0.15)"
+  const selection = getCSSVar("--selection-bg") || getCSSVar("--editor-selection") || getCSSVar("--accent-soft") || "rgba(122,162,247,0.25)"
   const cursor = getCSSVar("--editor-cursor") || getCSSVar("--editor-muted") || "#8b92a8"
   const lineHighlight = getCSSVar("--editor-line-highlight") || "rgba(255,255,255,0.03)"
   const muted = getCSSVar("--editor-muted") || getCSSVar("--text-muted") || "#8b92a8"
+  const selectionText = getCSSVar("--selection-text") || "#ffffff"
 
   const themeData: monaco.editor.IStandaloneThemeData = {
     base: detectBaseTheme(),
@@ -108,6 +109,7 @@ export function applyEditorThemeFromCSS(): void {
       "editor.foreground": editorFg,
       "editorCursor.foreground": cursor,
       "editor.selectionBackground": selection,
+      "editor.selectionForeground": selectionText,
       "editor.lineHighlightBackground": lineHighlight,
       "editorLineNumber.foreground": muted,
     },
