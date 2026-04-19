@@ -7,6 +7,9 @@ interface ShortcutHandlers {
     onToggleLeftPanel?: () => void;
     onToggleRightPanel?: () => void;
     onToggleShortcutOverlay?: () => void;
+    onOpenPomodoro?: () => void;
+    onToggleFocusMode?: () => void;
+    onOpenSettings?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -36,6 +39,24 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
             if (isCtrl && (e.key === '?' || e.key === '/')) {
                 e.preventDefault();
                 handlers.onToggleShortcutOverlay?.();
+            }
+
+            // Ctrl+Alt+P -> Pomodoro
+            if (isCtrl && e.altKey && e.key.toLowerCase() === 'p') {
+                e.preventDefault();
+                handlers.onOpenPomodoro?.();
+            }
+
+            // Ctrl+Shift+F -> Focus Mode
+            if (isCtrl && e.shiftKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                handlers.onToggleFocusMode?.();
+            }
+
+            // Ctrl+, -> Settings
+            if (isCtrl && !e.shiftKey && e.key === ',') {
+                e.preventDefault();
+                handlers.onOpenSettings?.();
             }
         };
 

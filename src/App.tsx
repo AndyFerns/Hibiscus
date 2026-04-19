@@ -9,7 +9,12 @@
  * - Uses Workbench layout for IDE-like panels (top, left, main, right, bottom)
  * - Workspace state managed by useWorkspaceController hook
  * - Editor state managed by useEditorController hook
+ * - Study tools managed by feature hooks (pomodoro, flashcards, etc.)
  * - Components communicate through callbacks and shared state
+ * 
+ * PROVIDERS:
+ * - ThemeProvider: Theme system with editor adapter
+ * - StudyProvider: Focus mode + study panel routing
  * 
  * STYLING:
  * - Uses App.css for main content styling
@@ -30,6 +35,16 @@ import { ShortcutOverlay } from "./components/StatusBar/ShortcutOverlay"
 import { ThemeEditor } from "./components/ThemeEditor/ThemeEditor"
 import { ThemeProvider } from "./state/ThemeContext"
 
+// Study tools imports
+import { StudyProvider, useStudy } from "./features/shared/StudyContext"
+import { SettingsModal } from "./features/settings/SettingsModal"
+import { useSettings } from "./features/settings/useSettings"
+import { PomodoroTimer } from "./features/pomodoro/PomodoroTimer"
+import { usePomodoro } from "./features/pomodoro/usePomodoro"
+import { useFlashcards } from "./features/flashcards/useFlashcards"
+import { useNotesSynthesis } from "./features/notes/useNotesSynthesis"
+import { useStudyStats } from "./features/stats/useStudyStats"
+
 import { useWorkspaceController } from "./hooks/useWorkspaceController"
 import { useEditorController } from "./hooks/useEditorController"
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts"
@@ -41,7 +56,12 @@ export const APP_VERSION = versionInfo.version;
 
 import "./App.css"
 
-export default function App() {
+/**
+ * Inner app component that has access to StudyContext.
+ * This separation is needed because useStudy() requires StudyProvider
+ * to be mounted above it in the tree.
+ */
+function AppInner() {
   // ============================================================================
   // WORKSPACE STATE
   // Tree structure, root path, and navigation
@@ -67,6 +87,46 @@ export default function App() {
     onChange,
     saveCurrentFile,
   } = useEditorController(workspaceRoot)
+
+  // ============================================================================
+  // STUDY TOOLS STATE
+  // Shared context + individual feature hooks
+  // ============================================================================
+  const {
+    focusMode,
+    setFocusMode,
+    toggleFocusMode,
+    setActiveStudyPanel,
+    isSettingsOpen,
+    setSettingsOpen,
+  } = useStudy()
+
+  // Settings hook
+  const { settings, updateSettings, resetToDefaults } = useSettings(workspaceRoot)
+
+  // Study statistics hook
+  const studyStats = useStudyStats(workspaceRoot)
+
+  // Pomodoro hook (wired to focus mode + stats recording)
+  const [pomodoroState, pomodoroActions] = usePomodoro({
+    settings: settings.pomodoro,
+    onFocusMode: setFocusMode,
+    onSessionComplete: (durationSeconds) => {
+      studyStats.recordSession({
+        date: new Date().toISOString().split("T")[0],
+        startTime: new Date().toISOString(),
+        duration: durationSeconds,
+        type: "pomodoro",
+        completedFull: true,
+      })
+    },
+  })
+
+  // Flashcards hook
+  const flashcards = useFlashcards(workspaceRoot)
+
+  // Notes synthesis hook
+  const notes = useNotesSynthesis(workspaceRoot)
 
   // ============================================================================
   // PANEL VISIBILITY STATE
@@ -104,7 +164,7 @@ export default function App() {
   }, [])
 
   /**
-   * Toggle right panel (Calendar) visibility
+   * Toggle right panel (Calendar/Study Tools) visibility
    */
   const toggleRightPanel = useCallback(() => {
     setShowRightPanel((prev) => !prev)
@@ -123,6 +183,18 @@ export default function App() {
     })
   }, [handleFileOpen])
 
+  /**
+   * Open a study tool panel in the right sidebar.
+   * Also ensures the right panel is visible.
+   */
+  const openStudyTool = useCallback(
+    (tool: "pomodoro" | "flashcards" | "notes" | "stats") => {
+      setActiveStudyPanel(tool)
+      setShowRightPanel(true)
+    },
+    [setActiveStudyPanel]
+  )
+
   // ============================================================================
   // KEYBOARD SHORTCUTS
   // Global registry for app-wide shortcuts
@@ -132,10 +204,25 @@ export default function App() {
     onToggleLeftPanel: toggleLeftPanel,
     onToggleRightPanel: toggleRightPanel,
     onToggleShortcutOverlay: () => setShowShortcutOverlay((prev) => !prev),
+    onOpenPomodoro: () => openStudyTool("pomodoro"),
+    onToggleFocusMode: toggleFocusMode,
+    onOpenSettings: () => setSettingsOpen(true),
   })
 
+  // ============================================================================
+  // STATS DATA (computed once for StatsPanel)
+  // ============================================================================
+  const statsData = {
+    totalStudyMinutes: studyStats.totalStudyMinutes,
+    totalSessions: studyStats.totalSessions,
+    currentStreak: studyStats.currentStreak,
+    avgDailyMinutes: studyStats.avgDailyMinutes,
+    weeklyData: studyStats.getDailyAggregates(7),
+    recentSessions: studyStats.data.sessions,
+  }
+
   return (
-    <ThemeProvider workspaceRoot={workspaceRoot}>
+    <>
       <Workbench
         /* ----------------------------------------------------------------
          * TITLE BAR (Custom Window Titlebar)
@@ -150,15 +237,20 @@ export default function App() {
             showLeftPanel={showLeftPanel}
             showRightPanel={showRightPanel}
             onSave={saveCurrentFile}
+            onOpenStudyTool={openStudyTool}
+            onToggleFocusMode={toggleFocusMode}
+            focusMode={focusMode}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         }
 
         /* ----------------------------------------------------------------
          * LEFT PANEL - File Tree
-         * Displays the workspace file structure for navigation
+         * Displays the workspace file structure for navigation.
+         * Hidden during focus mode when setting is enabled.
          * ---------------------------------------------------------------- */
         left={
-          showLeftPanel ? (
+          showLeftPanel && !(focusMode && settings.general.focusModeHidesExplorer) ? (
             <TreeView
               tree={workspace.tree}
               activeNodeId={workspace.session?.active_node}
@@ -216,13 +308,18 @@ export default function App() {
         }
 
         /* ----------------------------------------------------------------
-         * RIGHT PANEL - Calendar & Planner
-         * Split view for study planning
+         * RIGHT PANEL - Calendar & Study Tools
+         * Tabbed view with Calendar, Pomodoro, Flashcards, Notes, Stats
          * ---------------------------------------------------------------- */
         right={
           <RightPanelContainer
             workspaceRoot={workspaceRoot}
             onOpenFile={openFileByPath}
+            pomodoroState={pomodoroState}
+            pomodoroActions={pomodoroActions}
+            flashcards={flashcards}
+            notes={notes}
+            statsData={statsData}
           />
         }
         showRightPanel={showRightPanel}
@@ -233,7 +330,7 @@ export default function App() {
          * ---------------------------------------------------------------- */
         bottom={
           <div className="status-bar">
-            {/* Left: Workspace info */}
+            {/* Left: Workspace info + Focus mode indicator */}
             <div className="status-bar-left">
               {workspaceRoot ? (
                 <span className="status-item">
@@ -244,9 +341,14 @@ export default function App() {
                   No workspace
                 </span>
               )}
+              {focusMode && (
+                <span className="status-item status-item--accent" title="Focus Mode active">
+                  🔍 Focus
+                </span>
+              )}
             </div>
 
-            {/* Right: Cursor position, file info, layout controls, version */}
+            {/* Right: Pomodoro timer, Theme, Layout, Version */}
             <div className="status-bar-right">
               {/* Cursor Position (Line:Column) */}
               {activeFile && (
@@ -261,6 +363,12 @@ export default function App() {
                   {activeFile.name}
                 </span>
               )}
+
+              {/* Pomodoro mini timer (visible when running) */}
+              <PomodoroTimer
+                state={pomodoroState}
+                onClick={() => openStudyTool("pomodoro")}
+              />
 
               {/* Theme Selector */}
               <ThemeSelector />
@@ -290,6 +398,29 @@ export default function App() {
       />
       {/* Theme Editor Modal — controlled by ThemeContext */}
       <ThemeEditor />
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onUpdate={updateSettings}
+        onReset={resetToDefaults}
+      />
+    </>
+  )
+}
+
+/**
+ * Root App component — wraps AppInner with providers.
+ */
+export default function App() {
+  const { workspaceRoot } = useWorkspaceController()
+
+  return (
+    <ThemeProvider workspaceRoot={workspaceRoot}>
+      <StudyProvider>
+        <AppInner />
+      </StudyProvider>
     </ThemeProvider>
   )
 }

@@ -65,6 +65,14 @@ interface TitleBarProps {
     showRightPanel?: boolean
     /** Callback to save current file */
     onSave?: () => void
+    /** Callback to open a study tool panel */
+    onOpenStudyTool?: (tool: "pomodoro" | "flashcards" | "notes" | "stats") => void
+    /** Callback to toggle focus mode */
+    onToggleFocusMode?: () => void
+    /** Whether focus mode is active */
+    focusMode?: boolean
+    /** Callback to open settings */
+    onOpenSettings?: () => void
 }
 
 export function TitleBar({
@@ -75,6 +83,10 @@ export function TitleBar({
     showLeftPanel = true,
     showRightPanel = false,
     onSave,
+    onOpenStudyTool,
+    onToggleFocusMode,
+    focusMode = false,
+    onOpenSettings,
 }: TitleBarProps) {
     // Track which menu is currently open
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
@@ -179,16 +191,15 @@ export function TitleBar({
         {
             label: "Tools",
             items: [
-                { label: "Pomodoro Timer", shortcut: "Ctrl+Alt+P" },
-                { label: "Flashcards", shortcut: "Ctrl+Alt+F" },
-                { label: "Notes", shortcut: "Ctrl+Alt+N" },
+                { label: "Pomodoro Timer", shortcut: "Ctrl+Alt+P", action: () => onOpenStudyTool?.("pomodoro") },
+                { label: "Flashcards", shortcut: "Ctrl+Alt+F", action: () => onOpenStudyTool?.("flashcards") },
+                { label: "Notes Synthesis", shortcut: "Ctrl+Alt+N", action: () => onOpenStudyTool?.("notes") },
+                { label: "Study Statistics", action: () => onOpenStudyTool?.("stats") },
                 { divider: true, label: "" },
-                { label: "Study Statistics" },
-                { label: "Progress Tracker" },
+                { label: focusMode ? "Exit Focus Mode" : "Focus Mode", shortcut: "Ctrl+Shift+F", action: onToggleFocusMode },
                 { divider: true, label: "" },
-                { label: "Settings", shortcut: "Ctrl+," },
+                { label: "Settings", shortcut: "Ctrl+,", action: onOpenSettings },
                 { label: "Keyboard Shortcuts", shortcut: "Ctrl+K Ctrl+S" },
-                { label: "Extensions" },
             ],
         },
         {

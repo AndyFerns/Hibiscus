@@ -288,3 +288,24 @@ input {
 .pointer-events-none {
   pointer-events: none;
 }
+
+/* =============================================================================
+ * FOCUS MODE
+ * Hide non-essential UI elements when [data-focus="true"] is set on root
+ * TitleBar remains visible as per user preference
+ * ============================================================================= */
+
+/* The [data-focus="true"] attribute is managed by StudyContext */
+html[data-focus="true"] .workbench-left {
+  display: none !important;
+}
+
+/* Make main editor space take over more screen real estate */
+html[data-focus="true"] .workbench-main {
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure focus mode overrides any temporary layout state */
+html[data-focus="true"] body {
+  background: var(--bg-default);
+}
