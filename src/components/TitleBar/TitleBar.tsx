@@ -66,6 +66,22 @@ interface TitleBarProps {
     showRightPanel?: boolean
     /** Callback to save current file */
     onSave?: () => void
+    /** Callback to save as */
+    onSaveAs?: () => void
+    /** Callback to save all files */
+    onSaveAll?: () => void
+    /** Callback to close current file */
+    onCloseFile?: () => void
+    /** Callback to open file dialog */
+    onOpenFile?: () => void
+    /** Callback to create new file */
+    onNewFile?: () => void
+    /** Callback to create new folder */
+    onNewFolder?: () => void
+    /** Callback to close workspace */
+    onCloseFolder?: () => void
+    /** Callback to handle application exit */
+    onExit?: () => void
     /** Callback to open a study tool panel */
     onOpenStudyTool?: (tool: "pomodoro" | "flashcards" | "notes" | "stats") => void
     /** Callback to toggle focus mode */
@@ -84,6 +100,14 @@ export function TitleBar({
     showLeftPanel = true,
     showRightPanel = false,
     onSave,
+    onSaveAs,
+    onSaveAll,
+    onCloseFile,
+    onOpenFile,
+    onNewFile,
+    onNewFolder,
+    onCloseFolder,
+    onExit,
     onOpenStudyTool,
     onToggleFocusMode,
     focusMode = false,
@@ -102,10 +126,10 @@ export function TitleBar({
         {
             label: "File",
             items: [
-                { label: "New File", shortcut: "Ctrl+N" },
-                { label: "New Folder", shortcut: "Ctrl+Shift+N" },
+                { label: "New File", shortcut: "Ctrl+N", action: onNewFile },
+                { label: "New Folder", shortcut: "Ctrl+Shift+N", action: onNewFolder },
                 { divider: true, label: "" },
-                { label: "Open File...", shortcut: "Ctrl+O" },
+                { label: "Open File...", shortcut: "Ctrl+O", action: onOpenFile },
                 {
                     label: "Open Folder...",
                     shortcut: "Ctrl+K Ctrl+O",
@@ -114,13 +138,13 @@ export function TitleBar({
                 { label: "Open Recent", shortcut: "→" },
                 { divider: true, label: "" },
                 { label: "Save", shortcut: "Ctrl+S", action: onSave },
-                { label: "Save As...", shortcut: "Ctrl+Shift+S" },
-                { label: "Save All", shortcut: "Ctrl+Alt+S" },
+                { label: "Save As...", shortcut: "Ctrl+Shift+S", action: onSaveAs },
+                { label: "Save All", shortcut: "Ctrl+Alt+S", action: onSaveAll },
                 { divider: true, label: "" },
-                { label: "Close File", shortcut: "Ctrl+W" },
-                { label: "Close Folder" },
+                { label: "Close File", shortcut: "Ctrl+W", action: onCloseFile },
+                { label: "Close Folder", shortcut: "Ctrl+Shift+W", action: onCloseFolder },
                 { divider: true, label: "" },
-                { label: "Exit", shortcut: "Alt+F4" },
+                { label: "Exit", shortcut: "Alt+F4", action: onExit },
             ],
         },
         {
