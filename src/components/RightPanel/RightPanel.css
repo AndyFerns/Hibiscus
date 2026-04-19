@@ -246,3 +246,74 @@
     font-size: var(--text-sm, 12px);
     line-height: 1.5;
 }
+
+/* =============================================================================
+ * VIEW SWITCHER TAB BAR
+ * Tabs at the top of the right panel for switching between Calendar and
+ * study tools (Pomodoro, Flashcards, Notes, Stats).
+ * ============================================================================= */
+
+.right-panel-tabs {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 2px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.right-panel-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.right-panel-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-subtle);
+    font-size: var(--text-xs, 11px);
+    font-family: var(--font-ui);
+    cursor: pointer;
+    border-radius: var(--radius-sm, 4px);
+    white-space: nowrap;
+    transition: var(--transition-fast);
+    flex: 1;
+    justify-content: center;
+}
+
+.right-panel-tab:hover {
+    background: var(--panel-bg-hover);
+    color: var(--text-muted);
+}
+
+.right-panel-tab.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.right-panel-tab-icon {
+    font-size: 11px;
+}
+
+.right-panel-tab-label {
+    font-size: 10px;
+    letter-spacing: 0.3px;
+}
+
+/* =============================================================================
+ * STUDY CONTENT AREA
+ * Container for study tool panels when not showing the calendar.
+ * ============================================================================= */
+
+.right-panel-study-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--panel-bg);
+}
