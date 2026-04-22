@@ -12,10 +12,14 @@ You can switch themes seamlessly at runtime using the `ThemeSelector` located in
 
 ## Architecture
 
-Theming is built upon `[data-theme]` attributes injected directly into `document.documentElement` by the `ThemeContext.tsx` provider. 
+Theming is built upon `[data-theme]` attributes injected directly into `document.documentElement` by the `ThemeContext.tsx` provider.
+
+![Hibiscus Theming](../assets/Hibiscus%20Theme%20Selection.png)
 
 ### Core CSS Structure
+
 The base layout defines semantic tokens within the `:root` scope in `src/styles/theme.css`:
+
 ```css
 :root {
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -25,7 +29,9 @@ The base layout defines semantic tokens within the `:root` scope in `src/styles/
 ```
 
 ### Theme Variants
+
 Color definitions are strictly mapped onto specific theme blocks:
+
 ```css
 [data-theme="midnight"] {
   --bg-primary: #0f111a;
@@ -41,4 +47,5 @@ Color definitions are strictly mapped onto specific theme blocks:
 ```
 
 ### Local Persistence
+
 Your selection is cached seamlessly via `localStorage` directly in `ThemeContext`, retaining your visual layout across reboots.
