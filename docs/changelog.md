@@ -2,6 +2,30 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.8.0] - Knowledge Indexing System (Phase 1)
+
+### 🚀 New Features
+
+- **Knowledge Indexing Pipeline**: Implemented a local-first, incremental knowledge indexing system that watches workspace files (`.md`, `.txt`) and processes them via a debounced async queue.
+- **Worker Pool & Debounced Batching**: Added a background worker task with bounded concurrency and debounced batching for efficient per-file processing without blocking the main runtime.
+- **Trait-Based Parser System**: Introduced a flexible parsing architecture including a `MarkdownParser` for heading-based splits and a `TxtParser` for paragraph-based splits.
+- **Context-Aware Chunker**: Implemented an intelligent chunking engine that splits parsed sections into 200-500 word bounds while preserving heading context and using deterministic IDs.
+- **Incremental Keyword Indexing**: Added a hash-based incremental keyword index that supports stopword filtering and normalization for rapid text retrieval.
+- **Robust Storage Layer**: Built an optimized disk I/O layer utilizing buffered reads/writes, streaming file hashes, and individual chunk file storage to minimize memory footprint.
+- **Query APIs**: Exposed new Tauri commands (`search_knowledge`, `get_chunk`, `rebuild_knowledge_index`) for frontend integration with the knowledge system.
+
+### 🏗️ Architecture
+
+- **State Management**: Integrated `Arc<KnowledgeState>` as a managed state within Tauri, properly spawning the worker during the setup hook to ensure safe cross-thread operations.
+- **Watcher Integration**: Extended the existing `watch_workspace` to seamlessly accept `KnowledgeState` and securely forward filesystem events to the new knowledge queue.
+- **Asynchronous Processing**: Integrated essential Tokio features (`rt`, `rt-multi-thread`, `time`, `macros`) into the Cargo manifest to safely support native async routines.
+
+### 🐛 Bug Fixes
+
+- **Threading Panic**: Replaced tokio runtime thread spawning with Tauri's native async runtime handling to prevent main thread panics when no existing tokio runtime was detected.
+- **Macro Export Issues**: Updated the module root to accurately re-export the Tauri-facing API to prevent macro resolution bugs associated with `tauri::command`.
+- **Code Consolidation**: Delegated all custom shared data types into a single unified file for cleaner dependency management across the workspace.
+
 ## [v0.7.2]
 
 - **Bugfix**: Removed unused Open function causing typescript errors (lol)

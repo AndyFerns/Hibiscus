@@ -496,4 +496,61 @@ pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result
     Ok(())
 }
 
+// ============================================================================
+// KNOWLEDGE OPERATIONS (PHASE 1)
+// ============================================================================
+
+/// Search the knowledge index for chunks matching a keyword.
+///
+/// The keyword is normalized (lowercased, trimmed) before lookup.
+/// Results include the full chunk content so the frontend does not need
+/// a second round-trip to fetch each chunk.
+///
+/// # Arguments
+/// * `keyword` - The search term.
+/// * `state` - Knowledge managed state (provides workspace root).
+///
+/// # Returns
+/// A list of `SearchResult` values, or an error string.
+#[tauri::command]
+pub async fn search_knowledge(
+    keyword: String,
+    state: State<'_, Arc<KnowledgeState>>,
+) -> Result<Vec<SearchResult>, String> {
+    // Command implementation
+}
+
+/// Retrieve a single chunk by its ID.
+///
+/// # Arguments
+/// * `chunk_id` - The chunk ID to look up.
+/// * `state` - Knowledge managed state.
+///
+/// # Returns
+/// The chunk as a `SearchResult`, or an error if not found.
+#[tauri::command]
+pub async fn get_chunk(
+    chunk_id: String,
+    state: State<'_, Arc<KnowledgeState>>,
+) -> Result<SearchResult, String> {
+    // Command implementation
+}
+
+/// Trigger a full workspace scan and re-index.
+///
+/// This uses the same incremental logic as event-driven updates: files whose
+/// content hash has not changed since the last index run are skipped entirely.
+/// Only truly new or modified files are re-processed.
+///
+/// # Arguments
+/// * `state` - Knowledge managed state.
+///
+/// # Returns
+/// The number of files scanned (including skipped ones).
+#[tauri::command]
+pub async fn rebuild_knowledge_index(
+    state: State<'_, Arc<KnowledgeState>>,
+) -> Result<usize, String> {
+    // Command implementation
+}
 ```
