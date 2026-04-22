@@ -104,7 +104,7 @@ impl Default for KnowledgeState {
 /// This should be called once during app startup (in `lib.rs` setup hook).
 /// The task runs for the lifetime of the application.
 pub fn spawn_knowledge_worker(state: Arc<KnowledgeState>) {
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         // Take ownership of the receiver. If it has already been taken
         // (e.g., double init), exit silently.
         let mut receiver = match state.take_receiver().await {
@@ -187,7 +187,7 @@ pub fn spawn_knowledge_worker(state: Arc<KnowledgeState>) {
                 let ws = workspace_root.clone();
                 let sem = semaphore.clone();
 
-                tokio::spawn(async move {
+                tauri::async_runtime::spawn(async move {
                     // Acquire a permit to bound concurrency.
                     let _permit = match sem.acquire().await {
                         Ok(p) => p,
