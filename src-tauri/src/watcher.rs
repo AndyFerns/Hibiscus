@@ -11,13 +11,19 @@
 //! - Debounced events to prevent event storms
 //! - Error recovery and logging
 //! - Restartable (can switch workspaces)
+//! - Knowledge indexing integration: forwards Create/Modify/Delete events
+//!   to the knowledge queue for incremental indexing.
 //!
 //! ARCHITECTURE:
 //! - Uses AtomicBool for thread-safe shutdown signaling
 //! - Watcher runs in a dedicated thread to avoid blocking
 //! - Events are emitted to the frontend via Tauri's event system
+//! - Events are also forwarded to the knowledge indexing queue via
+//!   an mpsc channel (fire-and-forget, non-blocking send)
 //! ============================================================================
 
+use crate::knowledge::types::{FileEvent, FileEventType};
+use crate::knowledge::queue::KnowledgeState;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -97,7 +103,32 @@ fn should_ignore_path(path: &PathBuf) -> bool {
 /// - The watcher filters out changes to .hibiscus and other ignored paths
 /// - Events are debounced to prevent excessive updates
 #[tauri::command]
-pub fn watch_workspace(path: String, window: tauri::Window, state: State<WatcherState>) {
+pub fn watch_workspace(
+    path: String,
+    window: tauri::Window,
+    state: State<WatcherState>,
+    knowledge_state: State<Arc<KnowledgeState>>,
+) {
+    // Clone the knowledge sender so the watcher thread can forward events.
+    // This is a lightweight clone (Arc under the hood).
+    let knowledge_sender = knowledge_state.sender.clone();
+
+    // Set the workspace root for the knowledge system so the processing
+    // pipeline knows where to read/write index data.
+    {
+        let ws_root = path.clone();
+        let ks = (*knowledge_state).clone();
+        // Fire-and-forget: set workspace root asynchronously.
+        // We use a dedicated Tokio runtime since we are in a sync context.
+        std::thread::spawn(move || {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build();
+            if let Ok(rt) = rt {
+                rt.block_on(ks.set_workspace_root(ws_root));
+            }
+        });
+    }
     // Stop any existing watcher
     state.running.store(false, Ordering::SeqCst);
 
@@ -114,6 +145,7 @@ pub fn watch_workspace(path: String, window: tauri::Window, state: State<Watcher
     running.store(true, Ordering::SeqCst);
 
     let watch_path = path.clone();
+    let knowledge_tx = knowledge_sender;
 
     // Spawn watcher thread
     std::thread::spawn(move || {
@@ -190,6 +222,18 @@ pub fn watch_workspace(path: String, window: tauri::Window, state: State<Watcher
                                 let paths: Vec<String> = accumulated_paths.drain().collect();
                                 if let Err(e) = window.emit("fs-changed", &paths) {
                                     eprintln!("[Hibiscus] Error emitting event: {}", e);
+                                }
+                                // Forward events to the knowledge indexing queue.
+                                // We classify all debounced events as Modify since
+                                // the debounce window may have coalesced Create+Modify.
+                                // The knowledge pipeline handles this correctly: it
+                                // uses hash-based change detection regardless of
+                                // event type for Create/Modify.
+                                for p in &paths {
+                                    let _ = knowledge_tx.send(FileEvent {
+                                        path: p.clone(),
+                                        event_type: FileEventType::Modify,
+                                    });
                                 }
                                 last_event_time = None;
                             }
