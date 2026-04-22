@@ -40,6 +40,7 @@ nav:
       - Study Tools: guide/study-tools.md
   - Developer:
       - Architecture: dev/architecture.md
+      - Knowledge Pipeline: dev/knowledge-pipeline.md
       - API Reference: dev/api-reference.md
       - Contributing: dev/contributing.md
   - Changelog: changelog.md
