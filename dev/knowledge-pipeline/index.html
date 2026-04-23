@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#knowledge-pipeline-phase-1" class="md-skip">
+        <a href="#knowledge-pipeline-phase-2" class="md-skip">
           Skip to content
         </a>
       
@@ -464,6 +464,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guide/flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guide/shortcuts/" class="md-nav__link">
         
   
@@ -778,10 +806,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#6-incremental-indexer" class="md-nav__link">
+  <a href="#6-incremental-indexer-topic-extraction" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Incremental Indexer
+        6. Incremental Indexer &amp; Topic Extraction
       
     </span>
   </a>
@@ -800,10 +828,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#8-query-api" class="md-nav__link">
+  <a href="#8-query-api-caching-layer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Query API
+        8. Query API &amp; Caching Layer
       
     </span>
   </a>
@@ -934,47 +962,75 @@
   
 
 
-<h1 id="knowledge-pipeline-phase-1">Knowledge Pipeline (Phase 1)</h1>
+<h1 id="knowledge-pipeline-phase-2">Knowledge Pipeline (Phase 2)</h1>
 <p>Hibiscus features a local-first, incremental knowledge indexing system designed to make your workspace deeply searchable without compromising performance or privacy.</p>
-<p>The knowledge pipeline processes raw text and markdown files, chunks them intelligently, and maintains a highly optimized inverted keyword index entirely on your local machine.</p>
+<p>The knowledge pipeline processes raw text, markdown, PDF, and DOCX files. It chunks them intelligently, extracts topics, and maintains a highly optimized inverted keyword index with advanced TF-IDF scoring entirely on your local machine.</p>
 <h2 id="design-constraints">Design Constraints</h2>
-<p>The indexing system adheres strictly to the following architectural constraints:
-- <strong>Local-First</strong>: All data processing and storage happens on-device.
-- <strong>Derived &amp; Rebuildable</strong>: The knowledge layer acts as a read-only cache. It is entirely derived from your workspace files and can be rebuilt at any time.
-- <strong>Immutable Source</strong>: The pipeline will <strong>never</strong> mutate user files.
-- <strong>Memory Efficiency</strong>: Chunks are streamed via buffered disk I/O, preventing bulk memory loading.
-- <strong>Non-Blocking</strong>: All processing is relegated to an asynchronous background worker pool, maintaining a smooth UI thread.</p>
+<p>The indexing system adheres strictly to the following architectural constraints:</p>
+<ul>
+<li><strong>Local-First</strong>: All data processing and storage happens on-device.</li>
+<li><strong>Derived &amp; Rebuildable</strong>: The knowledge layer acts as a read-only cache. It is entirely derived from your workspace files and can be rebuilt at any time.</li>
+<li><strong>Immutable Source</strong>: The pipeline will <strong>never</strong> mutate user files.</li>
+<li><strong>Memory Efficiency</strong>: Chunks are streamed via buffered disk I/O, preventing bulk memory loading.</li>
+<li><strong>Non-Blocking</strong>: All processing is relegated to an asynchronous background worker pool, maintaining a smooth UI thread.</li>
+</ul>
 <h2 id="pipeline-architecture">Pipeline Architecture</h2>
 <p>The pipeline processes files in a structured, step-by-step flow:</p>
 <p><code>Watcher -&gt; Debounced Queue -&gt; Worker Pool -&gt; Parser -&gt; Chunker -&gt; Indexer -&gt; Storage -&gt; Query API</code></p>
 <h3 id="1-watcher">1. Watcher</h3>
-<p>The filesystem watcher monitors your workspace root for any <code>Create</code>, <code>Modify</code>, or <code>Delete</code> events affecting <code>.md</code> and <code>.txt</code> files. These events are immediately forwarded to the knowledge queue.</p>
+<p>The filesystem watcher monitors your workspace root for any <code>Create</code>, <code>Modify</code>, or <code>Delete</code> events affecting <code>.md</code>, <code>.txt</code>, <code>.pdf</code>, and <code>.docx</code> files. These events are immediately forwarded to the knowledge queue.</p>
 <h3 id="2-debounced-queue">2. Debounced Queue</h3>
 <p>To prevent redundant processing (e.g., rapid consecutive saves), events are debounced and deduplicated inside a queue. A batch is formed over a small time window and dispatched as a single unit to the worker pool.</p>
 <h3 id="3-worker-pool">3. Worker Pool</h3>
-<p>An asynchronous Tokio-based worker pool processes the batched events. Concurrency is bounded by the available CPU cores to prevent system starvation. Each file is processed entirely independently of others.</p>
+<p>An asynchronous Tokio-based worker pool processes the batched events. Concurrency is bounded by the available CPU cores to prevent system starvation. Each file is processed entirely independently of others. 
+<strong>Ingestion Priorities</strong>: Extremely large files (e.g., &gt; 10MB) are efficiently bypassed to avoid unexpected memory spikes, ensuring background processing remains lightweight.</p>
 <h3 id="4-parser-system">4. Parser System</h3>
-<p>A trait-based parser system extracts structured sections from the raw files:
-- <strong>Markdown Parser</strong>: Splits documents based on ATX-style headings (<code>#</code>, <code>##</code>), capturing the heading context for each section.
-- <strong>Text Parser</strong>: Splits plain text files intelligently based on paragraph breaks.</p>
+<p>A trait-based parser system extracts structured sections from the raw files:</p>
+<ul>
+<li><strong>Markdown Parser</strong>: Splits documents based on ATX-style headings (<code>#</code>, <code>##</code>), capturing the heading context for each section.</li>
+<li><strong>Text Parser</strong>: Splits plain text files intelligently based on paragraph breaks.</li>
+<li><strong>PDF Parser</strong>: Uses text extraction to strip plain text from PDFs, falling back to basic paragraph heuristics.</li>
+<li><strong>DOCX Parser</strong>: Employs streaming XML parsing of <code>word/document.xml</code> for highly efficient text retrieval without loading the entire DOM.</li>
+</ul>
 <h3 id="5-chunker">5. Chunker</h3>
-<p>The chunking engine splits the parsed sections into size-bounded chunks (typically 200-500 words). It guarantees:
-- <strong>Heading Preservation</strong>: Every chunk retains the context of its parent heading.
-- <strong>Boundary Enforcement</strong>: Chunks never cross file boundaries.
-- <strong>Deterministic Hashing</strong>: Each chunk receives a deterministic, content-addressable ID to easily track changes.</p>
-<h3 id="6-incremental-indexer">6. Incremental Indexer</h3>
-<p>An inverted keyword index (<code>keyword -&gt; [chunk_ids]</code>) is maintained. During processing, the indexer applies strict normalization:
-- Keywords are lowercased and stripped of alphanumeric padding.
-- Common English stopwords are filtered out.
-- Unchanged files are aggressively skipped using SHA-256 content hashes, ensuring only the delta is processed.</p>
+<p>The chunking engine splits the parsed sections into size-bounded chunks (typically 200-500 words). It guarantees:</p>
+<ul>
+<li><strong>Heading Preservation</strong>: Every chunk retains the context of its parent heading.</li>
+<li><strong>Boundary Enforcement</strong>: Chunks never cross file boundaries.</li>
+<li><strong>Deterministic Hashing</strong>: Each chunk receives a deterministic, content-addressable ID to easily track changes.</li>
+</ul>
+<h3 id="6-incremental-indexer-topic-extraction">6. Incremental Indexer &amp; Topic Extraction</h3>
+<p>An inverted keyword index (<code>keyword -&gt; [chunk_ids]</code>) is maintained. During processing, the indexer applies strict normalization:</p>
+<ul>
+<li>Keywords are lowercased and stripped of alphanumeric padding.</li>
+<li>Common English stopwords are filtered out.</li>
+<li>Unchanged files are aggressively skipped using SHA-256 content hashes, ensuring only the delta is processed.</li>
+</ul>
+<p><strong>TF-IDF Scored Index (Phase 2)</strong>: 
+After indexing, a lightweight TF-IDF score is precomputed for each keyword. This produces a <code>ScoredKeywordIndex</code> where <code>score = ln(1 + term_frequency) * ln(total_chunks / doc_frequency)</code>. This ensures that query-time ranking requires zero calculation.</p>
+<p><strong>Topic Grouping</strong>: 
+In parallel, a lightweight heuristic topic grouping runs, clustering chunks into topics based on heading text overlap deterministically (without relying on ML or external clustering libraries).</p>
 <h3 id="7-storage-layer">7. Storage Layer</h3>
-<p>Derived data is serialized to JSON and stored locally within <code>.hibiscus/knowledge/</code>.
-- <code>manifest.json</code>: Tracks indexing metadata.
-- <code>index/keyword_index.json</code>: The core inverted keyword mapping.
-- <code>files/file_map.json</code>: Tracks the relationship between source files and derived chunk IDs.
-- <code>chunks/&lt;chunk_id&gt;.json</code>: Individual chunk files, written atomically.</p>
-<h3 id="8-query-api">8. Query API</h3>
-<p>The frontend interacts with the knowledge system via Tauri commands (<code>search_knowledge</code>, <code>get_chunk</code>). Query results are aggressively cached for instant retrieval during continuous typing, and invalidation occurs automatically when the underlying index is modified.</p>
+<p>Derived data is serialized to JSON and stored locally within <code>.hibiscus/knowledge/</code>.</p>
+<ul>
+<li><code>manifest.json</code>: Tracks indexing metadata.</li>
+<li><code>topics.json</code>: Maps topic names to chunk IDs.</li>
+<li><code>index/keyword_index.json</code>: The core inverted keyword mapping (legacy Phase 1 compatibility).</li>
+<li><code>index/scored_index.json</code>: The active TF-IDF scored inverted keyword mapping.</li>
+<li><code>files/file_map.json</code>: Tracks the relationship between source files and derived chunk IDs.</li>
+<li><code>chunks/&lt;chunk_id&gt;.json</code>: Individual chunk files, written atomically.</li>
+</ul>
+<h3 id="8-query-api-caching-layer">8. Query API &amp; Caching Layer</h3>
+<p>The frontend interacts with the knowledge system via robust Tauri commands (<code>search_chunks</code>, <code>get_topics</code>, <code>get_chunk</code>). </p>
+<p><strong>Query Engine</strong>:</p>
+<ul>
+<li><strong>Ranked Search</strong>: Retrieves results using the precomputed TF-IDF scores.</li>
+<li><strong>Prefix Matching</strong>: Keywords starting with a query term receive a slight relevance boost.</li>
+<li><strong>Fuzzy Matching</strong>: Query terms within an edit distance of 1 receive a fuzzy boost, improving typo resilience.</li>
+<li><strong>Pagination</strong>: Supports top-K limiting and offsets to handle large result sets elegantly.</li>
+</ul>
+<p><strong>Caching</strong>:
+A custom in-memory LRU cache stores recent query results and retrieved chunks. This guarantees instant responses while typing. The cache implements an all-or-nothing invalidation strategy, seamlessly flushing stale results anytime a source file changes.</p>
 
 
 

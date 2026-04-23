@@ -462,6 +462,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../guide/flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../guide/shortcuts/" class="md-nav__link">
         
   
@@ -801,7 +829,7 @@
   <a href="#new-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🚀 New Features
+        New Features
       
     </span>
   </a>
@@ -812,7 +840,7 @@
   <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🏗️ Architecture
+        Architecture
       
     </span>
   </a>
@@ -823,7 +851,7 @@
   <a href="#bug-fixes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🐛 Bug Fixes
+        Bug Fixes
       
     </span>
   </a>
@@ -1170,7 +1198,7 @@
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to the <strong>Hibiscus</strong> project will be documented in this file.</p>
 <h2 id="v080-knowledge-indexing-system-phase-1">[v0.8.0] - Knowledge Indexing System (Phase 1)</h2>
-<h3 id="new-features">🚀 New Features</h3>
+<h3 id="new-features">New Features</h3>
 <ul>
 <li><strong>Knowledge Indexing Pipeline</strong>: Implemented a local-first, incremental knowledge indexing system that watches workspace files (<code>.md</code>, <code>.txt</code>) and processes them via a debounced async queue.</li>
 <li><strong>Worker Pool &amp; Debounced Batching</strong>: Added a background worker task with bounded concurrency and debounced batching for efficient per-file processing without blocking the main runtime.</li>
@@ -1180,13 +1208,13 @@
 <li><strong>Robust Storage Layer</strong>: Built an optimized disk I/O layer utilizing buffered reads/writes, streaming file hashes, and individual chunk file storage to minimize memory footprint.</li>
 <li><strong>Query APIs</strong>: Exposed new Tauri commands (<code>search_knowledge</code>, <code>get_chunk</code>, <code>rebuild_knowledge_index</code>) for frontend integration with the knowledge system.</li>
 </ul>
-<h3 id="architecture">🏗️ Architecture</h3>
+<h3 id="architecture">Architecture</h3>
 <ul>
 <li><strong>State Management</strong>: Integrated <code>Arc&lt;KnowledgeState&gt;</code> as a managed state within Tauri, properly spawning the worker during the setup hook to ensure safe cross-thread operations.</li>
 <li><strong>Watcher Integration</strong>: Extended the existing <code>watch_workspace</code> to seamlessly accept <code>KnowledgeState</code> and securely forward filesystem events to the new knowledge queue.</li>
 <li><strong>Asynchronous Processing</strong>: Integrated essential Tokio features (<code>rt</code>, <code>rt-multi-thread</code>, <code>time</code>, <code>macros</code>) into the Cargo manifest to safely support native async routines.</li>
 </ul>
-<h3 id="bug-fixes">🐛 Bug Fixes</h3>
+<h3 id="bug-fixes">Bug Fixes</h3>
 <ul>
 <li><strong>Threading Panic</strong>: Replaced tokio runtime thread spawning with Tauri's native async runtime handling to prevent main thread panics when no existing tokio runtime was detected.</li>
 <li><strong>Macro Export Issues</strong>: Updated the module root to accurately re-export the Tauri-facing API to prevent macro resolution bugs associated with <code>tauri::command</code>.</li>

@@ -564,6 +564,34 @@
   
   
     <li class="md-nav__item">
+      <a href="guide/flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="guide/shortcuts/" class="md-nav__link">
         
   
@@ -878,7 +906,7 @@
 <li><strong>Blazing Fast Backend</strong>: Powered entirely by Rust and Tauri, offering native performance and minimal resource consumption.</li>
 <li><strong>Deep Study Tools</strong>: Featuring an integrated Pomodoro timer, native flashcard decks, comprehensive study statistics, and a zero-distraction Focus Mode.</li>
 <li><strong>Intelligent Knowledge Synthesis</strong>: A built-in document combiner that effortlessly fuses text and markdown documents recursively into cohesive, structured outputs.</li>
-<li><strong>Local-First Indexing</strong>: A robust background indexing pipeline that makes your entire workspace instantly searchable without ever leaving your machine.</li>
+<li><strong>Local-First Indexing</strong>: A robust background indexing pipeline that makes your entire workspace instantly searchable without ever leaving your machine. Now supports Markdown, Text, PDF, and DOCX documents with advanced TF-IDF ranking.</li>
 <li><strong>Hot-Swappable Theming</strong>: Enjoy meticulously crafted built-in themes (Midnight, Dawn, Forest) powered by a deeply configurable CSS variable API.</li>
 <li><strong>Workspace Management</strong>: A fast, reliable file tree equipped with debounce-optimized file watchers for immediate UI synchronization.</li>
 </ul>
@@ -887,7 +915,7 @@
 <ul>
 <li><strong>Frontend</strong>: A React application utilizing the Monaco Editor for a world-class text editing experience, styled with a comprehensive dynamic CSS variable system.</li>
 <li><strong>Backend (Rust)</strong>: Handles all heavy lifting—from file system watching and structural tree generation to robust, incremental knowledge indexing.</li>
-<li><strong>Knowledge Pipeline</strong>: A background worker pool continuously parses, chunks, and indexes your <code>.md</code> and <code>.txt</code> files into <code>.hibiscus/knowledge/</code>. The data is fully derived and rebuildable, guaranteeing that your source files are never mutated.</li>
+<li><strong>Knowledge Pipeline</strong>: A background worker pool continuously parses, chunks, and indexes your <code>.md</code>, <code>.txt</code>, <code>.pdf</code>, and <code>.docx</code> files into <code>.hibiscus/knowledge/</code>. The data is fully derived and rebuildable, guaranteeing that your source files are never mutated. Includes an in-memory LRU caching layer and query engine for blazingly fast retrievals.</li>
 </ul>
 <h2 id="why-hibiscus">Why Hibiscus?</h2>
 <p>Hibiscus stands apart by rejecting the trend of bloated, cloud-dependent workspaces. It respects your privacy, your system resources, and your workflow. Whether you're writing code, drafting a research paper, or organizing study notes, Hibiscus provides the tools you need—instantly, locally, and beautifully.</p>
