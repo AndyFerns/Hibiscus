@@ -35,6 +35,7 @@ nav:
   - Welcome: index.md
   - Guide:
       - Getting Started: guide/getting-started.md
+      - Application Flow: guide/flow.md
       - Keyboard Shortcuts: guide/shortcuts.md
       - Theming: guide/theming.md
       - Study Tools: guide/study-tools.md
