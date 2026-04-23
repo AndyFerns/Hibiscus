@@ -13,7 +13,7 @@ Hibiscus is designed for developers, researchers, and students who need a unifie
 - **Blazing Fast Backend**: Powered entirely by Rust and Tauri, offering native performance and minimal resource consumption.
 - **Deep Study Tools**: Featuring an integrated Pomodoro timer, native flashcard decks, comprehensive study statistics, and a zero-distraction Focus Mode.
 - **Intelligent Knowledge Synthesis**: A built-in document combiner that effortlessly fuses text and markdown documents recursively into cohesive, structured outputs.
-- **Local-First Indexing**: A robust background indexing pipeline that makes your entire workspace instantly searchable without ever leaving your machine.
+- **Local-First Indexing**: A robust background indexing pipeline that makes your entire workspace instantly searchable without ever leaving your machine. Now supports Markdown, Text, PDF, and DOCX documents with advanced TF-IDF ranking.
 - **Hot-Swappable Theming**: Enjoy meticulously crafted built-in themes (Midnight, Dawn, Forest) powered by a deeply configurable CSS variable API.
 - **Workspace Management**: A fast, reliable file tree equipped with debounce-optimized file watchers for immediate UI synchronization.
 
@@ -23,7 +23,7 @@ At the core of Hibiscus lies a strict separation of concerns:
 
 - **Frontend**: A React application utilizing the Monaco Editor for a world-class text editing experience, styled with a comprehensive dynamic CSS variable system.
 - **Backend (Rust)**: Handles all heavy lifting—from file system watching and structural tree generation to robust, incremental knowledge indexing.
-- **Knowledge Pipeline**: A background worker pool continuously parses, chunks, and indexes your `.md` and `.txt` files into `.hibiscus/knowledge/`. The data is fully derived and rebuildable, guaranteeing that your source files are never mutated.
+- **Knowledge Pipeline**: A background worker pool continuously parses, chunks, and indexes your `.md`, `.txt`, `.pdf`, and `.docx` files into `.hibiscus/knowledge/`. The data is fully derived and rebuildable, guaranteeing that your source files are never mutated. Includes an in-memory LRU caching layer and query engine for blazingly fast retrievals.
 
 ## Why Hibiscus?
 
