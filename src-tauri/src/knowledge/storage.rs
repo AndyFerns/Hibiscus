@@ -26,7 +26,8 @@
 //!   can always be rebuilt from source files.
 //! ============================================================================
 
-use crate::knowledge::types::{CachedQuery, Chunk, FileMap, KeywordIndex, Manifest};
+use crate::knowledge::types::{CachedQuery, Chunk, FileMap, KeywordIndex, Manifest,
+                               ScoredKeywordIndex, TopicMap};
 use std::collections::HashMap;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
@@ -59,6 +60,14 @@ fn keyword_index_path(workspace_root: &str) -> PathBuf {
     knowledge_root(workspace_root).join("index").join("keyword_index.json")
 }
 
+fn scored_index_path(workspace_root: &str) -> PathBuf {
+    knowledge_root(workspace_root).join("index").join("scored_index.json")
+}
+
+fn topics_path(workspace_root: &str) -> PathBuf {
+    knowledge_root(workspace_root).join("topics.json")
+}
+
 fn file_map_path(workspace_root: &str) -> PathBuf {
     knowledge_root(workspace_root).join("files").join("file_map.json")
 }
@@ -86,7 +95,7 @@ pub fn write_manifest(workspace_root: &str, manifest: &Manifest) -> std::io::Res
 }
 
 // ---------------------------------------------------------------------------
-// Keyword index
+// Keyword index (Phase 1)
 // ---------------------------------------------------------------------------
 
 /// Read the keyword index from disk.
@@ -98,6 +107,38 @@ pub fn read_keyword_index(workspace_root: &str) -> KeywordIndex {
 /// Write the keyword index to disk.
 pub fn write_keyword_index(workspace_root: &str, index: &KeywordIndex) -> std::io::Result<()> {
     write_json(&keyword_index_path(workspace_root), index)
+}
+
+// ---------------------------------------------------------------------------
+// Scored keyword index (Phase 2)
+// ---------------------------------------------------------------------------
+
+/// Read the scored keyword index from disk.
+/// Returns an empty HashMap if the file is missing or corrupt.
+pub fn read_scored_index(workspace_root: &str) -> ScoredKeywordIndex {
+    read_json_or_default(&scored_index_path(workspace_root))
+}
+
+/// Write the scored keyword index to disk.
+pub fn write_scored_index(
+    workspace_root: &str,
+    index: &ScoredKeywordIndex,
+) -> std::io::Result<()> {
+    write_json(&scored_index_path(workspace_root), index)
+}
+
+// ---------------------------------------------------------------------------
+// Topic map (Phase 2)
+// ---------------------------------------------------------------------------
+
+/// Read the topic map from disk.
+pub fn read_topics(workspace_root: &str) -> TopicMap {
+    read_json_or_default(&topics_path(workspace_root))
+}
+
+/// Write the topic map to disk.
+pub fn write_topics(workspace_root: &str, topics: &TopicMap) -> std::io::Result<()> {
+    write_json(&topics_path(workspace_root), topics)
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +274,18 @@ pub fn write_file_hash_map(workspace_root: &str, map: &FileHashMap) -> std::io::
 }
 
 // ---------------------------------------------------------------------------
+// File size check (Phase 2)
+// ---------------------------------------------------------------------------
+
+/// Returns the file size in bytes, or 0 if the file cannot be read.
+/// Used by the queue to check against LARGE_FILE_THRESHOLD before parsing.
+pub fn file_size(path: &str) -> u64 {
+    std::fs::metadata(path)
+        .map(|m| m.len())
+        .unwrap_or(0)
+}
+
+// ---------------------------------------------------------------------------
 // Generic JSON helpers
 // ---------------------------------------------------------------------------
 
@@ -285,3 +338,4 @@ fn write_json<T: serde::Serialize>(path: &Path, value: &T) -> std::io::Result<()
     serde_json::to_writer_pretty(writer, value)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
 }
+
