@@ -187,3 +187,92 @@ impl std::fmt::Display for ParseError {
         }
     }
 }
+
+// ===========================================================================
+// Phase 2 types
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Scored keyword index (TF-IDF light)
+// ---------------------------------------------------------------------------
+
+/// A single entry in the scored keyword index.
+/// Stores precomputed relevance scores so that query-time ranking is free.
+///
+/// SCORING: The `score` field is a lightweight TF-IDF approximation:
+///   score = log(1 + term_frequency) / log(total_chunks)
+/// Computed once during indexing. Never recomputed at query time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScoredKeywordEntry {
+    /// Chunk IDs that contain this keyword.
+    pub chunks: Vec<String>,
+    /// Precomputed relevance score for this keyword.
+    /// Higher scores indicate more discriminating (rare, meaningful) terms.
+    pub score: f64,
+}
+
+/// The scored inverted index mapping keywords to chunk IDs with precomputed
+/// TF-IDF scores. Persisted at `.hibiscus/knowledge/index/scored_index.json`.
+///
+/// This replaces the Phase 1 `KeywordIndex` for query purposes but both
+/// are maintained during indexing for backward compatibility.
+pub type ScoredKeywordIndex = HashMap<String, ScoredKeywordEntry>;
+
+// ---------------------------------------------------------------------------
+// Topic grouping
+// ---------------------------------------------------------------------------
+
+/// Maps topic names (derived from chunk headings) to the chunk IDs that
+/// belong to that topic. Persisted at `.hibiscus/knowledge/topics.json`.
+///
+/// DETERMINISM: Grouping is based on normalized heading text and keyword
+/// overlap. Same input always produces the same output (no randomness).
+pub type TopicMap = HashMap<String, Vec<String>>;
+
+// ---------------------------------------------------------------------------
+// Ranked search results (Phase 2 query output)
+// ---------------------------------------------------------------------------
+
+/// A search result enriched with a relevance score for ranked display.
+/// Returned by the Phase 2 `search_chunks` command.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RankedSearchResult {
+    pub chunk_id: String,
+    pub file: String,
+    pub heading: Option<String>,
+    pub content: String,
+    pub word_count: usize,
+    /// Composite relevance score. Higher is better.
+    /// Incorporates TF-IDF score, exact match boost, and prefix match boost.
+    pub score: f64,
+}
+
+/// Query parameters for the Phase 2 search_chunks command.
+/// Supports pagination via `offset` and `limit`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchQuery {
+    /// The search term (may contain multiple words, handled as individual keywords).
+    pub query: String,
+    /// Number of results to skip (for pagination). Defaults to 0.
+    #[serde(default)]
+    pub offset: usize,
+    /// Maximum number of results to return. Defaults to 20.
+    #[serde(default = "default_limit")]
+    pub limit: usize,
+}
+
+fn default_limit() -> usize {
+    20
+}
+
+// ---------------------------------------------------------------------------
+// LRU cache key (Phase 2)
+// ---------------------------------------------------------------------------
+
+/// Maximum number of chunk references a single keyword can hold in the
+/// scored index. Prevents a single ultra-common word from bloating the index.
+pub const MAX_CHUNKS_PER_KEYWORD: usize = 200;
+
+/// File size threshold for deferred parsing (10 MB).
+/// Files larger than this are logged and skipped to prevent memory spikes.
+pub const LARGE_FILE_THRESHOLD: u64 = 10 * 1024 * 1024;
