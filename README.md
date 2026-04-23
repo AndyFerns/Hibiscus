@@ -128,7 +128,7 @@ As a sole dev working on this project; and being highly passionate about it; I h
 This project is licensed under the Mozilla Public License 2.0 (MPL-2.0).
 See the LICENSE file for details.
 
-[Mozilla Public License 2.0 (MPL-2.0)](https://img.shields.io/badge/license-MPL--2.0-blue.svg)
+[Mozilla Public License 2.0 (MPL-2.0)](LICENSE)
 
 ## Author
 
