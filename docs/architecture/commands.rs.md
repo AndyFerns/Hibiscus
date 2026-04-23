@@ -492,6 +492,200 @@ pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result
     fs::rename(&temp_path, &path)
         .await
         .map_err(|e| HibiscusError::Io(format!("Failed to save calendar.json: {}", e)))?;
+    if !path.is_file() {
+        return Err(HibiscusError::InvalidPathType {
+            path: path.to_string_lossy().into(),
+            expected: "file".into(),
+            actual: "directory".into(),
+        });
+    }
+
+    // Read file asynchronously
+    let content = fs::read_to_string(&path)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to read workspace.json: {}", e)))?;
+
+    // Parse JSON
+    let workspace: WorkspaceFile = serde_json::from_str(&content)?;
+
+    Ok(workspace)
+}
+
+/// Saves a workspace file to disk.
+///
+/// Uses atomic write to prevent corruption.
+///
+/// # Arguments
+/// * `path` - Path where to save the workspace.json
+/// * `workspace` - The workspace data to save
+///
+/// # Returns
+/// * `Ok(())` - If save was successful
+/// * `Err(HibiscusError)` - If save failed
+#[tauri::command]
+pub async fn save_workspace(path: String, workspace: WorkspaceFile) -> Result<(), HibiscusError> {
+    let path = PathBuf::from(&path);
+
+    // Validate path
+    validate_path(&path)?;
+
+    // Create parent directories if needed
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).await.map_err(|e| {
+            HibiscusError::Io(format!("Failed to create workspace directory: {}", e))
+        })?;
+    }
+
+    // Serialize to pretty JSON
+    let json = serde_json::to_string_pretty(&workspace)?;
+
+    // Atomic write: write to temp file, then rename
+    let temp_path = path.with_extension("json.tmp");
+
+    fs::write(&temp_path, &json)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to write temp workspace file: {}", e)))?;
+
+    fs::rename(&temp_path, &path)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to finalize workspace.json: {}", e)))?;
+
+    Ok(())
+}
+
+/// Response type for workspace discovery.
+#[derive(Debug, serde::Serialize)]
+pub struct WorkspaceDiscovery {
+    /// Whether a workspace.json was found
+    pub found: bool,
+    /// Path to the workspace.json if found
+    pub path: Option<String>,
+}
+
+/// Discovers if a workspace.json exists in the .hibiscus folder of the given root.
+///
+/// # Arguments
+/// * `root` - The root directory to check for a workspace
+///
+/// # Returns
+/// * `WorkspaceDiscovery` - Discovery result with found status and path
+#[tauri::command]
+pub fn discover_workspace(root: String) -> WorkspaceDiscovery {
+    let root = PathBuf::from(root);
+    let candidate = root.join(".hibiscus").join("workspace.json");
+
+    if candidate.is_file() {
+        WorkspaceDiscovery {
+            found: true,
+            path: Some(candidate.to_string_lossy().to_string()),
+        }
+    } else {
+        WorkspaceDiscovery {
+            found: false,
+            path: None,
+        }
+    }
+}
+
+// ============================================================================
+// TREE OPERATIONS
+// ============================================================================
+
+/// Maximum depth for recursive directory traversal
+const MAX_TREE_DEPTH: usize = 20;
+
+/// Builds the file tree for a workspace directory.
+///
+/// # Arguments
+/// * `root` - The root directory to build the tree from
+///
+/// # Returns
+/// * `Ok(Vec<Node>)` - The file tree as a list of nodes
+/// * `Err(HibiscusError)` - If tree building fails
+///
+/// # Features
+/// - Respects depth limits to prevent infinite recursion
+/// - Sorts folders first, then files, both alphabetically
+/// - Ignores hidden files and .hibiscus folder
+#[tauri::command]
+pub fn build_tree(root: String) -> Result<Vec<Node>, HibiscusError> {
+    let root = PathBuf::from(&root);
+
+    // Validate path
+    validate_path(&root)?;
+
+    if !root.is_dir() {
+        return Err(HibiscusError::InvalidPathType {
+            path: root.to_string_lossy().into(),
+            expected: "directory".into(),
+            actual: "file".into(),
+        });
+    }
+
+    Ok(read_dir_recursive(&root, &root, MAX_TREE_DEPTH))
+}
+
+// ============================================================================
+// CALENDAR OPERATIONS
+// ============================================================================
+
+/// Reads the calendar data from .hibiscus/calendar.json
+#[tauri::command]
+pub async fn read_calendar_data(root: String) -> Result<serde_json::Value, HibiscusError> {
+    let root = PathBuf::from(&root);
+    let path = root.join(".hibiscus").join("calendar.json");
+
+    // Validate path (paranoia check)
+    validate_path(&path)?;
+
+    if !path.exists() {
+        // Return default empty calendar if not found
+        return Ok(serde_json::json!({
+            "events": [],
+            "tasks": [],
+            "settings": {
+                "view": "month",
+                "startOfWeek": "monday"
+            }
+        }));
+    }
+
+    let content = fs::read_to_string(&path)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to read calendar.json: {}", e)))?;
+
+    let data: serde_json::Value = serde_json::from_str(&content)?;
+    Ok(data)
+}
+
+/// Saves the calendar data to .hibiscus/calendar.json
+#[tauri::command]
+pub async fn save_calendar_data(root: String, data: serde_json::Value) -> Result<(), HibiscusError> {
+    let root = PathBuf::from(&root);
+    let path = root.join(".hibiscus").join("calendar.json");
+
+    // Validate path
+    validate_path(&path)?;
+
+    // Create parent directories (.hibiscus) if needed
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).await.map_err(|e| {
+            HibiscusError::Io(format!("Failed to create directory: {}", e))
+        })?;
+    }
+
+    let json = serde_json::to_string_pretty(&data)?;
+
+    // Atomic write strategy
+    let temp_path = path.with_extension("json.tmp");
+    
+    fs::write(&temp_path, &json)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to write temp calendar file: {}", e)))?;
+
+    fs::rename(&temp_path, &path)
+        .await
+        .map_err(|e| HibiscusError::Io(format!("Failed to save calendar.json: {}", e)))?;
 
     Ok(())
 }
@@ -553,4 +747,44 @@ pub async fn rebuild_knowledge_index(
 ) -> Result<usize, String> {
     // Command implementation
 }
-```
+
+// ============================================================================
+// KNOWLEDGE OPERATIONS (PHASE 2)
+// ============================================================================
+
+/// Ranked keyword search with fuzzy and prefix matching.
+///
+/// Uses the precomputed scored keyword index (TF-IDF) for instant ranking.
+/// Supports pagination via `offset` and `limit` parameters.
+///
+/// # Arguments
+/// * `query` - The search query string (may contain multiple words).
+/// * `offset` - Number of results to skip (default 0).
+/// * `limit` - Maximum number of results to return (default 20).
+/// * `state` - Knowledge managed state.
+///
+/// # Returns
+/// A list of `RankedSearchResult` values sorted by relevance score.
+#[tauri::command]
+pub async fn search_chunks(
+    query: String,
+    offset: Option<usize>,
+    limit: Option<usize>,
+    state: State<'_, Arc<KnowledgeState>>,
+) -> Result<Vec<RankedSearchResult>, String> {
+    // Command implementation
+}
+
+/// Retrieve the topic map.
+///
+/// # Arguments
+/// * `state` - Knowledge managed state.
+///
+/// # Returns
+/// The topic map as a HashMap of topic name -> [chunk_ids].
+#[tauri::command]
+pub async fn get_topics(
+    state: State<'_, Arc<KnowledgeState>>,
+) -> Result<TopicMap, String> {
+    // Command implementation
+}
