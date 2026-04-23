@@ -16,7 +16,8 @@
 //! - Empty keyword entries are pruned to prevent unbounded index growth.
 //! ============================================================================
 
-use crate::knowledge::types::{Chunk, KeywordIndex};
+use crate::knowledge::types::{Chunk, KeywordIndex, ScoredKeywordEntry, ScoredKeywordIndex,
+                                MAX_CHUNKS_PER_KEYWORD};
 
 /// English stopwords. These are filtered out during indexing to reduce noise.
 /// Sorted for readability; lookup uses a match arm for zero-cost branching
@@ -125,6 +126,96 @@ pub fn add_chunks_to_index(index: &mut KeywordIndex, chunks: &[Chunk]) {
     }
 }
 
+// ===========================================================================
+// Phase 2: TF-IDF scored index
+// ===========================================================================
+
+/// Rebuild the scored keyword index from the existing Phase 1 keyword index.
+///
+/// This function is called as a post-indexing step after the Phase 1 index
+/// has been updated. It computes a lightweight TF-IDF score for each keyword:
+///
+///   score = log(1 + tf) * log(total_chunks / df)
+///
+/// Where:
+///   - tf  = term frequency (number of chunks containing this keyword)
+///   - df  = document frequency (same as tf for our inverted index)
+///   - total_chunks = total number of chunks in the index
+///
+/// DESIGN DECISIONS:
+/// - Scores are precomputed and stored. Query time does zero math.
+/// - Very common words (appearing in >50% of chunks) are discarded to
+///   keep the scored index lean and prevent noisy results.
+/// - Each keyword entry is capped at MAX_CHUNKS_PER_KEYWORD references
+///   to bound memory usage for ultra-common terms that survive filtering.
+/// - The output is a new `ScoredKeywordIndex` that lives alongside the
+///   Phase 1 `KeywordIndex`. Phase 1 is still maintained for backward compat.
+pub fn rebuild_scored_index(
+    keyword_index: &KeywordIndex,
+    total_chunks: usize,
+) -> ScoredKeywordIndex {
+    let total = if total_chunks == 0 { 1 } else { total_chunks };
+    let half_total = total / 2;
+
+    let mut scored = ScoredKeywordIndex::new();
+
+    for (keyword, chunk_ids) in keyword_index {
+        let df = chunk_ids.len();
+
+        // Discard ultra-common words (appearing in >50% of all chunks).
+        // These provide no discriminating power for search.
+        if df > half_total && total > 10 {
+            continue;
+        }
+
+        // TF-IDF light: log(1 + tf) * log(total / df)
+        // Both factors are > 0 when df > 0 and total > 0.
+        let tf = df as f64;
+        let score = (1.0 + tf).ln() * (total as f64 / df as f64).ln();
+
+        // Cap the number of chunk references to prevent bloat.
+        let capped_ids = if chunk_ids.len() > MAX_CHUNKS_PER_KEYWORD {
+            chunk_ids[..MAX_CHUNKS_PER_KEYWORD].to_vec()
+        } else {
+            chunk_ids.clone()
+        };
+
+        scored.insert(
+            keyword.clone(),
+            ScoredKeywordEntry {
+                chunks: capped_ids,
+                score,
+            },
+        );
+    }
+
+    scored
+}
+
+/// Remove chunk IDs from the scored keyword index.
+/// Mirrors `remove_chunks_from_index` for the scored variant.
+pub fn remove_chunks_from_scored_index(
+    index: &mut ScoredKeywordIndex,
+    chunk_ids_to_remove: &[String],
+) {
+    if chunk_ids_to_remove.is_empty() {
+        return;
+    }
+
+    let mut keys_to_remove = Vec::new();
+
+    for (keyword, entry) in index.iter_mut() {
+        entry.chunks.retain(|id| !chunk_ids_to_remove.contains(id));
+        if entry.chunks.is_empty() {
+            keys_to_remove.push(keyword.clone());
+        }
+    }
+
+    for key in keys_to_remove {
+        index.remove(&key);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,4 +258,34 @@ mod tests {
         // All entries referencing c1 should be gone (and pruned).
         assert!(index.get("rust").is_none());
     }
+
+    #[test]
+    fn test_scored_index_basic() {
+        let mut index = KeywordIndex::new();
+        let chunk1 = Chunk {
+            id: "c1".into(),
+            file: "a.md".into(),
+            heading: None,
+            content: "Rust programming language".into(),
+            word_count: 3,
+            hash: "h1".into(),
+        };
+        let chunk2 = Chunk {
+            id: "c2".into(),
+            file: "b.md".into(),
+            heading: None,
+            content: "Rust systems programming".into(),
+            word_count: 3,
+            hash: "h2".into(),
+        };
+        add_chunks_to_index(&mut index, &[chunk1, chunk2]);
+        let scored = rebuild_scored_index(&index, 2);
+
+        // "rust" appears in both chunks -- should have a lower score than
+        // "language" which appears in only one.
+        let rust_score = scored.get("rust").map(|e| e.score).unwrap_or(0.0);
+        let lang_score = scored.get("language").map(|e| e.score).unwrap_or(0.0);
+        assert!(lang_score > rust_score, "Rarer terms should score higher");
+    }
 }
+
