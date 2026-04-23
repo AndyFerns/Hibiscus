@@ -1,10 +1,10 @@
 //! ============================================================================
-//! Hibiscus Knowledge Indexing System (Phase 1)
+//! Hibiscus Knowledge Indexing System (Phase 1 + Phase 2)
 //! ============================================================================
 //!
 //! A local-first, incremental knowledge indexing pipeline that watches
-//! workspace files (.md, .txt), parses them into chunks, builds a keyword
-//! index, and exposes a minimal query API for chunk retrieval.
+//! workspace files (.md, .txt, .pdf, .docx), parses them into chunks, builds
+//! a scored keyword index, and exposes a ranked query API for chunk retrieval.
 //!
 //! CORE INVARIANTS:
 //! - Knowledge layer is DERIVED, REBUILDABLE, and READ-ONLY with respect to
@@ -12,6 +12,7 @@
 //! - Everything is incremental: unchanged files are skipped via content hashing.
 //! - Fully async pipeline with bounded concurrency.
 //! - Memory-efficient: chunks are streamed from disk, never bulk-loaded.
+//! - Large files (>10 MB) are automatically deferred to prevent memory spikes.
 //!
 //! PIPELINE:
 //!   Watcher -> Debounced Queue -> Worker Pool -> Parser -> Chunker
@@ -19,12 +20,15 @@
 //!
 //! MODULE LAYOUT:
 //! - types:   Core data structures (FileEvent, Chunk, ParsedDocument, etc.)
-//! - parser:  Trait-based parsing for .md and .txt files
+//! - parser:  Trait-based parsing for .md, .txt, .pdf, and .docx files
 //! - chunker: Splits parsed sections into size-bounded chunks
-//! - indexer: Incremental keyword index maintenance
-//! - storage: Disk I/O for chunks, file_map, keyword_index, manifest
+//! - indexer: Incremental keyword index + TF-IDF scored index maintenance
+//! - storage: Disk I/O for chunks, file_map, keyword_index, scored_index,
+//!            topics, manifest
 //! - queue:   Debounced async event queue and worker pool
-//! - query:   Minimal keyword search API
+//! - query:   Ranked keyword search API with fuzzy/prefix matching
+//! - topics:  Lightweight heuristic topic grouping
+//! - cache:   In-memory LRU cache for query results and chunk retrieval
 //! ============================================================================
 
 pub mod types;
@@ -34,6 +38,8 @@ pub mod indexer;
 pub mod storage;
 pub mod queue;
 pub mod query;
+pub mod topics;
+pub mod cache;
 
 // Re-export the Tauri-facing API so lib.rs can register commands directly.
 // Using wildcard re-export because Tauri's #[tauri::command] macro generates
