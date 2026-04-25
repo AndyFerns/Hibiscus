@@ -326,3 +326,44 @@ pub async fn delete_folder(path: String) -> Result<(), HibiscusError> {
     
     Ok(())
 }
+
+/// Moves or renames a file or directory.
+///
+/// # Arguments
+/// * `source` - Absolute path of the item to move
+/// * `destination` - Absolute path of the new location
+///
+/// # Returns
+/// * `Ok(())` - If the move was successful
+/// * `Err(HibiscusError)` - If the move failed
+#[tauri::command]
+pub async fn move_node(source: String, destination: String) -> Result<(), HibiscusError> {
+    let source = PathBuf::from(&source);
+    let destination = PathBuf::from(&destination);
+    
+    // Validate both paths
+    validate_path(&source)?;
+    validate_path(&destination)?;
+    
+    if !source.exists() {
+        return Err(HibiscusError::FileNotFound(source.to_string_lossy().into()));
+    }
+    
+    if destination.exists() {
+        return Err(HibiscusError::Io(format!(
+            "Destination already exists: '{}'", 
+            destination.display()
+        )));
+    }
+    
+    fs::rename(&source, &destination).await.map_err(|e| {
+        HibiscusError::Io(format!(
+            "Failed to move '{}' to '{}': {}",
+            source.display(),
+            destination.display(),
+            e
+        ))
+    })?;
+    
+    Ok(())
+}

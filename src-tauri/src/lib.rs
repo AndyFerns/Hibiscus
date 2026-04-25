@@ -76,6 +76,7 @@ pub fn run() {
             commands::create_folder,
             commands::delete_file,
             commands::delete_folder,
+            commands::move_node,
             // Workspace operations
             commands::load_workspace,
             commands::save_workspace,
