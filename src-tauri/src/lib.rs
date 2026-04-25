@@ -97,6 +97,8 @@ pub fn run() {
             // Study data persistence
             commands::read_study_data,
             commands::save_study_data,
+            // Unified item creation (per-path locked)
+            commands::create_item,
             // Knowledge indexing system (Phase 1)
             knowledge::search_knowledge,
             knowledge::get_chunk,
