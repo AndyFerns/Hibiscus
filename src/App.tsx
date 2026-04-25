@@ -23,7 +23,7 @@
  * ============================================================================
  */
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
@@ -265,7 +265,10 @@ function AppInner() {
     onOpenPomodoro: () => openStudyTool("pomodoro"),
     onToggleFocusMode: toggleFocusMode,
     onOpenSettings: () => setSettingsOpen(true),
-    onOpenSearch: () => setRightPanelView("search"),
+    onOpenSearch: () => {
+      toggleRightPanel()
+      setRightPanelView("search")
+    },
   })
 
   const handleOpenFile = useCallback(async () => {
