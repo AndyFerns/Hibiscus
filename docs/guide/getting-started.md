@@ -5,6 +5,7 @@ Welcome to the **Hibiscus** workspace! This guide will help you install, configu
 ## Installation
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (v16+)
 - [Rust](https://www.rust-lang.org/tools/install) (1.70+)
 - Ensure you have the [Tauri OS prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) installed for your specific platform (Windows, macOS, or Linux).
@@ -34,10 +35,13 @@ Welcome to the **Hibiscus** workspace! This guide will help you install, configu
 **Hibiscus** operates as a local-first editor. It never syncs your personal notes or code to a cloud environment without your explicit action. 
 
 When you configure a directory as your **workspace**, Hibiscus drops a hidden `.hibiscus` folder there to store:
+
 - `workspace.json`: Your file tree layouts and pinned sessions.
 - `calendar.json`: Your study planner tasks and events.
 - `backups/`: Rotating timestamped safety backups of your data.
 
 ## Next Steps
+
+- Master the [Multi-File Editor](multi-file-editor.md) for efficient workflow management.
 - Learn how to navigate the app rapidly with [Keyboard Shortcuts](shortcuts.md).
 - Personalize your editor using [Theming](theming.md).
