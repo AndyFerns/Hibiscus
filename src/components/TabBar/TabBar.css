@@ -1,0 +1,253 @@
+/**
+ * ============================================================================
+ * TabBar Component Styles
+ * ============================================================================
+ *
+ * Styling for the multi-file tab bar above the editor.
+ * Uses design tokens from theme.css for consistency with the rest of the UI.
+ *
+ * LAYOUT:
+ * - Fixed-height strip at the top of the editor area
+ * - Horizontal scroll when tabs overflow (no wrapping)
+ * - Each tab has hover, active, and dirty states
+ *
+ * SCROLLBAR:
+ * - Thin scrollbar that only appears on hover
+ * ============================================================================
+ */
+
+/* =============================================================================
+ * TAB BAR CONTAINER
+ * Fixed-height strip with bottom border, sits above the editor
+ * ============================================================================= */
+
+.tab-bar {
+  /* Fixed height matching the design system */
+  height: 36px;
+  flex-shrink: 0;
+
+  /* Background matches the panel for visual continuity */
+  background: var(--panel-bg);
+
+  /* Bottom border separates tabs from editor content */
+  border-bottom: 1px solid var(--border);
+
+  /* Prevent content from overflowing vertically */
+  overflow: hidden;
+
+  /* Position context for potential decorations */
+  position: relative;
+}
+
+/* =============================================================================
+ * SCROLLABLE TAB STRIP
+ * Horizontal overflow container for the tab list
+ * ============================================================================= */
+
+.tab-bar-scroll {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+
+  /* Horizontal scroll only when tabs overflow */
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Smooth scrolling for programmatic scroll and mouse wheel */
+  scroll-behavior: smooth;
+
+  /* Hide scrollbar by default, show thin bar on hover */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.tab-bar-scroll:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* Webkit scrollbar -- ultra-thin for minimal visual noise */
+.tab-bar-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tab-bar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-bar-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--radius-full);
+}
+
+.tab-bar-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =============================================================================
+ * INDIVIDUAL TAB
+ * Each tab represents one open file
+ * ============================================================================= */
+
+.tab-bar-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+
+  /* Compact horizontal padding */
+  padding: 0 var(--space-2, 8px);
+  padding-right: var(--space-1, 4px);
+
+  /* Prevent tab from shrinking below readable width */
+  min-width: 80px;
+  max-width: 180px;
+
+  /* Tab typography */
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+
+  /* Interactive cursor */
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  /* Right border for tab separation */
+  border-right: 1px solid var(--border);
+
+  /* Smooth state transitions */
+  transition:
+    background var(--transition-fast, 0.1s ease-out),
+    color var(--transition-fast, 0.1s ease-out);
+
+  /* Position context for active indicator */
+  position: relative;
+}
+
+/* Hover state -- subtle background highlight */
+.tab-bar-tab:hover {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+/* =============================================================================
+ * ACTIVE TAB STATE
+ * Highlighted when this tab is the currently viewed file
+ * ============================================================================= */
+
+.tab-bar-tab--active {
+  background: var(--editor-bg);
+  color: var(--text);
+}
+
+/* Bottom accent indicator for active tab */
+.tab-bar-tab--active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--accent-secondary, #bb9af7) 100%
+  );
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+}
+
+/* =============================================================================
+ * TAB NAME LABEL
+ * Truncated file name text
+ * ============================================================================= */
+
+.tab-bar-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* =============================================================================
+ * DIRTY INDICATOR
+ * Small dot shown next to the filename when unsaved changes exist
+ * ============================================================================= */
+
+.tab-bar-tab-dirty {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--accent, #7aa2f7);
+  flex-shrink: 0;
+
+  /* Subtle pulse to draw attention */
+  animation: tab-dirty-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tab-dirty-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+ * CLOSE BUTTON
+ * Small X button on the right side of each tab
+ * ============================================================================= */
+
+.tab-bar-tab-close {
+  /* Reset button styles */
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0;
+
+  /* Sizing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+
+  /* Interactive feedback */
+  cursor: pointer;
+  color: var(--text-subtle);
+  border-radius: var(--radius-sm, 4px);
+
+  /* Smooth hover transition */
+  transition:
+    background var(--transition-fast, 0.1s ease-out),
+    color var(--transition-fast, 0.1s ease-out);
+
+  /* Hidden by default, shown on tab hover or when active */
+  opacity: 0;
+}
+
+/* Show close button on tab hover */
+.tab-bar-tab:hover .tab-bar-tab-close,
+.tab-bar-tab--active .tab-bar-tab-close {
+  opacity: 1;
+}
+
+/* Close button hover -- slightly highlighted */
+.tab-bar-tab-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+/* Close button active (pressed) state */
+.tab-bar-tab-close:active {
+  background: var(--error-soft, rgba(247, 118, 142, 0.15));
+  color: var(--error, #f7768e);
+}
+
+/* Focus visible for keyboard navigation */
+.tab-bar-tab-close:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
