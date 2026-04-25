@@ -1,13 +1,15 @@
 /**
- * ============================================================================ 
- * NewItemModal Component Styles
  * ============================================================================
- * 
- * Notion × VS Code hybrid design for creating new files and folders
- * - Centered modal with soft shadows and rounded corners
- * - Smooth animations and backdrop blur
- * - Clean, minimal interface using theme CSS variables
- * - Responsive and accessible design
+ * NewItemModal Component Styles (v2 -- Keyboard-Centric)
+ * ============================================================================
+ *
+ * Styles for the file/folder creation modal with:
+ * - Suggestion dropdown with keyboard selection highlighting
+ * - Breadcrumb path preview
+ * - Mode toggle (file/folder)
+ * - Keyboard shortcut hints in footer
+ * - Smooth entrance animations and backdrop blur
+ * - Full theme variable support
  * ============================================================================
  */
 
@@ -17,200 +19,309 @@
  * ============================================================================= */
 
 .new-item-modal-backdrop {
-  /* Full screen overlay */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  
-  /* Semi-transparent backdrop */
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  
-  /* Smooth fade animation */
   opacity: 0;
   animation: new-item-modal-backdrop-fade-in 0.2s ease-out forwards;
-  
-  /* High z-index to appear above everything */
   z-index: 1000;
 }
 
 /* =============================================================================
  * MODAL CONTAINER
- * Centered modal with Notion-style design
  * ============================================================================= */
 
 .new-item-modal {
-  /* Centered positioning */
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  
-  /* Modal styling */
-  background: var(--bg, #ffffff);
+  background: var(--bg, #1a1b26);
   border-radius: 12px;
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
-  
-  /* Sizing */
-  min-width: 400px;
-  max-width: 90vw;
+  border: 1px solid var(--border, #2a2b3d);
+  box-shadow:
+    0 20px 60px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  min-width: 460px;
+  max-width: 560px;
   width: 100%;
-  
-  /* Smooth scale animation */
-  animation: new-item-modal-scale-in 0.2s ease-out 0.1s forwards;
-  
-  /* High z-index */
+  animation: new-item-modal-scale-in 0.2s ease-out 0.05s forwards;
+  opacity: 0;
   z-index: 1001;
 }
 
 /* =============================================================================
- * MODAL CONTENT
- * Internal layout structure
+ * CONTENT
  * ============================================================================= */
 
 .new-item-modal-content {
-  /* Flex layout for header, body, footer */
   display: flex;
   flex-direction: column;
-  
-  /* Spacing */
-  padding: 24px;
-  gap: 20px;
+  padding: 20px 24px;
+  gap: 16px;
 }
 
 /* =============================================================================
- * MODAL HEADER
- * Title section
+ * HEADER -- Title + Mode Toggle
  * ============================================================================= */
 
 .new-item-modal-header {
-  /* No special styling needed - just container */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .new-item-modal-title {
-  /* Typography */
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--text, #1a1a1a);
+  color: var(--text, #c0caf5);
   margin: 0;
   line-height: 1.4;
 }
 
+.new-item-modal-mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-tertiary, #1e1f2e);
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid var(--border, #2a2b3d);
+}
+
+.new-item-modal-mode-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted, #565f89);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.new-item-modal-mode-btn--active {
+  background: var(--accent, #7aa2f7);
+  color: #ffffff;
+}
+
+.new-item-modal-mode-btn:hover:not(.new-item-modal-mode-btn--active) {
+  color: var(--text, #c0caf5);
+}
+
 /* =============================================================================
- * MODAL BODY
- * Input section with validation
+ * BODY -- Input, Suggestions, Breadcrumbs, Validation
  * ============================================================================= */
 
 .new-item-modal-body {
-  /* Flex layout for input and hint */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.new-item-modal-input-group {
-  /* Flex layout for label and input */
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.new-item-modal-label {
-  /* Label styling */
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted, #666666);
-  margin: 0;
+.new-item-modal-input-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .new-item-modal-input {
-  /* Input field styling */
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--border, #e1e1e1);
+  padding: 10px 14px;
+  border: 1px solid var(--border, #2a2b3d);
   border-radius: 8px;
-  background: var(--bg-secondary, #f8f9fa);
-  color: var(--text, #1a1a1a);
+  background: var(--bg-secondary, #16161e);
+  color: var(--text, #c0caf5);
   font-size: 14px;
-  font-family: inherit;
-  line-height: 1.4;
-  
-  /* Transitions */
-  transition: 
-    border-color var(--transition-fast, 0.15s ease-out),
-    box-shadow var(--transition-fast, 0.15s ease-out);
-  
-  /* Focus state */
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  line-height: 1.5;
   outline: none;
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+}
+
+.new-item-modal-input::placeholder {
+  color: var(--text-muted, #565f89);
+  opacity: 0.6;
 }
 
 .new-item-modal-input:focus {
   border-color: var(--accent, #7aa2f7);
-  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1);
+  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.15);
 }
 
 .new-item-modal-input:disabled {
-  background: var(--bg-tertiary, #f1f3f4);
-  color: var(--text-muted, #666666);
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .new-item-modal-input[aria-invalid="true"] {
   border-color: var(--error, #f7768e);
-}
-
-.new-item-modal-error {
-  /* Error message styling */
-  font-size: 12px;
-  color: var(--error, #f7768e);
-  margin: 4px 0 0;
-  line-height: 1.4;
-}
-
-.new-item-modal-path-hint {
-  /* Path hint styling */
-  font-size: 12px;
-  color: var(--text-muted, #666666);
-  font-style: italic;
-  padding: 8px 12px;
-  background: var(--bg-tertiary, #f1f3f4);
-  border-radius: 6px;
-  border-left: 3px solid var(--accent, #7aa2f7);
+  box-shadow: 0 0 0 3px rgba(247, 118, 142, 0.1);
 }
 
 /* =============================================================================
- * MODAL FOOTER
- * Action buttons
+ * SUGGESTIONS LIST
+ * ============================================================================= */
+
+.new-item-modal-suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-secondary, #16161e);
+  border: 1px solid var(--border, #2a2b3d);
+  border-radius: 8px;
+}
+
+.new-item-modal-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.1s ease-out;
+  font-size: 13px;
+}
+
+.new-item-modal-suggestion:hover {
+  background: var(--bg-hover, #1e1f2e);
+}
+
+.new-item-modal-suggestion--selected {
+  background: var(--accent, #7aa2f7) !important;
+  color: #ffffff;
+}
+
+.new-item-modal-suggestion--selected .new-item-modal-suggestion-type {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.new-item-modal-suggestion-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.new-item-modal-suggestion-label {
+  flex: 1;
+  color: var(--text, #c0caf5);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-item-modal-suggestion-type {
+  font-size: 11px;
+  color: var(--text-muted, #565f89);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * BREADCRUMBS
+ * ============================================================================= */
+
+.new-item-modal-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary, #1e1f2e);
+  border-radius: 6px;
+  border-left: 3px solid var(--accent, #7aa2f7);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 12px;
+}
+
+.new-item-modal-breadcrumb {
+  color: var(--text-muted, #565f89);
+}
+
+.new-item-modal-breadcrumb-sep {
+  color: var(--border, #2a2b3d);
+  margin: 0 2px;
+}
+
+.new-item-modal-breadcrumb--current {
+  color: var(--accent, #7aa2f7);
+  font-weight: 600;
+}
+
+/* =============================================================================
+ * VALIDATION ERROR
+ * ============================================================================= */
+
+.new-item-modal-error {
+  font-size: 12px;
+  color: var(--error, #f7768e);
+  padding: 6px 12px;
+  background: rgba(247, 118, 142, 0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--error, #f7768e);
+  line-height: 1.4;
+}
+
+/* =============================================================================
+ * FOOTER -- Hints + Action Buttons
  * ============================================================================= */
 
 .new-item-modal-footer {
-  /* Flex layout for buttons */
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border, #2a2b3d);
 }
 
+.new-item-modal-hints {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.new-item-modal-hint {
+  font-size: 11px;
+  color: var(--text-muted, #565f89);
+  white-space: nowrap;
+}
+
+.new-item-modal-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * BUTTONS
+ * ============================================================================= */
+
 .new-item-modal-button {
-  /* Base button styling */
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
   border: 1px solid transparent;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: 
-    background-color var(--transition-fast, 0.15s ease-out),
-    border-color var(--transition-fast, 0.15s ease-out),
-    color var(--transition-fast, 0.15s ease-out);
-  
-  /* Focus state */
+  transition:
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    opacity 0.15s ease-out;
   outline: none;
 }
 
@@ -219,25 +330,23 @@
 }
 
 .new-item-modal-button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* Cancel button */
 .new-item-modal-button--cancel {
-  background: var(--bg-tertiary, #f1f3f4);
-  color: var(--text, #1a1a1a);
-  border-color: var(--border, #e1e1e1);
+  background: var(--bg-tertiary, #1e1f2e);
+  color: var(--text, #c0caf5);
+  border-color: var(--border, #2a2b3d);
 }
 
 .new-item-modal-button--cancel:hover:not(:disabled) {
-  background: var(--bg-hover, #e8eaed);
+  background: var(--bg-hover, #292a3c);
 }
 
-/* Create button */
 .new-item-modal-button--create {
   background: var(--accent, #7aa2f7);
-  color: white;
+  color: #ffffff;
 }
 
 .new-item-modal-button--create:hover:not(:disabled) {
@@ -246,16 +355,11 @@
 
 /* =============================================================================
  * ANIMATIONS
- * Smooth entrance animations
  * ============================================================================= */
 
 @keyframes new-item-modal-backdrop-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes new-item-modal-scale-in {
@@ -270,25 +374,33 @@
 }
 
 /* =============================================================================
- * RESPONSIVE DESIGN
- * Mobile and small screen adaptations
+ * RESPONSIVE
  * ============================================================================= */
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .new-item-modal {
     min-width: 320px;
     margin: 16px;
   }
-  
+
   .new-item-modal-content {
-    padding: 20px;
+    padding: 16px;
   }
-  
+
   .new-item-modal-footer {
-    flex-direction: column-reverse;
+    flex-direction: column;
+    align-items: stretch;
   }
-  
+
+  .new-item-modal-hints {
+    justify-content: center;
+  }
+
+  .new-item-modal-actions {
+    justify-content: stretch;
+  }
+
   .new-item-modal-button {
-    width: 100%;
+    flex: 1;
   }
 }

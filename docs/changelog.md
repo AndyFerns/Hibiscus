@@ -2,9 +2,68 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+
+## [v0.9.4] - Search Navigation & UX Improvements
+
+### New Features
+
+- **Click-to-Open Search Results**: Search results are now clickable and open files at the exact location (with line highlighting when available)
+- **Keyboard Navigation**: Added Tab/Shift+Tab navigation between search results with automatic file opening
+- **Enhanced Topics Dropdown**: Topics section is now expandable/collapsible with smooth animations
+
+### Improvements
+
+- **File Path Normalization**: Fixed double backslash issues in file paths using proper path normalization
+- **Line Number Extraction**: Enhanced line number extraction to support multiple chunk_id formats (file:123, file#123, file@123, file_123)
+- **Visual Feedback**: Added selection highlighting and hover states for better UX
+- **Debug Support**: Added comprehensive logging for troubleshooting search interactions
+
+### Bug Fixes
+
+- **Path Handling**: Fixed file path duplication bugs using Tauri path API
+- **Navigation State**: Proper state management for search result selection and cycling
+- **CSS Styling**: Consistent theme integration for all search components
+
+### Technical Details
+
+- **Search Integration**: Search panel now fully integrated into right panel structure
+- **Navigation Flow**: Tab cycles through results → auto-opens selected file → Shift+Tab cycles backward
+- **Accessibility**: Full keyboard support with proper focus management and ARIA attributes
+- **Performance**: Optimized state management with proper cleanup and updates
+
+## [v0.9.0] - Advanced Knowledge System (Phase 2)
+
+### New Features
+
+- **PDF & DOCX Document Support**: Extended the parsing system to handle PDF files using pdf-extract and DOCX files via zip+quick-xml streaming. Both parsers implement the existing Parser trait and include robust error handling for corrupt files.
+- **TF-IDF Scored Search Index**: Implemented a sophisticated scoring system alongside the existing keyword index. Uses the formula `score = ln(1 + tf) * ln(total_chunks / df)` with precomputed scores for zero query-time calculation. Automatically filters common words appearing in >50% of chunks.
+- **Intelligent Topic Grouping**: Added automatic topic extraction that groups chunks by heading text. Identical headings create the same topic, empty headings become "General", and small topics (<2 chunks) merge into "Miscellaneous". Uses BTreeMap for deterministic ordering.
+- **Advanced Query Engine**: Enhanced search with multiple matching strategies - exact match (score + 0.5), prefix match (score * 0.2), and fuzzy match with edit distance 1 (score * 0.1). Supports multi-word queries with accumulated scoring and pagination (max 100 results).
+- **High-Performance LRU Cache**: Implemented dual in-memory caches - query cache (128 entries) and chunk cache (256 entries). Uses VecDeque for better CPU cache locality than HashMap+LinkedList. All-or-nothing cache invalidation on file changes.
+- **Extended Backend API**: Added new Tauri commands including `search_chunks` for ranked search with fuzzy/prefix support, and `get_topics` for topic retrieval. Enhanced existing commands with caching support.
+
+### Architecture Improvements
+
+- **Phase 1 Compatibility**: Maintains full backward compatibility - Phase 1 commands and storage remain untouched. Phase 2 extends via parallel data structures without breaking existing functionality.
+- **Memory-Optimized Parsing**: DOCX parsing uses streaming XML to avoid loading entire documents into memory. PDF parsing extracts full text then splits on double newlines for pragmatic content separation.
+- **Deterministic Performance**: Topic grouping uses BTreeMap and sorted chunk IDs for consistent results. Query processing includes early exit after 500 candidates per term to prevent performance degradation.
+- **Robust File Handling**: Added large file guard (10MB threshold) that skips files at queue level before parsing begins. All parsers include proper error handling with IoError fallback for corrupt files.
+
+### Storage Updates
+
+- **New Storage Files**: Added `topics.json` for topic mappings and `scored_index.json` for TF-IDF data alongside existing Phase 1 storage.
+- **Enhanced Storage Layout**: Updated `.hibiscus/knowledge/` structure to support both Phase 1 and Phase 2 data without migration requirements.
+- **Optimized Index Structure**: Scored index caps at 200 chunk references per keyword to prevent memory bloat while maintaining search quality.
+
+### Testing & Quality
+
+- **Comprehensive Test Coverage**: Added 46 total tests with 10 new tests covering cache (4), indexer (1), query (4), and topics (1) modules.
+- **Performance Validation**: Confirmed LRU cache outperforms HashMap+LinkedList for small cache sizes through CPU cache locality benefits.
+- **Error Resilience**: All new parsers include comprehensive error handling with graceful degradation for corrupted or malformed files.
+
 ## [v0.8.0] - Knowledge Indexing System (Phase 1)
 
-### 🚀 New Features
+### New Features
 
 - **Knowledge Indexing Pipeline**: Implemented a local-first, incremental knowledge indexing system that watches workspace files (`.md`, `.txt`) and processes them via a debounced async queue.
 - **Worker Pool & Debounced Batching**: Added a background worker task with bounded concurrency and debounced batching for efficient per-file processing without blocking the main runtime.
@@ -14,13 +73,13 @@ All notable changes to the **Hibiscus** project will be documented in this file.
 - **Robust Storage Layer**: Built an optimized disk I/O layer utilizing buffered reads/writes, streaming file hashes, and individual chunk file storage to minimize memory footprint.
 - **Query APIs**: Exposed new Tauri commands (`search_knowledge`, `get_chunk`, `rebuild_knowledge_index`) for frontend integration with the knowledge system.
 
-### 🏗️ Architecture
+### Architecture
 
 - **State Management**: Integrated `Arc<KnowledgeState>` as a managed state within Tauri, properly spawning the worker during the setup hook to ensure safe cross-thread operations.
 - **Watcher Integration**: Extended the existing `watch_workspace` to seamlessly accept `KnowledgeState` and securely forward filesystem events to the new knowledge queue.
 - **Asynchronous Processing**: Integrated essential Tokio features (`rt`, `rt-multi-thread`, `time`, `macros`) into the Cargo manifest to safely support native async routines.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **Threading Panic**: Replaced tokio runtime thread spawning with Tauri's native async runtime handling to prevent main thread panics when no existing tokio runtime was detected.
 - **Macro Export Issues**: Updated the module root to accurately re-export the Tauri-facing API to prevent macro resolution bugs associated with `tauri::command`.

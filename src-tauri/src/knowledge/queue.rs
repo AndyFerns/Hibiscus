@@ -23,11 +23,13 @@
 //! read/write knowledge data.
 //! ============================================================================
 
+use crate::knowledge::cache::KnowledgeCache;
 use crate::knowledge::chunker;
 use crate::knowledge::indexer;
 use crate::knowledge::parser;
 use crate::knowledge::storage;
-use crate::knowledge::types::{FileEvent, FileEventType};
+use crate::knowledge::topics;
+use crate::knowledge::types::{FileEvent, FileEventType, LARGE_FILE_THRESHOLD};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex, Semaphore};
@@ -57,6 +59,9 @@ pub struct KnowledgeState {
     receiver: Mutex<Option<mpsc::UnboundedReceiver<FileEvent>>>,
     /// Workspace root path. Set when `watch_workspace` is called.
     pub workspace_root: Mutex<Option<String>>,
+    /// In-memory LRU cache for query results and chunk retrieval (Phase 2).
+    /// Wrapped in Mutex for async-safe access from Tauri command handlers.
+    pub cache: Mutex<KnowledgeCache>,
 }
 
 impl KnowledgeState {
@@ -67,6 +72,7 @@ impl KnowledgeState {
             sender: tx,
             receiver: Mutex::new(Some(rx)),
             workspace_root: Mutex::new(None),
+            cache: Mutex::new(KnowledgeCache::new()),
         }
     }
 
@@ -242,8 +248,20 @@ fn process_file_event(
             println!("[Knowledge] Removed index data for deleted file: {}", file_path);
         }
         FileEventType::Create | FileEventType::Modify => {
-            // Filter: only process .md and .txt files.
+            // Filter: only process supported file types.
             if !is_indexable_file(file_path) {
+                return Ok(());
+            }
+
+            // Phase 2: check file size threshold. Large files are deferred
+            // to prevent memory spikes during parsing.
+            let fsize = storage::file_size(file_path);
+            if fsize > LARGE_FILE_THRESHOLD {
+                eprintln!(
+                    "[Knowledge] Skipping large file ({:.1} MB): {}",
+                    fsize as f64 / (1024.0 * 1024.0),
+                    file_path
+                );
                 return Ok(());
             }
 
@@ -313,6 +331,17 @@ fn process_file_event(
             storage::write_manifest(workspace_root, &manifest)
                 .map_err(|e| format!("Failed to write manifest: {}", e))?;
 
+            // Phase 2: rebuild scored keyword index (TF-IDF light).
+            // This reuses the keyword index already in memory, so no extra disk read.
+            let scored = indexer::rebuild_scored_index(&index, manifest.chunk_count);
+            storage::write_scored_index(workspace_root, &scored)
+                .map_err(|e| format!("Failed to write scored index: {}", e))?;
+
+            // Phase 2: rebuild topic map from chunk headings.
+            let topic_map = topics::build_topic_map(workspace_root);
+            storage::write_topics(workspace_root, &topic_map)
+                .map_err(|e| format!("Failed to write topics: {}", e))?;
+
             println!(
                 "[Knowledge] Indexed {} ({} chunks)",
                 file_path,
@@ -366,12 +395,15 @@ fn remove_file_data(workspace_root: &str, file_path: &str) -> Result<(), String>
     Ok(())
 }
 
-/// Check if a file path has an indexable extension (.md or .txt).
+/// Check if a file path has an indexable extension.
+/// Phase 2 adds .pdf and .docx to the supported set.
 fn is_indexable_file(path: &str) -> bool {
     let lower = path.to_lowercase();
     lower.ends_with(".md")
         || lower.ends_with(".markdown")
         || lower.ends_with(".txt")
+        || lower.ends_with(".pdf")
+        || lower.ends_with(".docx")
 }
 
 /// Produce a UTC ISO-8601 timestamp string without pulling in the `chrono` crate.

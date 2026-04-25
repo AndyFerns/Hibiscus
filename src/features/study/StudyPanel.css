@@ -1,0 +1,42 @@
+.study-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-elevated);
+}
+
+.study-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--divider);
+  background: var(--panel-bg);
+}
+
+.study-tab {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-bottom: 2px solid transparent;
+}
+
+.study-tab:hover {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+.study-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--bg-elevated);
+}
+
+.study-panel-content {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-4);
+}

@@ -39,7 +39,7 @@ import {
 // =============================================================================
 
 /** Study tool panel identifiers */
-export type StudyPanel = "pomodoro" | "flashcards" | "notes" | "stats"
+export type StudyPanel = "pomodoro" | "flashcards" | "notes" | "stats" | "search" | "study"
 
 /** What the right panel currently shows */
 export type RightPanelView = "calendar" | StudyPanel

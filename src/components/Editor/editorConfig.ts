@@ -66,6 +66,13 @@ export function getEditorConfig(
     links: false,
     wordWrap: "on",
 
+    // Disable native search
+    find: {
+      addExtraSpaceOnTop: false,
+      autoFindInSelection: "never",
+      seedSearchStringFromSelection: "never",
+    },
+
     // Breathing room
     padding: { top: 20, bottom: 20 },
   }

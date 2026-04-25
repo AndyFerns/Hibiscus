@@ -1,0 +1,270 @@
+/* ============================================================================
+ * Search Panel Styles
+ * ============================================================================
+ * VSCode-style right-side search panel with theme token integration
+ * Uses existing design patterns from settings modal
+ * ============================================================================
+ */
+
+.search-panel {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search-loading {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.search-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+}
+
+.search-close:hover {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+.search-input-row {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--divider);
+}
+
+.search-input {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.95em;
+  transition: var(--transition-fast);
+  width: 100%;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.search-idle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: var(--space-8);
+}
+
+.search-idle-text {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.search-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: var(--space-8);
+}
+
+.search-empty-text {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.search-item {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--divider);
+  transition: var(--transition-fast);
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background: var(--panel-bg-hover);
+}
+
+.search-item.clickable {
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.search-item.clickable:hover {
+  background: var(--panel-bg-hover);
+  transform: translateX(2px);
+}
+
+.search-item.clickable:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.search-item.selected {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+}
+
+.search-item:last-child {
+  border-bottom: none;
+}
+
+.search-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.search-item-file {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.search-item-score {
+  color: var(--accent);
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.search-item-heading {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.95em;
+  margin-bottom: var(--space-1);
+}
+
+.search-item-content {
+  color: var(--text-subtle);
+  font-size: 0.9em;
+  line-height: 1.4;
+  margin-bottom: var(--space-2);
+}
+
+.search-item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-item-words {
+  color: var(--text-muted);
+  font-size: 0.8em;
+}
+
+.topics-dropdown {
+  border-bottom: 1px solid var(--divider);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.topics-item {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+  font-size: 0.9em;
+}
+
+.topics-item:hover {
+  background: var(--panel-bg-hover);
+}
+
+.topics-item-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.topics-name {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.topics-count {
+  color: var(--text-muted);
+  font-size: 0.8em;
+}
+
+.topics-header {
+  font-weight: var(--font-medium);
+  border-bottom: 1px solid var(--divider);
+}
+
+.topics-expand-icon {
+  transition: var(--transition-fast);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.topics-expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.search-footer {
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--divider);
+  text-align: center;
+}
+
+.search-footer span {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}

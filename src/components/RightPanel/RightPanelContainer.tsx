@@ -31,6 +31,8 @@ import { PomodoroPanel } from "../../features/pomodoro/PomodoroPanel"
 import { FlashcardPanel } from "../../features/flashcards/FlashcardPanel"
 import { NotesSynthesizer } from "../../features/notes/NotesSynthesizer"
 import { StatsPanel } from "../../features/stats/StatsPanel"
+import { StudyPanel } from "../../features/study/StudyPanel"
+import { SearchPanel } from "../../components/Search/SearchPanel"
 import type { PomodoroState, PomodoroActions } from "../../features/pomodoro/usePomodoro"
 import type { useFlashcards } from "../../features/flashcards/useFlashcards"
 import type { useNotesSynthesis } from "../../features/notes/useNotesSynthesis"
@@ -63,9 +65,9 @@ interface RightPanelContainerProps {
  */
 const VIEW_TABS: { id: RightPanelView; label: string }[] = [
     { id: "calendar", label: "Calendar" },
+    { id: "search", label: "Search" },
     { id: "pomodoro", label: "Pomodoro" },
-    { id: "flashcards", label: "Cards" },
-    { id: "notes", label: "Notes" },
+    { id: "study", label: "Study" },
     { id: "stats", label: "Stats" },
 ]
 
@@ -138,6 +140,15 @@ export function RightPanelContainer({
 
     function renderStudyTool() {
         switch (rightPanelView) {
+            case "search":
+                return (
+                    <SearchPanel
+                        open={true}
+                        onClose={() => {}}
+                        workspaceRoot={workspaceRoot}
+                        onOpenFile={onOpenFile}
+                    />
+                )
             case "pomodoro":
                 return (
                     <PomodoroPanel
@@ -145,6 +156,8 @@ export function RightPanelContainer({
                         actions={pomodoroActions}
                     />
                 )
+            case "study":
+                return <StudyPanel flashcards={flashcards} notes={notes} />
             case "flashcards":
                 return <FlashcardPanel flashcards={flashcards} />
             case "notes":

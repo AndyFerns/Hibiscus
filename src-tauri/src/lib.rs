@@ -11,7 +11,7 @@
 //! - tree: Directory tree builder
 //! - watcher: Filesystem change monitoring
 //! - workspace: Workspace data structures
-//! - knowledge: Local-first knowledge indexing system (Phase 1)
+//! - knowledge: Local-first knowledge indexing system (Phase 1 + Phase 2)
 //! ============================================================================
 
 mod commands;
@@ -97,10 +97,15 @@ pub fn run() {
             // Study data persistence
             commands::read_study_data,
             commands::save_study_data,
+            // Unified item creation (per-path locked)
+            commands::create_item,
             // Knowledge indexing system (Phase 1)
             knowledge::search_knowledge,
             knowledge::get_chunk,
             knowledge::rebuild_knowledge_index,
+            // Knowledge indexing system (Phase 2)
+            knowledge::search_chunks,
+            knowledge::get_topics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Hibiscus");

@@ -23,7 +23,7 @@
  * ============================================================================
  */
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
@@ -76,6 +76,7 @@ function AppInner() {
   })
 
   
+  
   // ============================================================================
   // WORKSPACE STATE
   // Tree structure, root path, and navigation
@@ -86,8 +87,7 @@ function AppInner() {
     changeWorkspace,
     openNode,
     openFileDialog,
-    createFile,
-    createFolder,
+    recentFiles, // Provide this explicitly
     closeWorkspace,
   } = useWorkspaceController()
 
@@ -236,57 +236,40 @@ function AppInner() {
   }, [])
 
   /**
-   * Get existing names for duplicate validation
+   * Handle successful item creation from the modal.
+   * If a file was created, open it in the editor.
    */
-  const getExistingNames = useCallback((): string[] => {
-    if (!workspace.tree) return []
-    
-    const collectNames = (nodes: any[]): string[] => {
-      const names: string[] = []
-      for (const node of nodes) {
-        names.push(node.name)
-        if (node.children) {
-          names.push(...collectNames(node.children))
-        }
-      }
-      return names
+  const handleItemCreated = useCallback((absolutePath: string, isFile: boolean) => {
+    if (isFile) {
+      const name = absolutePath.split(/[/\\]/).pop() || absolutePath
+      handleFileOpen({
+        id: absolutePath,
+        name,
+        path: absolutePath,
+        type: "file"
+      })
     }
-    
-    return collectNames(workspace.tree)
-  }, [workspace.tree])
-
-  /**
-   * Handle item creation from modal
-   */
-  const handleModalCreate = useCallback(async (name: string) => {
-    if (newItemModal.mode === "file") {
-      await createFile(name)
-    } else {
-      await createFolder(name)
-    }
-  }, [newItemModal.mode, createFile, createFolder])
+  }, [handleFileOpen])
 
   // ============================================================================
   // KEYBOARD SHORTCUTS
-  // Handle Ctrl+N (new file) and Ctrl+Shift+N (new folder)
+  // Handle all global keyboard shortcuts using the centralized hook
   // ============================================================================
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+N -> New File
-      if (e.ctrlKey && e.key === 'n' && !e.shiftKey && !e.altKey) {
-        e.preventDefault()
-        handleNewFile()
-      }
-      // Ctrl+Shift+N -> New Folder
-      else if (e.ctrlKey && e.shiftKey && e.key === 'n' && !e.altKey) {
-        e.preventDefault()
-        handleNewFolder()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleNewFile, handleNewFolder])
+  const { setRightPanelView } = useStudy()
+  
+  useKeyboardShortcuts({
+    onOpenFolder: openFileDialog,
+    onToggleLeftPanel: toggleLeftPanel,
+    onToggleRightPanel: toggleRightPanel,
+    onToggleShortcutOverlay: () => setShowShortcutOverlay(true),
+    onOpenPomodoro: () => openStudyTool("pomodoro"),
+    onToggleFocusMode: toggleFocusMode,
+    onOpenSettings: () => setSettingsOpen(true),
+    onOpenSearch: () => {
+      toggleRightPanel()
+      setRightPanelView("search")
+    },
+  })
 
   const handleOpenFile = useCallback(async () => {
     const filePath = await openFileDialog()
@@ -553,14 +536,15 @@ function AppInner() {
         onUpdate={updateSettings}
         onReset={resetToDefaults}
       />
-      {/* New Item Modal */}
+      {/* New Item Modal (keyboard-centric, with suggestions) */}
       <NewItemModal
         open={newItemModal.open}
         mode={newItemModal.mode}
         onClose={handleModalClose}
-        onCreate={handleModalCreate}
-        defaultPath={workspaceRoot || undefined}
-        existingNames={getExistingNames()}
+        workspaceRoot={workspaceRoot}
+        tree={workspace.tree}
+        recentItems={recentFiles.map(f => f.path)}
+        onCreated={handleItemCreated}
       />
     </>
   )

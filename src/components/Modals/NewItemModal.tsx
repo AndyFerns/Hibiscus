@@ -1,187 +1,303 @@
-import { useState, useEffect, useRef } from "react"
+// ============================================================================
+// NewItemModal Component (v2 -- Keyboard-Centric)
+// ============================================================================
+//
+// A production-grade modal for creating files and folders with:
+// - Real-time path parsing and validation
+// - Ranked autocomplete suggestions from the workspace tree
+// - Breadcrumb path preview
+// - Full keyboard navigation (Enter, Ctrl+Enter, Tab, Arrows, Esc)
+// - Mode toggle (file / folder) with automatic detection
+//
+// ARCHITECTURE:
+// This component is a thin UI layer over useNewItemController.
+// It renders state -- it does not own business logic.
+//
+// ENTRY POINTS:
+// Used by both the global modal (Ctrl+N / Ctrl+Shift+N) and can be
+// embedded inline in the explorer panel.
+// ============================================================================
+
+import { useEffect, useRef, useCallback } from "react"
+import { useNewItemController } from "../../features/newitem"
+import { Node } from "../../types/workspace"
 import "./NewItemModal.css"
 
 export type NewItemModalMode = "file" | "folder"
 
 export interface NewItemModalProps {
-  /** Whether the modal is currently open */
+  /** Whether the modal is currently visible. */
   open: boolean
-  /** Current mode - determines title and behavior */
+  /** Initial mode (can be overridden by user input). */
   mode: NewItemModalMode
-  /** Callback when modal should close */
+  /** Callback when the modal should close. */
   onClose: () => void
-  /** Callback when user confirms creation */
-  onCreate: (name: string) => Promise<void>
-  /** Optional default path to show as hint */
-  defaultPath?: string
-  /** List of existing names to prevent duplicates */
-  existingNames?: string[]
+  /** Workspace root path. */
+  workspaceRoot: string | null
+  /** Current workspace tree (for suggestions). */
+  tree: Node[]
+  /** Recently accessed paths (for suggestion boosting). */
+  recentItems?: string[]
+  /** Callback after successful creation -- receives absolute path. */
+  onCreated?: (absolutePath: string, isFile: boolean) => void
 }
 
 export function NewItemModal({
   open,
   mode,
   onClose,
-  onCreate,
-  defaultPath = "",
-  existingNames = []
+  workspaceRoot,
+  tree,
+  recentItems = [],
+  onCreated,
 }: NewItemModalProps) {
-  const [inputValue, setInputValue] = useState("")
-  const [isCreating, setIsCreating] = useState(false)
-  const [error, setError] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLUListElement>(null)
 
-  // Reset state when modal opens/closes
+  const {
+    state,
+    setInput,
+    setMode,
+    selectPrev,
+    selectNext,
+    applySuggestion,
+    submit,
+    reset,
+    isCreating,
+  } = useNewItemController({
+    workspaceRoot,
+    tree,
+    recentItems,
+    onCreated,
+  })
+
+  // Sync external mode prop when modal opens.
   useEffect(() => {
     if (open) {
-      setInputValue("")
-      setError("")
-      // Focus input when modal opens
-      setTimeout(() => inputRef.current?.focus(), 100)
+      reset()
+      setMode(mode)
+      // Focus input after DOM update.
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+      })
     }
-  }, [open])
+  }, [open, mode, reset, setMode])
 
-  // Handle keyboard events
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.preventDefault()
-      onClose()
-    } else if (e.key === "Enter") {
-      e.preventDefault()
-      handleSubmit()
+  // Scroll selected suggestion into view.
+  useEffect(() => {
+    if (state.selectedIndex >= 0 && suggestionsRef.current) {
+      const items = suggestionsRef.current.children
+      const selected = items[state.selectedIndex] as HTMLElement | undefined
+      selected?.scrollIntoView({ block: "nearest" })
     }
-  }
+  }, [state.selectedIndex])
 
-  // Validate input
-  const validateInput = (name: string): string => {
-    const trimmedName = name.trim()
-    
-    if (!trimmedName) {
-      return "Name cannot be empty"
-    }
-    
-    // Check for invalid characters
-    const invalidChars = /[<>:"/\\|?*]/
-    if (invalidChars.test(trimmedName)) {
-      return "Name contains invalid characters"
-    }
-    
-    // Check for duplicate names
-    if (existingNames.includes(trimmedName)) {
-      return `${mode === "file" ? "File" : "Folder"} already exists`
-    }
-    
-    return ""
-  }
+  // ---- Keyboard handler ----
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault()
+        onClose()
+        break
 
-  // Handle form submission
-  const handleSubmit = async () => {
-    const trimmedName = inputValue.trim()
-    const validationError = validateInput(trimmedName)
-    
-    if (validationError) {
-      setError(validationError)
-      return
+      case "Enter":
+        e.preventDefault()
+        if (!state.validation.valid || isCreating) return
+        submit(e.ctrlKey || e.metaKey).then(result => {
+          if (result.success) onClose()
+        })
+        break
+
+      case "Tab":
+        e.preventDefault()
+        if (state.suggestions.length > 0) {
+          // If no suggestion selected, select first, then apply.
+          if (state.selectedIndex < 0) {
+            selectNext()
+          }
+          applySuggestion()
+        }
+        break
+
+      case "ArrowUp":
+        e.preventDefault()
+        selectPrev()
+        break
+
+      case "ArrowDown":
+        e.preventDefault()
+        selectNext()
+        break
+
+      default:
+        break
     }
-    
-    setIsCreating(true)
-    setError("")
-    
-    try {
-      await onCreate(trimmedName)
-      onClose()
-    } catch (err) {
-      setError(`Failed to create ${mode}: ${err instanceof Error ? err.message : "Unknown error"}`)
-    } finally {
-      setIsCreating(false)
-    }
-  }
+  }, [
+    state.validation.valid, state.suggestions.length, state.selectedIndex,
+    isCreating, onClose, submit, applySuggestion, selectPrev, selectNext,
+  ])
 
-  // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setInputValue(value)
-    
-    // Clear error when user starts typing
-    if (error) {
-      setError("")
-    }
-  }
+  // ---- Suggestion click handler ----
+  const handleSuggestionClick = useCallback((index: number) => {
+    // Set the selected index and apply immediately.
+    setInput(state.suggestions[index]?.label || "")
+  }, [state.suggestions, setInput])
 
-  // Get modal title based on mode
-  const getTitle = () => {
-    return mode === "file" ? "New File" : "New Folder"
-  }
-
-  // Get placeholder text
-  const getPlaceholder = () => {
-    return mode === "file" ? "Enter file name..." : "Enter folder name..."
-  }
-
+  // ---- Render nothing when closed ----
   if (!open) return null
+
+  // ---- Derived display values ----
+  const breadcrumbs = state.parsedPath.segments.length > 1
+    ? state.parsedPath.segments.slice(0, -1)
+    : []
+  const itemName = state.parsedPath.name || ""
+  const modeLabel = state.mode === "file" ? "File" : "Folder"
+  const title = `New ${modeLabel}`
 
   return (
     <>
       {/* Backdrop */}
       <div className="new-item-modal-backdrop" onClick={onClose} />
-      
+
       {/* Modal */}
-      <div className="new-item-modal">
+      <div className="new-item-modal" role="dialog" aria-label={title}>
         <div className="new-item-modal-content">
-          {/* Header */}
+          {/* Header with mode toggle */}
           <div className="new-item-modal-header">
-            <h2 className="new-item-modal-title">{getTitle()}</h2>
+            <h2 className="new-item-modal-title">{title}</h2>
+            <div className="new-item-modal-mode-toggle">
+              <button
+                className={`new-item-modal-mode-btn ${state.mode === "file" ? "new-item-modal-mode-btn--active" : ""}`}
+                onClick={() => setMode("file")}
+                type="button"
+                tabIndex={-1}
+              >
+                File
+              </button>
+              <button
+                className={`new-item-modal-mode-btn ${state.mode === "folder" ? "new-item-modal-mode-btn--active" : ""}`}
+                onClick={() => setMode("folder")}
+                type="button"
+                tabIndex={-1}
+              >
+                Folder
+              </button>
+            </div>
           </div>
-          
-          {/* Body */}
+
+          {/* Input */}
           <div className="new-item-modal-body">
             <div className="new-item-modal-input-group">
-              <label className="new-item-modal-label" htmlFor="new-item-name">
-                Name:
-              </label>
               <input
                 ref={inputRef}
-                id="new-item-name"
+                id="new-item-path-input"
                 type="text"
                 className="new-item-modal-input"
-                value={inputValue}
-                onChange={handleInputChange}
+                value={state.rawInput}
+                onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={getPlaceholder()}
+                placeholder={state.mode === "file" ? "path/to/file.ext" : "path/to/folder/"}
                 disabled={isCreating}
-                aria-invalid={!!error}
-                aria-describedby={error ? "new-item-error" : undefined}
+                autoComplete="off"
+                spellCheck={false}
+                aria-invalid={!state.validation.valid && state.rawInput.length > 0}
+                aria-describedby={
+                  !state.validation.valid && state.rawInput.length > 0
+                    ? "new-item-validation"
+                    : undefined
+                }
+                aria-haspopup="listbox"
+                aria-expanded={state.suggestions.length > 0}
+                aria-activedescendant={
+                  state.selectedIndex >= 0
+                    ? `suggestion-${state.selectedIndex}`
+                    : undefined
+                }
               />
-              {error && (
-                <div id="new-item-error" className="new-item-modal-error">
-                  {error}
-                </div>
-              )}
             </div>
-            
-            {defaultPath && (
-              <div className="new-item-modal-path-hint">
-                Will be created in: {defaultPath}
+
+            {/* Suggestions list */}
+            {state.suggestions.length > 0 && (
+              <ul
+                ref={suggestionsRef}
+                className="new-item-modal-suggestions"
+                role="listbox"
+                aria-label="Path suggestions"
+              >
+                {state.suggestions.map((suggestion, index) => (
+                  <li
+                    key={suggestion.label}
+                    id={`suggestion-${index}`}
+                    className={`new-item-modal-suggestion ${
+                      index === state.selectedIndex ? "new-item-modal-suggestion--selected" : ""
+                    }`}
+                    role="option"
+                    aria-selected={index === state.selectedIndex}
+                    onClick={() => handleSuggestionClick(index)}
+                  >
+                    <span className="new-item-modal-suggestion-icon">
+                      {suggestion.type === "folder" ? "\u{1F4C1}" : "\u{1F4C4}"}
+                    </span>
+                    <span className="new-item-modal-suggestion-label">
+                      {suggestion.label}
+                    </span>
+                    <span className="new-item-modal-suggestion-type">
+                      {suggestion.type}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Breadcrumb path preview */}
+            {breadcrumbs.length > 0 && (
+              <div className="new-item-modal-breadcrumbs" aria-label="Path preview">
+                {breadcrumbs.map((segment, i) => (
+                  <span key={i} className="new-item-modal-breadcrumb">
+                    {segment}
+                    <span className="new-item-modal-breadcrumb-sep">/</span>
+                  </span>
+                ))}
+                <span className="new-item-modal-breadcrumb new-item-modal-breadcrumb--current">
+                  {itemName}
+                </span>
+              </div>
+            )}
+
+            {/* Validation message */}
+            {!state.validation.valid && state.rawInput.length > 0 && (
+              <div id="new-item-validation" className="new-item-modal-error" role="alert">
+                {state.validation.message}
               </div>
             )}
           </div>
-          
+
           {/* Footer */}
           <div className="new-item-modal-footer">
-            <button
-              className="new-item-modal-button new-item-modal-button--cancel"
-              onClick={onClose}
-              disabled={isCreating}
-            >
-              Cancel
-            </button>
-            <button
-              className="new-item-modal-button new-item-modal-button--create"
-              onClick={handleSubmit}
-              disabled={!inputValue.trim() || isCreating || !!validateInput(inputValue.trim())}
-            >
-              {isCreating ? "Creating..." : "Create"}
-            </button>
+            <div className="new-item-modal-hints">
+              <span className="new-item-modal-hint">Enter: Create</span>
+              <span className="new-item-modal-hint">Ctrl+Enter: Create + Open</span>
+              <span className="new-item-modal-hint">Tab: Autocomplete</span>
+            </div>
+            <div className="new-item-modal-actions">
+              <button
+                className="new-item-modal-button new-item-modal-button--cancel"
+                onClick={onClose}
+                disabled={isCreating}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="new-item-create-btn"
+                className="new-item-modal-button new-item-modal-button--create"
+                onClick={() => submit(false).then(r => { if (r.success) onClose() })}
+                disabled={!state.validation.valid || isCreating}
+                type="button"
+              >
+                {isCreating ? "Creating..." : `Create ${modeLabel}`}
+              </button>
+            </div>
           </div>
         </div>
       </div>

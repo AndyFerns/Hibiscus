@@ -1,6 +1,6 @@
 [package]
 name = "hibiscus"
-version = "0.8.0"
+version = "0.9.4"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -26,6 +26,9 @@ notify = "7" # filesystem watching (read-only)
 tauri-plugin-dialog = "2.5.0"
 thiserror = "1" # Typed error handling
 tokio = { version = "1", features = ["fs", "sync", "rt", "rt-multi-thread", "time", "macros"] } # Async I/O + knowledge worker
+pdf-extract = "0.10"  # PDF text extraction (Phase 2)
+zip = "2"             # DOCX zip-archive reading (Phase 2)
+quick-xml = "0.37"    # DOCX XML paragraph parsing (Phase 2)
 
 [dev-dependencies]
 tempfile = "3"

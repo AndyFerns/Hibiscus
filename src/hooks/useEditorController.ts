@@ -22,6 +22,7 @@ import { invoke } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 import { save } from "@tauri-apps/plugin-dialog"
 import { Node } from "../types/workspace"
+import { join, isAbsolute } from "@tauri-apps/api/path"
 
 /**
  * Buffer entry for an open file
@@ -122,7 +123,13 @@ export function useEditorController(workspaceRoot: string | null) {
     if (!node.path || !workspaceRoot) return
 
     // Normalize path separators for Windows compatibility
-    const fullPath = `${workspaceRoot}\\${node.path.replace(/\//g, '\\')}`
+    let fullPath: string
+
+    if (await isAbsolute(node.path)) {
+      fullPath = node.path
+    } else {
+      fullPath = await join(workspaceRoot, node.path)
+    }
 
     // Generate unique request ID for this open operation
     const requestId = ++openRequestIdRef.current

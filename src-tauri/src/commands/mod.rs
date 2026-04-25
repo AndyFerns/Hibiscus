@@ -19,6 +19,7 @@ mod tree;
 mod calendar;
 mod themes;
 mod study;
+mod create_item;
 
 // Re-export commands so lib.rs can keep using `commands::xyz`
 pub use files::*;
@@ -26,4 +27,5 @@ pub use workspace::*;
 pub use tree::*;
 pub use calendar::*;
 pub use themes::*;
-pub use study::*;
+pub use study::*;
+pub use create_item::*;
