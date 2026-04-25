@@ -18,7 +18,7 @@
         <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../shortcuts/">
+        <link rel="next" href="../search/">
       
       
         
@@ -653,6 +653,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Search System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modal-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modal System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../shortcuts/" class="md-nav__link">
         
   
@@ -988,7 +1044,7 @@
 </ul>
 <h3 id="advanced-search-retrieval">Advanced Search &amp; Retrieval</h3>
 <ul>
-<li><strong>User Note</strong>: Use the global search bar to query your notes. Because Hibiscus understands your documents, you don't just get file names—you get specific paragraphs (chunks) that match your query, ranked by relevance. It even forgives minor typos (fuzzy matching) and understands partial words (prefix matching).</li>
+<li><strong>User Note</strong>: Use the global search bar to query your notes. Because Hibiscus understands your documents, you don't just get file names—you get specific paragraphs (chunks) that match your query, ranked by relevance. It even forgives minor typos (fuzzy matching) and understands partial words (prefix matching). See the <a href="../search/">Search System Guide</a> for detailed navigation and usage instructions.</li>
 <li><strong>Dev Note</strong>: Searching triggers the <code>search_chunks</code> Tauri command. It utilizes the precomputed <code>ScoredKeywordIndex</code> to retrieve results via TF-IDF scoring in milliseconds. Results are heavily cached in an LRU cache (<code>KnowledgeState.cache</code>) to ensure immediate responsiveness while typing.</li>
 </ul>
 <h3 id="topic-navigation">Topic Navigation</h3>
