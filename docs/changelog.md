@@ -2,6 +2,35 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+
+## [v0.9.4] - Search Navigation & UX Improvements
+
+### New Features
+
+- **Click-to-Open Search Results**: Search results are now clickable and open files at the exact location (with line highlighting when available)
+- **Keyboard Navigation**: Added Tab/Shift+Tab navigation between search results with automatic file opening
+- **Enhanced Topics Dropdown**: Topics section is now expandable/collapsible with smooth animations
+
+### Improvements
+
+- **File Path Normalization**: Fixed double backslash issues in file paths using proper path normalization
+- **Line Number Extraction**: Enhanced line number extraction to support multiple chunk_id formats (file:123, file#123, file@123, file_123)
+- **Visual Feedback**: Added selection highlighting and hover states for better UX
+- **Debug Support**: Added comprehensive logging for troubleshooting search interactions
+
+### Bug Fixes
+
+- **Path Handling**: Fixed file path duplication bugs using Tauri path API
+- **Navigation State**: Proper state management for search result selection and cycling
+- **CSS Styling**: Consistent theme integration for all search components
+
+### Technical Details
+
+- **Search Integration**: Search panel now fully integrated into right panel structure
+- **Navigation Flow**: Tab cycles through results → auto-opens selected file → Shift+Tab cycles backward
+- **Accessibility**: Full keyboard support with proper focus management and ARIA attributes
+- **Performance**: Optimized state management with proper cleanup and updates
+
 ## [v0.9.0] - Advanced Knowledge System (Phase 2)
 
 ### New Features
