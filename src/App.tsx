@@ -86,8 +86,7 @@ function AppInner() {
     changeWorkspace,
     openNode,
     openFileDialog,
-    createFile,
-    createFolder,
+    recentFiles, // Provide this explicitly
     closeWorkspace,
   } = useWorkspaceController()
 
@@ -236,35 +235,20 @@ function AppInner() {
   }, [])
 
   /**
-   * Get existing names for duplicate validation
+   * Handle successful item creation from the modal.
+   * If a file was created, open it in the editor.
    */
-  const getExistingNames = useCallback((): string[] => {
-    if (!workspace.tree) return []
-    
-    const collectNames = (nodes: any[]): string[] => {
-      const names: string[] = []
-      for (const node of nodes) {
-        names.push(node.name)
-        if (node.children) {
-          names.push(...collectNames(node.children))
-        }
-      }
-      return names
+  const handleItemCreated = useCallback((absolutePath: string, isFile: boolean) => {
+    if (isFile) {
+      const name = absolutePath.split(/[/\\]/).pop() || absolutePath
+      handleFileOpen({
+        id: absolutePath,
+        name,
+        path: absolutePath,
+        type: "file"
+      })
     }
-    
-    return collectNames(workspace.tree)
-  }, [workspace.tree])
-
-  /**
-   * Handle item creation from modal
-   */
-  const handleModalCreate = useCallback(async (name: string) => {
-    if (newItemModal.mode === "file") {
-      await createFile(name)
-    } else {
-      await createFolder(name)
-    }
-  }, [newItemModal.mode, createFile, createFolder])
+  }, [handleFileOpen])
 
   // ============================================================================
   // KEYBOARD SHORTCUTS
@@ -553,14 +537,15 @@ function AppInner() {
         onUpdate={updateSettings}
         onReset={resetToDefaults}
       />
-      {/* New Item Modal */}
+      {/* New Item Modal (keyboard-centric, with suggestions) */}
       <NewItemModal
         open={newItemModal.open}
         mode={newItemModal.mode}
         onClose={handleModalClose}
-        onCreate={handleModalCreate}
-        defaultPath={workspaceRoot || undefined}
-        existingNames={getExistingNames()}
+        workspaceRoot={workspaceRoot}
+        tree={workspace.tree}
+        recentItems={recentFiles.map(f => f.path)}
+        onCreated={handleItemCreated}
       />
     </>
   )
