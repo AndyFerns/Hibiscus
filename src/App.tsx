@@ -27,6 +27,7 @@ import { useState, useCallback } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
+import { TabBar } from "./components/TabBar/TabBar"
 import { EditorView, CursorPosition } from "./components/Editor/EditorView"
 import { RightPanelContainer } from "./components/RightPanel/RightPanelContainer"
 import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
@@ -87,20 +88,20 @@ function AppInner() {
     changeWorkspace,
     openNode,
     openFileDialog,
+    moveNode,
     recentFiles, // Provide this explicitly
     closeWorkspace,
   } = useWorkspaceController()
 
   // ============================================================================
   // EDITOR STATE
-  // Active file, content, and save handling
+  // Active file, content, save handling, and multi-file tab management
   // ============================================================================
   const {
     activeFile,
     activeFilePath,
     fileContent,
     fileVersion,
-    isDirty,
     openFile,
     onChange,
     saveCurrentFile,
@@ -108,6 +109,11 @@ function AppInner() {
     saveAsFile,
     closeFile,
     handleExit: handleEditorExit,
+    // Multi-file tab interface
+    openFiles,
+    activeFileId,
+    switchTab,
+    closeTab,
   } = useEditorController(workspaceRoot)
 
   // ============================================================================
@@ -385,6 +391,9 @@ function AppInner() {
               tree={workspace.tree}
               activeNodeId={workspace.session?.active_node}
               onOpen={handleFileOpen}
+              onNewFile={handleNewFile}
+              onNewFolder={handleNewFolder}
+              onMoveNode={moveNode}
             />
           ) : null
         }
@@ -395,24 +404,16 @@ function AppInner() {
          * ---------------------------------------------------------------- */
         main={
           <div className="editor-wrapper">
+            {/* Tab bar -- visible only when at least one file is open */}
+            <TabBar
+              openFiles={openFiles}
+              activeFileId={activeFileId}
+              onSelectTab={switchTab}
+              onCloseTab={closeTab}
+            />
+
             {activeFile && activeFilePath ? (
               <>
-                {/* File header with name and dirty indicator */}
-                <div className="editor-header">
-                  <span className="editor-header-title">
-                    <span className="editor-header-icon">📄</span>
-                    {activeFile.name}
-                    {isDirty && <span className="editor-dirty-indicator">*</span>}
-                  </span>
-                  <div className="editor-header-actions">
-                    {isDirty && (
-                      <span className="editor-unsaved-hint" title="Press Ctrl+S to save">
-                        Unsaved
-                      </span>
-                    )}
-                  </div>
-                </div>
-
                 {/* Monaco editor container */}
                 <div className="editor-container">
                   <EditorView
@@ -428,7 +429,11 @@ function AppInner() {
             ) : (
               /* Placeholder when no file is selected */
               <div className="editor-placeholder">
-                <span className="editor-placeholder-icon">📂</span>
+                <span className="editor-placeholder-icon">
+                  <svg width="48" height="48" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
                 <span className="editor-placeholder-text">
                   Select a file from the tree to start editing
                 </span>
@@ -464,7 +469,10 @@ function AppInner() {
             <div className="status-bar-left">
               {workspaceRoot ? (
                 <span className="status-item">
-                  📁 {workspaceRoot.split(/[/\\]/).pop()}
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {workspaceRoot.split(/[/\\]/).pop()}
                 </span>
               ) : (
                 <span className="status-item status-item--muted">
@@ -473,7 +481,11 @@ function AppInner() {
               )}
               {focusMode && (
                 <span className="status-item status-item--accent" title="Focus Mode active">
-                  🔍 Focus
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M7 12.5C10.0376 12.5 12.5 10.0376 12.5 7C12.5 3.96243 10.0376 1.5 7 1.5C3.96243 1.5 1.5 3.96243 1.5 7C1.5 10.0376 3.96243 12.5 7 12.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 11L14.5 14.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Focus
                 </span>
               )}
             </div>
