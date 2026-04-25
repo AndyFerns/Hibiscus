@@ -22,9 +22,10 @@ interface SearchPanelProps {
   open: boolean
   onClose: () => void
   workspaceRoot: string | null
+  onOpenFile?: (path: string, line?: number) => void
 }
 
-export function SearchPanel({ open, onClose, workspaceRoot }: SearchPanelProps) {
+export function SearchPanel({ open, onClose, workspaceRoot, onOpenFile }: SearchPanelProps) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [topics, setTopics] = useState<TopicMap>({})
@@ -124,7 +125,7 @@ export function SearchPanel({ open, onClose, workspaceRoot }: SearchPanelProps) 
       </div>
 
       <div className="search-body">
-        <ResultsList results={results} hasSearched={hasSearched} />
+        <ResultsList results={results} hasSearched={hasSearched} onOpenFile={onOpenFile} />
       </div>
 
       <div className="search-footer">

@@ -146,6 +146,7 @@ export function RightPanelContainer({
                         open={true}
                         onClose={() => {}}
                         workspaceRoot={workspaceRoot}
+                        onOpenFile={onOpenFile}
                     />
                 )
             case "pomodoro":
