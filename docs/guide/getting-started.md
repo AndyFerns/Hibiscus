@@ -39,5 +39,5 @@ When you configure a directory as your **workspace**, Hibiscus drops a hidden `.
 - `backups/`: Rotating timestamped safety backups of your data.
 
 ## Next Steps
-- Learn how to navigate the app rapidly with [Keyboard Shortcuts](guide/shortcuts.md).
-- Personalize your editor using [Theming](guide/theming.md).
+- Learn how to navigate the app rapidly with [Keyboard Shortcuts](shortcuts.md).
+- Personalize your editor using [Theming](theming.md).
