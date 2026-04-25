@@ -36,7 +36,7 @@ Once your workspace is loaded, you don't need to manually import files.
 
 ### Advanced Search & Retrieval
 
-- **User Note**: Use the global search bar to query your notes. Because Hibiscus understands your documents, you don't just get file names—you get specific paragraphs (chunks) that match your query, ranked by relevance. It even forgives minor typos (fuzzy matching) and understands partial words (prefix matching).
+- **User Note**: Use the global search bar to query your notes. Because Hibiscus understands your documents, you don't just get file names—you get specific paragraphs (chunks) that match your query, ranked by relevance. It even forgives minor typos (fuzzy matching) and understands partial words (prefix matching). See the [Search System Guide](guide/search.md) for detailed navigation and usage instructions.
 - **Dev Note**: Searching triggers the `search_chunks` Tauri command. It utilizes the precomputed `ScoredKeywordIndex` to retrieve results via TF-IDF scoring in milliseconds. Results are heavily cached in an LRU cache (`KnowledgeState.cache`) to ensure immediate responsiveness while typing.
 
 ### Topic Navigation

@@ -3,7 +3,7 @@
  * TitleBar Component
  * ============================================================================
  * 
- * Application menu bar with VSCode-style dropdown menus.
+ * Application menu bar with Dropdown menus.
  * Sits below the native OS window titlebar for reliable cross-platform support.
  * 
  * LAYOUT:
@@ -12,7 +12,7 @@
  * └─────────────────────────────────────────────────────────────────────────┘
  * 
  * FEATURES:
- * - VSCode-style dropdown menu system
+ * - Dropdown menu system
  * - Menu sections: File, Edit, Selection, View, Tools, Help
  * - Centered app title with workspace name
  * - Connected actions for Open Folder, panel toggles, etc.

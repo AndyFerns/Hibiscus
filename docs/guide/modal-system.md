@@ -6,7 +6,7 @@ Hibiscus v0.7.0 introduces a production-grade modal system that replaces browser
 
 ## Design Philosophy
 
-The modal system follows a **Notion × VS Code hybrid** design approach:
+The modal system follows a **hybrid** design approach:
 
 - **Clean & Minimal**: Distraction-free interface with soft shadows and rounded corners
 - **Responsive Design**: Adapts to different screen sizes while maintaining usability

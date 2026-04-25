@@ -36,6 +36,8 @@ nav:
   - Guide:
       - Getting Started: guide/getting-started.md
       - Application Flow: guide/flow.md
+      - Search System: guide/search.md
+      - Modal System: guide/modal-system.md
       - Keyboard Shortcuts: guide/shortcuts.md
       - Theming: guide/theming.md
       - Study Tools: guide/study-tools.md
