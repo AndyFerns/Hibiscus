@@ -76,6 +76,7 @@ function AppInner() {
   })
 
   
+  
   // ============================================================================
   // WORKSPACE STATE
   // Tree structure, root path, and navigation
@@ -252,25 +253,20 @@ function AppInner() {
 
   // ============================================================================
   // KEYBOARD SHORTCUTS
-  // Handle Ctrl+N (new file) and Ctrl+Shift+N (new folder)
+  // Handle all global keyboard shortcuts using the centralized hook
   // ============================================================================
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+N -> New File
-      if (e.ctrlKey && e.key === 'n' && !e.shiftKey && !e.altKey) {
-        e.preventDefault()
-        handleNewFile()
-      }
-      // Ctrl+Shift+N -> New Folder
-      else if (e.ctrlKey && e.shiftKey && e.key === 'n' && !e.altKey) {
-        e.preventDefault()
-        handleNewFolder()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleNewFile, handleNewFolder])
+  const { setRightPanelView } = useStudy()
+  
+  useKeyboardShortcuts({
+    onOpenFolder: openFileDialog,
+    onToggleLeftPanel: toggleLeftPanel,
+    onToggleRightPanel: toggleRightPanel,
+    onToggleShortcutOverlay: () => setShowShortcutOverlay(true),
+    onOpenPomodoro: () => openStudyTool("pomodoro"),
+    onToggleFocusMode: toggleFocusMode,
+    onOpenSettings: () => setSettingsOpen(true),
+    onOpenSearch: () => setRightPanelView("search"),
+  })
 
   const handleOpenFile = useCallback(async () => {
     const filePath = await openFileDialog()
