@@ -10,10 +10,13 @@ interface ShortcutHandlers {
     onOpenPomodoro?: () => void;
     onToggleFocusMode?: () => void;
     onOpenSettings?: () => void;
+    onOpenSearch?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
     useEffect(() => {
+        let focusModeChordActive = false;
+        
         const handleKeyDown = (e: KeyboardEvent) => {
             const isCtrl = e.ctrlKey || e.metaKey;
 
@@ -47,10 +50,30 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
                 handlers.onOpenPomodoro?.();
             }
 
-            // Ctrl+Shift+F -> Focus Mode
+            // Ctrl+F -> Start focus mode chord
+            if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                focusModeChordActive = true;
+                return;
+            }
+
+            // M key after Ctrl+F -> Focus Mode
+            if (focusModeChordActive && e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                focusModeChordActive = false;
+                handlers.onToggleFocusMode?.();
+                return;
+            }
+
+            // Any other key after Ctrl+F -> Cancel chord
+            if (focusModeChordActive) {
+                focusModeChordActive = false;
+            }
+
+            // Ctrl+Shift+F -> Open Search
             if (isCtrl && e.shiftKey && e.key.toLowerCase() === 'f') {
                 e.preventDefault();
-                handlers.onToggleFocusMode?.();
+                handlers.onOpenSearch?.();
             }
 
             // Ctrl+, -> Settings
