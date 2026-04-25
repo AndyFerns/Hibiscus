@@ -2,17 +2,18 @@
  * ============================================================================
  * TreeNode Component Styles
  * ============================================================================
- * 
+ *
  * Styles for the recursive file/folder tree nodes including:
  * - Dynamic depth-based indentation using CSS custom properties
  * - Hover and active state animations
  * - Visual distinction between files and folders
- * 
+ * - Drag-and-drop visual feedback (dragging + drop-target states)
+ *
  * DYNAMIC INDENTATION:
  * The component passes --tree-depth as a CSS custom property, which is used
  * to calculate left padding dynamically. This avoids inline styles while
  * maintaining the tree structure visualization.
- * 
+ *
  * Uses design tokens from theme.css for consistency.
  * ============================================================================
  */
@@ -38,7 +39,7 @@
   align-items: center;
   gap: var(--space-2, 8px);
 
-  /* 
+  /*
    * DYNAMIC INDENTATION
    * Uses CSS custom property --tree-depth (set by component) to calculate
    * left padding based on nesting level. var(--tree-indent, 16px) is the
@@ -67,7 +68,8 @@
     background var(--transition-fast, 0.1s ease-out),
     color var(--transition-fast, 0.1s ease-out),
     box-shadow var(--transition-fast, 0.1s ease-out),
-    transform var(--transition-fast, 0.1s ease-out);
+    transform var(--transition-fast, 0.1s ease-out),
+    opacity var(--transition-fast, 0.1s ease-out);
 }
 
 /* =============================================================================
@@ -125,6 +127,26 @@
 }
 
 /* =============================================================================
+ * DRAG AND DROP STATES
+ * Visual feedback during drag operations
+ * ============================================================================= */
+
+/* Node being dragged -- reduced opacity to indicate it is "lifted" */
+.tree-node--dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+}
+
+/* Valid drop target (folder) -- highlighted with accent border */
+.tree-node--drop-target {
+  background: var(--accent-soft) !important;
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    0 0 16px rgba(122, 162, 247, 0.2);
+  border-radius: var(--radius-md, 6px);
+}
+
+/* =============================================================================
  * FOCUS STATE
  * Keyboard navigation accessibility
  * ============================================================================= */
@@ -168,7 +190,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   /* Smooth rotation animation */
   transition: transform var(--transition-fast, 0.15s ease-out);
 }
@@ -180,14 +202,18 @@
 
 /* =============================================================================
  * NODE ICON
- * Emoji icon (folder or file)
+ * SVG icon (folder or file)
  * ============================================================================= */
 
 .tree-node-icon {
   /* Fixed size for alignment */
   flex-shrink: 0;
   width: 18px;
-  text-align: center;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
 
   /* Subtle scale on hover for microinteraction */
   transition: transform var(--transition-fast, 0.1s ease-out);
@@ -197,9 +223,14 @@
   transform: scale(1.1);
 }
 
+/* Active node icon gets accent color */
+.tree-node--active .tree-node-icon {
+  color: var(--accent);
+}
+
 /* =============================================================================
  * CHILDREN CONTAINER
- * Wrapper for nested child nodes with Reddit-style hierarchy
+ * Wrapper for nested child nodes with hierarchy visualization
  * ============================================================================= */
 
 .tree-node-children {
@@ -207,12 +238,12 @@
   border-left: 1px solid var(--border-subtle);
   margin-left: 8px;
   padding-left: var(--space-2, 8px);
-  
+
   /* Smooth expand/collapse animation */
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: 
+  transition:
     max-height var(--transition-normal, 0.2s ease-out),
     opacity var(--transition-normal, 0.2s ease-out);
 }
