@@ -26,8 +26,9 @@
  * ============================================================================
  */
 
-import { useState, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import { CalendarEvent, EVENT_TYPE_CONFIG, formatLocalDate } from "../../types/calendar"
+import { Icons } from "../Icons/icons"
 import "./CalendarView.css"
 
 /**
@@ -333,7 +334,7 @@ export function CalendarView({
                                         className="calendar-view-event-type-icon"
                                         style={{ color: EVENT_TYPE_CONFIG[event.type].color }}
                                     >
-                                        {EVENT_TYPE_CONFIG[event.type].icon}
+                                        {React.createElement(Icons[EVENT_TYPE_CONFIG[event.type].icon as keyof typeof Icons], { size: 14 })}
                                     </span>
                                     <span className="calendar-view-event-title">
                                         {event.title}

@@ -15,10 +15,10 @@
  * 
  * LAYOUT:
  * ┌─────────────────────────┐
- * │  📅 Calendar           ▼│
+ * │  <Icons.calendar size={14} /> Calendar           ▼│
  * │  (CalendarView)         │
  * ├─────────────────────────┤ ← Resize handle
- * │  📋 Planner            ▲│
+ * │  <Icons.assignment size={14} /> Planner            ▲│
  * │  (DailyPlanner)         │
  * │  (TaskList)             │
  * └─────────────────────────┘
@@ -26,6 +26,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, ReactNode } from "react"
+import { Icons } from "../Icons/icons"
 import "./RightPanel.css"
 
 /**
@@ -203,7 +204,7 @@ export function RightPanel({
             >
                 <header className="right-panel-section-header">
                     <span className="right-panel-section-title">
-                        <span className="right-panel-section-icon">📅</span>
+                        <span className="right-panel-section-icon"><Icons.calendar size={14} /></span>
                         Calendar
                     </span>
                     <button
@@ -243,7 +244,7 @@ export function RightPanel({
             >
                 <header className="right-panel-section-header">
                     <span className="right-panel-section-title">
-                        <span className="right-panel-section-icon">📋</span>
+                        <span className="right-panel-section-icon"><Icons.assignment size={14} /></span>
                         Planner
                     </span>
                     <button
