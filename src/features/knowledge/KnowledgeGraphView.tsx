@@ -1,26 +1,29 @@
 /**
  * ============================================================================
- * KnowledgeGraphView — Canvas-Based Force-Directed Graph
+ * KnowledgeGraphView — Full-Screen Force-Directed Graph (Center Panel)
  * ============================================================================
  *
- * Renders the knowledge graph using HTML5 Canvas with a simple
- * force-directed layout simulation. No external graph library needed.
+ * Renders the knowledge graph using react-force-graph (2D) as a center panel
+ * view that replaces the editor. Uses the existing theme system for styling.
  *
  * FEATURES:
- * - Force simulation: repulsion between nodes, attraction along edges
- * - Interactive: click nodes to navigate, drag to reposition
- * - Auto-fits to container, responsive resize
- * - Memoized graph data via index.version
+ * - Force-directed layout via react-force-graph (ForceGraph2D)
+ * - Zoom, pan, and node dragging out of the box
+ * - Node size proportional to connection degree
+ * - Active file node highlighted with distinct color
+ * - Click node to open file in editor
+ * - Back button to return to editor view
+ * - Header bar with stats
  *
  * PERFORMANCE:
- * - Simulation runs via requestAnimationFrame
- * - Stops after convergence or max iterations
- * - Canvas rendering (no DOM node per element)
+ * - Graph data is memoized by caller via index.version
+ * - Canvas-based rendering (no DOM per node)
  * ============================================================================
  */
 
 import { useRef, useEffect, useCallback, useMemo, useState } from "react"
-import type { GraphData } from "./buildGraph"
+import ForceGraph2D from "react-force-graph-2d"
+import type { GraphData, GraphNode } from "./buildGraph"
 import "./KnowledgeGraph.css"
 
 // =============================================================================
@@ -29,79 +32,89 @@ import "./KnowledgeGraph.css"
 
 interface KnowledgeGraphViewProps {
   graph: GraphData
+  activeFilePath: string | null
   onNodeClick: (path: string) => void
+  onBack: () => void
 }
 
-interface SimNode {
-  id: string
-  label: string
-  x: number
-  y: number
-  vx: number
-  vy: number
+// Internal node shape for ForceGraph2D (extends GraphNode with layout fields)
+interface FGNode extends GraphNode {
+  x?: number
+  y?: number
+  degree: number
+}
+
+interface FGLink {
+  source: string
+  target: string
 }
 
 // =============================================================================
-// FORCE SIMULATION CONSTANTS
+// CONSTANTS
 // =============================================================================
 
-const REPULSION = 800
-const ATTRACTION = 0.005
-const DAMPING = 0.85
-const CENTER_GRAVITY = 0.01
-const NODE_RADIUS = 6
-const MAX_TICKS = 300
-const CONVERGENCE_THRESHOLD = 0.1
+const MIN_NODE_RADIUS = 4
+const MAX_NODE_RADIUS = 14
+const LABEL_FONT = "11px Inter, system-ui, sans-serif"
 
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-export function KnowledgeGraphView({ graph, onNodeClick }: KnowledgeGraphViewProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+export function KnowledgeGraphView({
+  graph,
+  activeFilePath,
+  onNodeClick,
+  onBack,
+}: KnowledgeGraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const simNodesRef = useRef<SimNode[]>([])
-  const animFrameRef = useRef<number>(0)
-  const tickRef = useRef(0)
-  const [dimensions, setDimensions] = useState({ width: 400, height: 300 })
+  const fgRef = useRef<any>(null)
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
 
-  // Build simulation nodes from graph data (memoized by graph reference)
-  const simData = useMemo(() => {
-    const cx = dimensions.width / 2
-    const cy = dimensions.height / 2
+  // Compute degree map for node sizing
+  const degreeMap = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const edge of graph.edges) {
+      map.set(edge.source, (map.get(edge.source) || 0) + 1)
+      map.set(edge.target, (map.get(edge.target) || 0) + 1)
+    }
+    return map
+  }, [graph])
 
-    const nodes: SimNode[] = graph.nodes.map((n, i) => {
-      // Arrange in a circle initially for better convergence
-      const angle = (2 * Math.PI * i) / Math.max(graph.nodes.length, 1)
-      const radius = Math.min(dimensions.width, dimensions.height) * 0.3
-      return {
-        id: n.id,
-        label: n.label,
-        x: cx + radius * Math.cos(angle) + (Math.random() - 0.5) * 10,
-        y: cy + radius * Math.sin(angle) + (Math.random() - 0.5) * 10,
-        vx: 0,
-        vy: 0,
-      }
-    })
+  // Max degree for normalization
+  const maxDegree = useMemo(() => {
+    let max = 1
+    for (const d of degreeMap.values()) {
+      if (d > max) max = d
+    }
+    return max
+  }, [degreeMap])
 
-    // Edge index map for O(1) lookup
-    const nodeIndex = new Map<string, number>()
-    nodes.forEach((n, i) => nodeIndex.set(n.id, i))
+  // Build ForceGraph2D-compatible data
+  const fgData = useMemo(() => {
+    const nodes: FGNode[] = graph.nodes.map((n) => ({
+      ...n,
+      degree: degreeMap.get(n.id) || 0,
+    }))
 
-    const edges = graph.edges
-      .map((e) => ({
-        source: nodeIndex.get(e.source),
-        target: nodeIndex.get(e.target),
-      }))
-      .filter((e) => e.source !== undefined && e.target !== undefined) as {
-      source: number
-      target: number
-    }[]
+    const links: FGLink[] = graph.edges.map((e) => ({
+      source: e.source,
+      target: e.target,
+    }))
 
-    return { nodes, edges }
-  }, [graph, dimensions])
+    return { nodes, links }
+  }, [graph, degreeMap])
 
-  // Observe container size
+  // Node radius based on degree
+  const getNodeRadius = useCallback(
+    (node: FGNode) => {
+      const t = maxDegree > 1 ? node.degree / maxDegree : 0
+      return MIN_NODE_RADIUS + t * (MAX_NODE_RADIUS - MIN_NODE_RADIUS)
+    },
+    [maxDegree]
+  )
+
+  // Observe container size for responsive graph
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -110,7 +123,10 @@ export function KnowledgeGraphView({ graph, onNodeClick }: KnowledgeGraphViewPro
       for (const entry of entries) {
         const { width, height } = entry.contentRect
         if (width > 0 && height > 0) {
-          setDimensions({ width: Math.floor(width), height: Math.floor(height) })
+          setDimensions({
+            width: Math.floor(width),
+            height: Math.floor(height),
+          })
         }
       }
     })
@@ -119,202 +135,202 @@ export function KnowledgeGraphView({ graph, onNodeClick }: KnowledgeGraphViewPro
     return () => observer.disconnect()
   }, [])
 
-  // Run simulation and render
+  // Center graph on mount / data change
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    // Copy sim data so we can mutate positions
-    const nodes = simData.nodes.map((n) => ({ ...n }))
-    const edges = simData.edges
-    simNodesRef.current = nodes
-    tickRef.current = 0
-
-    const cx = dimensions.width / 2
-    const cy = dimensions.height / 2
-
-    function tick() {
-      if (tickRef.current >= MAX_TICKS) return false
-
-      let totalMovement = 0
-
-      // Repulsion between all node pairs
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[j].x - nodes[i].x
-          const dy = nodes[j].y - nodes[i].y
-          const distSq = dx * dx + dy * dy + 1
-          const force = REPULSION / distSq
-          const fx = (dx / Math.sqrt(distSq)) * force
-          const fy = (dy / Math.sqrt(distSq)) * force
-
-          nodes[i].vx -= fx
-          nodes[i].vy -= fy
-          nodes[j].vx += fx
-          nodes[j].vy += fy
-        }
+    const timer = setTimeout(() => {
+      if (fgRef.current) {
+        fgRef.current.zoomToFit(400, 60)
       }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [fgData])
 
-      // Attraction along edges
-      for (const edge of edges) {
-        const a = nodes[edge.source]
-        const b = nodes[edge.target]
-        const dx = b.x - a.x
-        const dy = b.y - a.y
-        const fx = dx * ATTRACTION
-        const fy = dy * ATTRACTION
-
-        a.vx += fx
-        a.vy += fy
-        b.vx -= fx
-        b.vy -= fy
-      }
-
-      // Center gravity + velocity update
-      for (const node of nodes) {
-        node.vx += (cx - node.x) * CENTER_GRAVITY
-        node.vy += (cy - node.y) * CENTER_GRAVITY
-        node.vx *= DAMPING
-        node.vy *= DAMPING
-        node.x += node.vx
-        node.y += node.vy
-        totalMovement += Math.abs(node.vx) + Math.abs(node.vy)
-      }
-
-      tickRef.current++
-      return totalMovement > CONVERGENCE_THRESHOLD
+  // Resolve theme colors from CSS variables at render time
+  const colors = useMemo(() => {
+    const root = document.documentElement
+    const style = getComputedStyle(root)
+    return {
+      bg: style.getPropertyValue("--editor-bg").trim() || "#0a0d12",
+      text: style.getPropertyValue("--text").trim() || "#e6e6eb",
+      textMuted: style.getPropertyValue("--text-muted").trim() || "#8b92a8",
+      textSubtle: style.getPropertyValue("--text-subtle").trim() || "#5c6370",
+      accent: style.getPropertyValue("--accent").trim() || "#7aa2f7",
+      accentSecondary:
+        style.getPropertyValue("--accent-secondary").trim() || "#bb9af7",
+      border: style.getPropertyValue("--border").trim() || "rgba(255,255,255,0.06)",
+      panelBg: style.getPropertyValue("--panel-bg").trim() || "#131720",
+      panelBgHover:
+        style.getPropertyValue("--panel-bg-hover").trim() || "#1a1f2e",
     }
+  }, [fgData]) // re-read on data change (theme may have changed)
 
-    function render() {
-      if (!ctx) return
-      const dpr = window.devicePixelRatio || 1
+  // Custom node rendering on canvas
+  const paintNode = useCallback(
+    (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const fgNode = node as FGNode
+      const radius = getNodeRadius(fgNode)
+      const isActive = fgNode.id === activeFilePath
+      const x = node.x ?? 0
+      const y = node.y ?? 0
 
-      ctx.clearRect(0, 0, canvas!.width, canvas!.height)
-      ctx.save()
-      ctx.scale(dpr, dpr)
+      // Node circle
+      ctx.beginPath()
+      ctx.arc(x, y, radius, 0, Math.PI * 2)
 
-      // Draw edges
-      ctx.strokeStyle = "rgba(122, 162, 247, 0.25)"
-      ctx.lineWidth = 1
-      for (const edge of edges) {
-        const a = nodes[edge.source]
-        const b = nodes[edge.target]
-        ctx.beginPath()
-        ctx.moveTo(a.x, a.y)
-        ctx.lineTo(b.x, b.y)
-        ctx.stroke()
+      if (isActive) {
+        // Active node: brighter accent with glow
+        ctx.fillStyle = colors.accentSecondary
+        ctx.shadowColor = colors.accentSecondary
+        ctx.shadowBlur = 8
+      } else {
+        ctx.fillStyle = colors.accent
+        ctx.shadowBlur = 0
       }
+      ctx.fill()
+      ctx.shadowBlur = 0
 
-      // Draw nodes
-      for (const node of nodes) {
-        // Node circle
-        ctx.beginPath()
-        ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2)
-        ctx.fillStyle = "rgba(122, 162, 247, 0.9)"
-        ctx.fill()
-        ctx.strokeStyle = "rgba(122, 162, 247, 0.5)"
-        ctx.lineWidth = 1.5
-        ctx.stroke()
+      // Border ring
+      ctx.strokeStyle = isActive
+        ? colors.accentSecondary
+        : `${colors.accent}88`
+      ctx.lineWidth = isActive ? 1.5 : 0.8
+      ctx.stroke()
 
-        // Label
-        ctx.fillStyle = "var(--text, #c0caf5)"
-        ctx.font = "11px Inter, system-ui, sans-serif"
+      // Label (only show when zoomed in enough)
+      if (globalScale > 0.6) {
+        const fontSize = Math.max(10 / globalScale, 3)
+        ctx.font = `${fontSize}px Inter, system-ui, sans-serif`
         ctx.textAlign = "center"
-        ctx.fillStyle = "#c0caf5"
-        ctx.fillText(node.label, node.x, node.y - NODE_RADIUS - 4)
+        ctx.textBaseline = "top"
+        ctx.fillStyle = isActive ? colors.text : colors.textMuted
+        ctx.fillText(fgNode.label, x, y + radius + 2)
       }
+    },
+    [getNodeRadius, activeFilePath, colors]
+  )
 
-      ctx.restore()
-    }
+  // Link rendering
+  const paintLink = useCallback(
+    (link: any, ctx: CanvasRenderingContext2D, _globalScale: number) => {
+      const source = link.source
+      const target = link.target
+      if (!source || !target) return
 
-    function animate() {
-      const running = tick()
-      render()
-      if (running) {
-        animFrameRef.current = requestAnimationFrame(animate)
-      }
-    }
+      ctx.beginPath()
+      ctx.moveTo(source.x, source.y)
+      ctx.lineTo(target.x, target.y)
+      ctx.strokeStyle = `${colors.accent}30`
+      ctx.lineWidth = 0.6
+      ctx.stroke()
+    },
+    [colors]
+  )
 
-    // Set canvas size with DPR
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = dimensions.width * dpr
-    canvas.height = dimensions.height * dpr
-    canvas.style.width = `${dimensions.width}px`
-    canvas.style.height = `${dimensions.height}px`
-
-    animate()
-
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    }
-  }, [simData, dimensions])
-
-  // Handle click → find nearest node
-  const handleCanvasClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-
-      const nodes = simNodesRef.current
-      let closest: SimNode | null = null
-      let closestDist = Infinity
-
-      for (const node of nodes) {
-        const dx = node.x - x
-        const dy = node.y - y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < closestDist && dist < NODE_RADIUS * 3) {
-          closest = node
-          closestDist = dist
-        }
-      }
-
-      if (closest) {
-        onNodeClick(closest.id)
+  // Handle node click — open file and switch to editor
+  const handleNodeClick = useCallback(
+    (node: any) => {
+      if (node?.id) {
+        onNodeClick(node.id as string)
       }
     },
     [onNodeClick]
   )
 
+  // Node tooltip
+  const getNodeLabel = useCallback((node: any) => {
+    const fgNode = node as FGNode
+    const connections = fgNode.degree
+    return `${fgNode.label} (${connections} connection${connections !== 1 ? "s" : ""})`
+  }, [])
+
   // Empty state
   if (graph.nodes.length === 0) {
     return (
-      <div className="knowledge-graph-empty">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="19" cy="6" r="2" />
-          <circle cx="19" cy="18" r="2" />
-          <path d="M7 12h8M15 8l-8 4M15 16l-8-4" strokeLinecap="round" />
-        </svg>
-        <span>No linked notes found</span>
-        <span className="knowledge-graph-empty-hint">
-          Use [[note name]] to link notes together
-        </span>
+      <div className="graph-view">
+        <div className="graph-view-header">
+          <button
+            className="graph-view-back"
+            onClick={onBack}
+            title="Back to Editor"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 12L6 8L10 4" />
+            </svg>
+            <span>Editor</span>
+          </button>
+          <span className="graph-view-title">Knowledge Graph</span>
+          <span className="graph-view-stats" />
+        </div>
+        <div className="graph-view-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="6" cy="12" r="2.5" />
+            <circle cx="18" cy="6" r="2.5" />
+            <circle cx="18" cy="18" r="2.5" />
+            <path d="M8.5 11L15.5 7M8.5 13L15.5 17" />
+          </svg>
+          <span className="graph-view-empty-title">No linked notes</span>
+          <span className="graph-view-empty-hint">
+            Use [[note name]] syntax to create links between your notes
+          </span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="knowledge-graph" ref={containerRef}>
-      <div className="knowledge-graph-header">
-        <span className="knowledge-graph-title">Knowledge Graph</span>
-        <span className="knowledge-graph-count">
-          {graph.nodes.length} notes · {graph.edges.length} links
+    <div className="graph-view">
+      {/* Header overlay */}
+      <div className="graph-view-header">
+        <button
+          className="graph-view-back"
+          onClick={onBack}
+          title="Back to Editor (Ctrl+G)"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 12L6 8L10 4" />
+          </svg>
+          <span>Editor</span>
+        </button>
+        <span className="graph-view-title">Knowledge Graph</span>
+        <span className="graph-view-stats">
+          {graph.nodes.length} notes / {graph.edges.length} links
         </span>
       </div>
-      <canvas
-        ref={canvasRef}
-        className="knowledge-graph-canvas"
-        onClick={handleCanvasClick}
-        title="Click a node to open the note"
-      />
+
+      {/* Graph canvas container */}
+      <div className="graph-view-canvas" ref={containerRef}>
+        <ForceGraph2D
+          ref={fgRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          graphData={fgData}
+          // Node rendering
+          nodeCanvasObject={paintNode}
+          nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
+            const radius = getNodeRadius(node as FGNode)
+            ctx.beginPath()
+            ctx.arc(node.x ?? 0, node.y ?? 0, radius + 2, 0, Math.PI * 2)
+            ctx.fillStyle = color
+            ctx.fill()
+          }}
+          nodeLabel={getNodeLabel}
+          // Link rendering
+          linkCanvasObject={paintLink}
+          // Interactions
+          onNodeClick={handleNodeClick}
+          // Layout
+          backgroundColor={colors.bg}
+          // Physics tuning
+          d3AlphaDecay={0.02}
+          d3VelocityDecay={0.3}
+          warmupTicks={50}
+          cooldownTicks={200}
+          // Enable zoom/pan
+          enableZoomInteraction={true}
+          enablePanInteraction={true}
+          enableNodeDrag={true}
+        />
+      </div>
     </div>
   )
 }

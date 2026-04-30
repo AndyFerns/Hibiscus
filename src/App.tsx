@@ -61,6 +61,7 @@ import "./App.css"
 // Knowledge system
 import { useKnowledgeIndex } from "./features/knowledge/useKnowledgeIndex"
 import { buildGraph } from "./features/knowledge/buildGraph"
+import { KnowledgeGraphView } from "./features/knowledge/KnowledgeGraphView"
 
 /**
  * Inner app component that has access to StudyContext.
@@ -189,6 +190,16 @@ function AppInner() {
   const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
 
   // ============================================================================
+  // CENTER VIEW MODE
+  // Toggle between editor and knowledge graph in the center panel
+  // ============================================================================
+  const [centerView, setCenterView] = useState<"editor" | "graph">("editor")
+
+  const toggleGraphView = useCallback(() => {
+    setCenterView((prev) => (prev === "editor" ? "graph" : "editor"))
+  }, [])
+
+  // ============================================================================
   // CURSOR POSITION STATE
   // Tracks current line/column for status bar display
   // ============================================================================
@@ -248,6 +259,14 @@ function AppInner() {
       type: "file"
     })
   }, [handleFileOpen])
+
+  /**
+   * Open file from graph node click — switches to editor and opens file
+   */
+  const handleGraphNodeClick = useCallback((filePath: string) => {
+    setCenterView("editor")
+    openFileByPath(filePath)
+  }, [openFileByPath])
 
   /**
    * Handle file menu actions
@@ -313,6 +332,7 @@ function AppInner() {
       toggleRightPanel()
       setRightPanelView("search")
     },
+    onToggleGraphView: toggleGraphView,
   })
 
   const handleOpenFile = useCallback(async () => {
@@ -374,6 +394,7 @@ function AppInner() {
     onToggleFocusMode: toggleFocusMode,
     onOpenSettings: () => setSettingsOpen(true),
     onToggleMarkdownPreview: () => setShowMarkdownPreview((prev) => !prev),
+    onToggleGraphView: toggleGraphView,
   })
 
   // ============================================================================
@@ -433,6 +454,7 @@ function AppInner() {
               onNewFile={handleNewFile}
               onNewFolder={handleNewFolder}
               onMoveNode={moveNode}
+              onToggleGraph={toggleGraphView}
             />
           ) : null
         }
@@ -442,44 +464,55 @@ function AppInner() {
          * Monaco editor when a file is selected, placeholder otherwise
          * ---------------------------------------------------------------- */
         main={
-          <div className="editor-wrapper">
-            {/* Tab bar -- visible only when at least one file is open */}
-            <TabBar
-              openFiles={openFiles}
-              activeFileId={activeFileId}
-              onSelectTab={switchTab}
-              onCloseTab={closeTab}
+          centerView === "graph" ? (
+            /* Knowledge Graph — full center panel */
+            <KnowledgeGraphView
+              graph={knowledgeGraph}
+              activeFilePath={activeFilePath}
+              onNodeClick={handleGraphNodeClick}
+              onBack={() => setCenterView("editor")}
             />
+          ) : (
+            /* Editor view — default center panel */
+            <div className="editor-wrapper">
+              {/* Tab bar -- visible only when at least one file is open */}
+              <TabBar
+                openFiles={openFiles}
+                activeFileId={activeFileId}
+                onSelectTab={switchTab}
+                onCloseTab={closeTab}
+              />
 
-            {activeFile && activeFilePath ? (
-              <>
-                {/* Monaco editor container */}
-                <div className="editor-container">
-                  <EditorView
-                    path={activeFilePath}
-                    content={fileContent}
-                    version={fileVersion}
-                    onChange={handleEditorChange}
-                    onCursorChange={setCursorPosition}
-                    onSave={saveCurrentFile}
-                    showMarkdownPreview={showMarkdownPreview}
-                  />
+              {activeFile && activeFilePath ? (
+                <>
+                  {/* Monaco editor container */}
+                  <div className="editor-container">
+                    <EditorView
+                      path={activeFilePath}
+                      content={fileContent}
+                      version={fileVersion}
+                      onChange={handleEditorChange}
+                      onCursorChange={setCursorPosition}
+                      onSave={saveCurrentFile}
+                      showMarkdownPreview={showMarkdownPreview}
+                    />
+                  </div>
+                </>
+              ) : (
+                /* Placeholder when no file is selected */
+                <div className="editor-placeholder">
+                  <span className="editor-placeholder-icon">
+                    <svg width="48" height="48" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="editor-placeholder-text">
+                    Select a file from the tree to start editing
+                  </span>
                 </div>
-              </>
-            ) : (
-              /* Placeholder when no file is selected */
-              <div className="editor-placeholder">
-                <span className="editor-placeholder-icon">
-                  <svg width="48" height="48" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </span>
-                <span className="editor-placeholder-text">
-                  Select a file from the tree to start editing
-                </span>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )
         }
 
         /* ----------------------------------------------------------------

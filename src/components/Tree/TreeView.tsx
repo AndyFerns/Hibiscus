@@ -35,6 +35,7 @@ interface TreeViewProps {
   onNewFile?: () => void
   onNewFolder?: () => void
   onMoveNode?: (sourceId: string, destinationParentId: string) => void
+  onToggleGraph?: () => void
 }
 
 import { memo, useState, useCallback } from "react"
@@ -46,6 +47,7 @@ export const TreeView = memo(function TreeView({
   onNewFile,
   onNewFolder,
   onMoveNode,
+  onToggleGraph,
 }: TreeViewProps) {
   // State to track which folders are expanded
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
@@ -93,8 +95,24 @@ export const TreeView = memo(function TreeView({
       <div className="tree-view-header">
         <span className="tree-view-title">Explorer</span>
 
-        {/* Action buttons for creating new files/folders */}
+        {/* Action buttons for creating new files/folders and toggling graph */}
         <div className="tree-view-actions">
+          {onToggleGraph && (
+            <button
+              className="tree-view-action-btn"
+              onClick={onToggleGraph}
+              title="Knowledge Graph (Ctrl+G)"
+              aria-label="Knowledge Graph"
+            >
+              {/* SVG graph/network icon */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="4" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" />
+                <circle cx="12" cy="4" r="2" stroke="currentColor" strokeWidth="1.2" />
+                <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M6 7L10 5M6 9L10 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
           {onNewFile && (
             <button
               className="tree-view-action-btn"

@@ -12,6 +12,7 @@ interface ShortcutHandlers {
     onOpenSettings?: () => void;
     onOpenSearch?: () => void;
     onToggleMarkdownPreview?: () => void;
+    onToggleGraphView?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -87,6 +88,12 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
             if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'm') {
                 e.preventDefault();
                 handlers.onToggleMarkdownPreview?.();
+            }
+
+            // Ctrl+G -> Toggle Knowledge Graph view
+            if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'g') {
+                e.preventDefault();
+                handlers.onToggleGraphView?.();
             }
         };
 
