@@ -1,0 +1,71 @@
+/**
+ * ============================================================================
+ * KnowledgeGraph.css — Graph View Styles
+ * ============================================================================
+ */
+
+.knowledge-graph {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 200px;
+}
+
+.knowledge-graph-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.knowledge-graph-title {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.knowledge-graph-count {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+}
+
+.knowledge-graph-canvas {
+  flex: 1;
+  min-height: 0;
+  cursor: pointer;
+  background: var(--panel-bg);
+}
+
+/* Empty state */
+.knowledge-graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-subtle);
+  gap: 8px;
+}
+
+.knowledge-graph-empty svg {
+  opacity: 0.4;
+  margin-bottom: 4px;
+}
+
+.knowledge-graph-empty span:first-of-type {
+  font-size: var(--text-sm, 12px);
+  font-weight: 500;
+}
+
+.knowledge-graph-empty-hint {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-muted);
+  opacity: 0.7;
+}

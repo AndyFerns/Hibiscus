@@ -819,5 +819,8 @@ export function useEditorController(workspaceRoot: string | null) {
     activeFileId,
     switchTab,
     closeTab,
+
+    // Buffer ref (read-only access for knowledge index)
+    buffersRef,
   }
 }

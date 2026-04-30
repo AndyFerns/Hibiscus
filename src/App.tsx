@@ -23,7 +23,7 @@
  * ============================================================================
  */
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
@@ -57,6 +57,10 @@ export const APP_NAME = versionInfo.name;
 export const APP_VERSION = versionInfo.version;
 
 import "./App.css"
+
+// Knowledge system
+import { useKnowledgeIndex } from "./features/knowledge/useKnowledgeIndex"
+import { buildGraph } from "./features/knowledge/buildGraph"
 
 /**
  * Inner app component that has access to StudyContext.
@@ -117,6 +121,8 @@ function AppInner() {
     activeFileId,
     switchTab,
     closeTab,
+    // Buffer ref (for knowledge index)
+    buffersRef,
   } = useEditorController(workspaceRoot)
 
   // ============================================================================
@@ -160,6 +166,21 @@ function AppInner() {
   const notes = useNotesSynthesis(workspaceRoot)
 
   // ============================================================================
+  // KNOWLEDGE INDEX
+  // Tracks [[links]], #tags, and backlinks across workspace notes
+  // ============================================================================
+  const { index: knowledgeIndex, updateNote } = useKnowledgeIndex(
+    workspace.tree,
+    buffersRef
+  )
+
+  // Memoize graph data based on index version to avoid recalculation
+  const knowledgeGraph = useMemo(
+    () => buildGraph(knowledgeIndex),
+    [knowledgeIndex.version]
+  )
+
+  // ============================================================================
   // PANEL VISIBILITY STATE
   // Controls which panels are visible in the layout
   // ============================================================================
@@ -186,6 +207,20 @@ function AppInner() {
     // Reset cursor position when opening new file
     setCursorPosition({ line: 1, column: 1 })
   }
+
+  /**
+   * Handle editor content changes — forward to both buffer system
+   * and knowledge index for incremental link/tag parsing.
+   */
+  const handleEditorChange = useCallback(
+    (value: string) => {
+      onChange(value)
+      if (activeFilePath) {
+        updateNote(activeFilePath, value)
+      }
+    },
+    [onChange, activeFilePath, updateNote]
+  )
 
   /**
    * Toggle left panel (Explorer) visibility
@@ -424,7 +459,7 @@ function AppInner() {
                     path={activeFilePath}
                     content={fileContent}
                     version={fileVersion}
-                    onChange={onChange}
+                    onChange={handleEditorChange}
                     onCursorChange={setCursorPosition}
                     onSave={saveCurrentFile}
                     showMarkdownPreview={showMarkdownPreview}
@@ -460,6 +495,9 @@ function AppInner() {
             flashcards={flashcards}
             notes={notes}
             statsData={statsData}
+            knowledgeGraph={knowledgeGraph}
+            knowledgeIndex={knowledgeIndex}
+            activeFilePath={activeFilePath}
           />
         }
         showRightPanel={showRightPanel}

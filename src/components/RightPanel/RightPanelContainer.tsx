@@ -37,6 +37,10 @@ import type { PomodoroState, PomodoroActions } from "../../features/pomodoro/use
 import type { useFlashcards } from "../../features/flashcards/useFlashcards"
 import type { useNotesSynthesis } from "../../features/notes/useNotesSynthesis"
 import type { DailyAggregate, StudySession } from "../../features/stats/statsTypes"
+import { KnowledgeGraphView } from "../../features/knowledge/KnowledgeGraphView"
+import { BacklinksPanel } from "../../features/knowledge/BacklinksPanel"
+import type { GraphData } from "../../features/knowledge/buildGraph"
+import type { KnowledgeIndex } from "../../features/knowledge/useKnowledgeIndex"
 import "./PlannerSection/Planner.css"
 
 interface RightPanelContainerProps {
@@ -58,6 +62,12 @@ interface RightPanelContainerProps {
         weeklyData: DailyAggregate[]
         recentSessions: StudySession[]
     }
+    /** Knowledge graph data (memoized by caller) */
+    knowledgeGraph?: GraphData
+    /** Knowledge index for backlinks */
+    knowledgeIndex?: KnowledgeIndex
+    /** Currently active file path (for backlinks panel) */
+    activeFilePath?: string | null
 }
 
 /**
@@ -66,6 +76,8 @@ interface RightPanelContainerProps {
 const VIEW_TABS: { id: RightPanelView; label: string }[] = [
     { id: "calendar", label: "Calendar" },
     { id: "search", label: "Search" },
+    { id: "knowledge-graph", label: "Graph" },
+    { id: "backlinks", label: "Backlinks" },
     { id: "pomodoro", label: "Pomodoro" },
     { id: "study", label: "Study" },
     { id: "stats", label: "Stats" },
@@ -79,6 +91,9 @@ export function RightPanelContainer({
     flashcards,
     notes,
     statsData,
+    knowledgeGraph,
+    knowledgeIndex,
+    activeFilePath,
 }: RightPanelContainerProps) {
     const { events, tasks, toggleTask, addEvent, updateEvent, deleteEvent } = useCalendarController(workspaceRoot)
     const { rightPanelView, setRightPanelView } = useStudy()
@@ -149,6 +164,21 @@ export function RightPanelContainer({
                         onOpenFile={onOpenFile}
                     />
                 )
+            case "knowledge-graph":
+                return knowledgeGraph ? (
+                    <KnowledgeGraphView
+                        graph={knowledgeGraph}
+                        onNodeClick={onOpenFile}
+                    />
+                ) : null
+            case "backlinks":
+                return knowledgeIndex ? (
+                    <BacklinksPanel
+                        currentPath={activeFilePath ?? null}
+                        index={knowledgeIndex}
+                        onOpenFile={onOpenFile}
+                    />
+                ) : null
             case "pomodoro":
                 return (
                     <PomodoroPanel

@@ -1,0 +1,100 @@
+/**
+ * ============================================================================
+ * BacklinksPanel.css — Backlinks Panel Styles
+ * ============================================================================
+ */
+
+.backlinks-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.backlinks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.backlinks-title {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.backlinks-count {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  background: var(--accent-soft, rgba(122, 162, 247, 0.1));
+  padding: 1px 6px;
+  border-radius: 8px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.backlinks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  color: var(--text-subtle);
+  gap: 8px;
+  text-align: center;
+  font-size: var(--text-sm, 12px);
+}
+
+.backlinks-empty svg {
+  opacity: 0.4;
+}
+
+.backlinks-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.backlinks-item {
+  margin: 0;
+  padding: 0;
+}
+
+.backlinks-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm, 12px);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+}
+
+.backlinks-link:hover {
+  background: var(--panel-bg-hover);
+  color: var(--accent, #7aa2f7);
+}
+
+.backlinks-link svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.backlinks-link:hover svg {
+  opacity: 1;
+  color: var(--accent, #7aa2f7);
+}
