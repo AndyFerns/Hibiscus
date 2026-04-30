@@ -44,7 +44,7 @@ interface TreeNodeProps {
   onToggleExpand?: (nodeId: string) => void
   onDragStart?: (nodeId: string) => void
   onDragEnd?: () => void
-  onDrop?: (targetNodeId: string) => void
+  onDrop?: (sourceId: string, targetNodeId: string) => void
   isDragging?: boolean
 }
 
@@ -129,9 +129,12 @@ export const TreeNode = memo(function TreeNode({
   const handleDropEvent = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
+      e.stopPropagation() // Prevent parent folders from also triggering drop
       setIsDropTarget(false)
-      if (isFolder) {
-        onDrop?.(node.id)
+      
+      const sourceId = e.dataTransfer.getData("text/plain")
+      if (isFolder && sourceId) {
+        onDrop?.(sourceId, node.id)
       }
     },
     [isFolder, node.id, onDrop]

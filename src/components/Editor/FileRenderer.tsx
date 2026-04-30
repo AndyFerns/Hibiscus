@@ -282,44 +282,56 @@ function PptxViewer() {
  */
 export function FileRenderer({ file, content, children, showMarkdownPreview = true }: FileRendererProps) {
   const fileType = getFileType(file.path)
+  
+  // Is this an editable text file? (Not a binary/document format)
+  const isEditable = !['pdf', 'docx', 'pptx'].includes(fileType)
 
-  // Non-editable files
-  if (fileType === 'pdf') {
-    return <PdfViewer file={file} />
-  }
-
-  if (fileType === 'docx') {
-    return <DocxViewer file={file} />
-  }
-
-  if (fileType === 'pptx') {
-    return <PptxViewer />
-  }
-
-  // Markdown -> split editor + preview (if enabled)
-  if (fileType === 'markdown') {
-    if (showMarkdownPreview) {
-      return (
-        <div style={{ display: 'flex', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-          <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            {children} {/* Monaco */}
-          </div>
-          <div style={{
-            width: 1,
-            flexShrink: 0,
-            background: 'var(--border, rgba(255,255,255,0.06))'
-          }} />
-          <div style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
-            <MarkdownViewer content={content} />
-          </div>
+  return (
+    <>
+      {/* 
+        CRITICAL: ALWAYS render the editor children in the exact same DOM tree position.
+        Switching between file types (e.g. Markdown -> TS -> PDF) must NEVER unmount
+        the `{children}` wrapper, otherwise the Monaco instance is destroyed permanently.
+        For non-editable files, we simply hide this wrapper with display: none.
+      */}
+      <div style={{ 
+        display: isEditable ? 'flex' : 'none', 
+        height: '100%', 
+        minHeight: 0, 
+        overflow: 'hidden',
+        flex: 1
+      }}>
+        {/* Editor pane — always present */}
+        <div style={{
+          flex: (fileType === 'markdown' && showMarkdownPreview) ? 1 : undefined,
+          width: (fileType === 'markdown' && showMarkdownPreview) ? undefined : '100%',
+          minWidth: 0,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column' as const,
+        }}>
+          {children} {/* Monaco Editor Container */}
         </div>
-      )
-    } else {
-      // Preview disabled - show only Monaco
-      return <>{children}</>
-    }
-  }
 
-  // Default → Monaco
-  return <>{children}</>
+        {/* Divider + Markdown Preview — conditionally rendered */}
+        {fileType === 'markdown' && showMarkdownPreview && (
+          <>
+            <div style={{
+              width: 1,
+              flexShrink: 0,
+              background: 'var(--border, rgba(255,255,255,0.06))'
+            }} />
+            <div style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
+              <MarkdownViewer content={content} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Render non-editable viewers alongside the hidden editor */}
+      {fileType === 'pdf' && <PdfViewer file={file} />}
+      {fileType === 'docx' && <DocxViewer file={file} />}
+      {fileType === 'pptx' && <PptxViewer />}
+    </>
+  )
 }

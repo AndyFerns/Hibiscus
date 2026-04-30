@@ -78,15 +78,15 @@ export const TreeView = memo(function TreeView({
     setDraggedNodeId(null)
   }, [])
 
-  // Drop handler -- delegates to parent onMoveNode callback
+  // Drop handler -- delegates to parent onMoveNode callback using event data
   const handleDrop = useCallback(
-    (targetNodeId: string) => {
-      if (draggedNodeId && draggedNodeId !== targetNodeId && onMoveNode) {
-        onMoveNode(draggedNodeId, targetNodeId)
+    (sourceId: string, targetNodeId: string) => {
+      if (sourceId && sourceId !== targetNodeId && onMoveNode) {
+        onMoveNode(sourceId, targetNodeId)
       }
       setDraggedNodeId(null)
     },
-    [draggedNodeId, onMoveNode]
+    [onMoveNode]
   )
 
   return (

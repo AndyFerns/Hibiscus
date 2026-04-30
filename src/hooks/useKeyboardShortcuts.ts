@@ -97,7 +97,9 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        // Use capture phase (true) so global shortcuts fire BEFORE Monaco
+        // or other child components can swallow them and stop propagation.
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
     }, [handlers]);
 }

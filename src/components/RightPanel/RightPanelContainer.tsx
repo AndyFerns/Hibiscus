@@ -168,7 +168,9 @@ export function RightPanelContainer({
                 return knowledgeGraph ? (
                     <KnowledgeGraphView
                         graph={knowledgeGraph}
+                        activeFilePath={activeFilePath ?? null}
                         onNodeClick={onOpenFile}
+                        onBack={() => {}}
                     />
                 ) : null
             case "backlinks":

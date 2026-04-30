@@ -55,7 +55,6 @@ interface FGLink {
 
 const MIN_NODE_RADIUS = 4
 const MAX_NODE_RADIUS = 14
-const LABEL_FONT = "11px Inter, system-ui, sans-serif"
 
 // =============================================================================
 // COMPONENT

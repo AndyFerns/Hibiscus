@@ -316,24 +316,13 @@ function AppInner() {
 
   // ============================================================================
   // KEYBOARD SHORTCUTS
-  // Handle all global keyboard shortcuts using the centralized hook
+  // Handle all global keyboard shortcuts using the centralized hook.
+  // IMPORTANT: Only ONE useKeyboardShortcuts call is allowed. Multiple calls
+  // register duplicate event listeners, causing shortcuts to fire twice or
+  // interfere with each other (e.g., Ctrl+M calling preventDefault but not
+  // triggering the handler if onToggleMarkdownPreview is missing).
   // ============================================================================
   const { setRightPanelView } = useStudy()
-  
-  useKeyboardShortcuts({
-    onOpenFolder: openFileDialog,
-    onToggleLeftPanel: toggleLeftPanel,
-    onToggleRightPanel: toggleRightPanel,
-    onToggleShortcutOverlay: () => setShowShortcutOverlay(true),
-    onOpenPomodoro: () => openStudyTool("pomodoro"),
-    onToggleFocusMode: toggleFocusMode,
-    onOpenSettings: () => setSettingsOpen(true),
-    onOpenSearch: () => {
-      toggleRightPanel()
-      setRightPanelView("search")
-    },
-    onToggleGraphView: toggleGraphView,
-  })
 
   const handleOpenFile = useCallback(async () => {
     const filePath = await openFileDialog()
@@ -381,10 +370,6 @@ function AppInner() {
     [setActiveStudyPanel]
   )
 
-  // ============================================================================
-  // KEYBOARD SHORTCUTS
-  // Global registry for app-wide shortcuts
-  // ============================================================================
   useKeyboardShortcuts({
     onOpenFolder: changeWorkspace,
     onToggleLeftPanel: toggleLeftPanel,
@@ -393,6 +378,10 @@ function AppInner() {
     onOpenPomodoro: () => openStudyTool("pomodoro"),
     onToggleFocusMode: toggleFocusMode,
     onOpenSettings: () => setSettingsOpen(true),
+    onOpenSearch: () => {
+      setShowRightPanel(true)
+      setRightPanelView("search")
+    },
     onToggleMarkdownPreview: () => setShowMarkdownPreview((prev) => !prev),
     onToggleGraphView: toggleGraphView,
   })
@@ -489,7 +478,12 @@ function AppInner() {
                 activeFileId={activeFileId}
                 onSelectTab={switchTab}
                 onCloseTab={closeTab}
-                onDropFile={handleFileOpen}
+                onDropFile={(node) => handleFileOpen({
+                  id: node.id,
+                  name: node.name,
+                  path: node.path,
+                  type: (node.type === "file" || node.type === "folder") ? node.type : "file",
+                })}
               />
 
               {activeFile && activeFilePath ? (
