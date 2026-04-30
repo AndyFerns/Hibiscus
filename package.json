@@ -1,7 +1,7 @@
 {
   "name": "hibiscus",
   "private": true,
-  "version": "0.10.2",
+  "version": "0.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,6 +23,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-force-graph": "^1.48.2",
+    "react-force-graph-2d": "^1.29.1",
     "react-markdown": "^10.1.0",
     "react-pdf": "^10.4.1"
   },
