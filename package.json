@@ -1,7 +1,7 @@
 {
   "name": "hibiscus",
   "private": true,
-  "version": "0.10.1",
+  "version": "0.10.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,9 +18,12 @@
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-shell": "^2.3.5",
     "griddy-icons": "^0.2.0",
+    "mammoth": "^1.12.0",
     "monaco-editor": "^0.55.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "react-pdf": "^10.4.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
