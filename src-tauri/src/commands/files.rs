@@ -327,6 +327,48 @@ pub async fn delete_folder(path: String) -> Result<(), HibiscusError> {
     Ok(())
 }
 
+/// Reads the binary contents of a file asynchronously.
+///
+/// This command is used for reading binary files like PDF and DOCX
+/// that need to be processed as ArrayBuffer rather than text.
+///
+/// # Arguments
+/// * `path` - Absolute path to the file to read
+///
+/// # Returns
+/// * `Ok(Vec<u8>)` - The file contents as binary data
+/// * `Err(HibiscusError)` - If the file cannot be read
+///
+/// # Security
+/// Path is validated to prevent directory traversal attacks.
+#[tauri::command]
+pub async fn read_file_binary(path: String) -> Result<Vec<u8>, HibiscusError> {
+    let path = PathBuf::from(&path);
+
+    // Validate the path
+    validate_path(&path)?;
+
+    // Check if path exists and is a file
+    if !path.exists() {
+        return Err(HibiscusError::FileNotFound(path.to_string_lossy().into()));
+    }
+
+    if !path.is_file() {
+        return Err(HibiscusError::InvalidPathType {
+            path: path.to_string_lossy().into(),
+            expected: "file".into(),
+            actual: "directory".into(),
+        });
+    }
+
+    // Read file as binary data
+    let content = fs::read(&path).await.map_err(|e| {
+        HibiscusError::Io(format!("Failed to read binary file '{}': {}", path.display(), e))
+    })?;
+
+    Ok(content)
+}
+
 /// Moves or renames a file or directory.
 ///
 /// # Arguments

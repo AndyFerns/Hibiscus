@@ -76,6 +76,9 @@ function AppInner() {
     mode: "file"
   })
 
+  // Markdown preview toggle state
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(true)
+
   
   
   // ============================================================================
@@ -335,6 +338,7 @@ function AppInner() {
     onOpenPomodoro: () => openStudyTool("pomodoro"),
     onToggleFocusMode: toggleFocusMode,
     onOpenSettings: () => setSettingsOpen(true),
+    onToggleMarkdownPreview: () => setShowMarkdownPreview((prev) => !prev),
   })
 
   // ============================================================================
@@ -423,6 +427,7 @@ function AppInner() {
                     onChange={onChange}
                     onCursorChange={setCursorPosition}
                     onSave={saveCurrentFile}
+                    showMarkdownPreview={showMarkdownPreview}
                   />
                 </div>
               </>

@@ -11,6 +11,7 @@ interface ShortcutHandlers {
     onToggleFocusMode?: () => void;
     onOpenSettings?: () => void;
     onOpenSearch?: () => void;
+    onToggleMarkdownPreview?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -80,6 +81,12 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
             if (isCtrl && !e.shiftKey && e.key === ',') {
                 e.preventDefault();
                 handlers.onOpenSettings?.();
+            }
+
+            // Ctrl+M -> Toggle Markdown Preview
+            if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                handlers.onToggleMarkdownPreview?.();
             }
         };
 

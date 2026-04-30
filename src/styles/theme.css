@@ -299,6 +299,23 @@
   --editor-line-highlight: rgba(255, 255, 255, 0.03);
   --editor-cursor: #8b92a8;
 
+  /* Text highlighting tokens — Midnight */
+  --editor-number: #9ece6a;
+  --editor-constant: #9ece6a;
+  --editor-function: #bb9af7;
+  --editor-variable: #e6e6eb;
+  --editor-parameter: #7dcfff;
+  --editor-type: #bb9af7;
+  --editor-class: #bb9af7;
+  --editor-interface: #bb9af7;
+  --editor-operator: #7aa2f7;
+  --editor-punctuation: #e6e6eb;
+  --editor-tag: #7aa2f7;
+  --editor-attribute: #7dcfff;
+  --editor-support: #7dcfff;
+  --editor-invalid: #f7768e;
+  --editor-warning: #e0af68;
+
   /* Selection colors — Midnight */
   --selection-bg: rgba(122, 162, 247, 0.25);
   --selection-text: #ffffff;
@@ -344,6 +361,23 @@
   --editor-line-highlight: rgba(0, 0, 0, 0.03);
   --editor-cursor: #4b5563;
 
+  /* Text highlighting tokens — Dawn */
+  --editor-number: #10b981;
+  --editor-constant: #10b981;
+  --editor-function: #8b5cf6;
+  --editor-variable: #111827;
+  --editor-parameter: #0ea5e9;
+  --editor-type: #8b5cf6;
+  --editor-class: #8b5cf6;
+  --editor-interface: #8b5cf6;
+  --editor-operator: #3b82f6;
+  --editor-punctuation: #111827;
+  --editor-tag: #3b82f6;
+  --editor-attribute: #0ea5e9;
+  --editor-support: #0ea5e9;
+  --editor-invalid: #ef4444;
+  --editor-warning: #f59e0b;
+
   /* Selection colors — Dawn */
   --selection-bg: rgba(59, 130, 246, 0.3);
   --selection-text: #ffffff;
@@ -388,6 +422,23 @@
   --editor-selection: rgba(52, 211, 153, 0.2);
   --editor-line-highlight: rgba(167, 243, 208, 0.03);
   --editor-cursor: #a7f3d0;
+
+  /* Text highlighting tokens — Forest */
+  --editor-number: #6ee7b7;
+  --editor-constant: #6ee7b7;
+  --editor-function: #818cf8;
+  --editor-variable: #ecfdf5;
+  --editor-parameter: #38bdf8;
+  --editor-type: #818cf8;
+  --editor-class: #818cf8;
+  --editor-interface: #818cf8;
+  --editor-operator: #34d399;
+  --editor-punctuation: #ecfdf5;
+  --editor-tag: #34d399;
+  --editor-attribute: #38bdf8;
+  --editor-support: #38bdf8;
+  --editor-invalid: #f87171;
+  --editor-warning: #fbbf24;
 
   /* Selection colors — Forest */
   --selection-bg: rgba(52, 211, 153, 0.3);
