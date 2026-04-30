@@ -191,24 +191,28 @@ export function useWorkspaceController() {
    * Move a node (file or folder) to a new destination folder
    */
   const moveNode = async (sourceId: string, destinationParentId: string): Promise<boolean> => {
+    if (!workspaceRoot) return false;
+
     try {
-      // Find the source and destination in the tree (sourceId and destinationParentId are the absolute paths)
+      // Node IDs from the tree are relative paths (e.g. "notes.md", "subfolder\\file.txt").
+      // Resolve to absolute paths for the backend move_node command.
+      const sourcePath = `${workspaceRoot}\\${sourceId.replace(/\//g, '\\')}`;
+      const destParentPath = `${workspaceRoot}\\${destinationParentId.replace(/\//g, '\\')}`;
+
       const sourceName = sourceId.split(/[/\\]/).pop();
       if (!sourceName) return false;
-      
-      const destinationPath = `${destinationParentId}\\${sourceName}`;
+
+      const destinationPath = `${destParentPath}\\${sourceName}`;
       
       // Call backend to move the file/folder
       await invoke("move_node", { 
-        source: sourceId, 
+        source: sourcePath, 
         destination: destinationPath 
       });
       
       // Refresh tree
-      if (workspaceRoot) {
-        const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot });
-        setWorkspace(prev => ({ ...prev, tree }));
-      }
+      const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot });
+      setWorkspace(prev => ({ ...prev, tree }));
       
       return true;
     } catch (error) {

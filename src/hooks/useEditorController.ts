@@ -220,28 +220,44 @@ export function useEditorController(workspaceRoot: string | null) {
       let buffer = buffersRef.current.get(fullPath)
 
       if (!buffer) {
-        try {
-          const content = await invoke<string>("read_text_file", {
-            path: fullPath,
-          })
+        // Detect binary file types that cannot be read as UTF-8 text.
+        // FileRenderer handles rendering these via read_file_binary instead.
+        const ext = fullPath.split(".").pop()?.toLowerCase() || ""
+        const isBinaryFile = ["docx", "pdf", "pptx", "xlsx", "zip", "png", "jpg", "jpeg", "gif", "bmp", "ico", "webp"].includes(ext)
 
-          // RACE CONDITION CHECK: Discard if a newer request was made
-          if (requestId !== openRequestIdRef.current) {
-            console.log(
-              `[Hibiscus] Discarding stale file open response for: ${node.name}`
-            )
-            return
-          }
-
+        if (isBinaryFile) {
+          // Binary files get an empty placeholder buffer.
+          // FileRenderer will use read_file_binary to load and display them.
           buffer = {
-            content,
-            savedContent: content,
+            content: "",
+            savedContent: "",
             isDirty: false,
           }
           buffersRef.current.set(fullPath, buffer)
-        } catch (error) {
-          console.error("[Hibiscus] Failed to open file:", error)
-          return
+        } else {
+          try {
+            const content = await invoke<string>("read_text_file", {
+              path: fullPath,
+            })
+
+            // RACE CONDITION CHECK: Discard if a newer request was made
+            if (requestId !== openRequestIdRef.current) {
+              console.log(
+                `[Hibiscus] Discarding stale file open response for: ${node.name}`
+              )
+              return
+            }
+
+            buffer = {
+              content,
+              savedContent: content,
+              isDirty: false,
+            }
+            buffersRef.current.set(fullPath, buffer)
+          } catch (error) {
+            console.error("[Hibiscus] Failed to open file:", error)
+            return
+          }
         }
       }
 

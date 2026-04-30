@@ -464,23 +464,32 @@ function AppInner() {
          * Monaco editor when a file is selected, placeholder otherwise
          * ---------------------------------------------------------------- */
         main={
-          centerView === "graph" ? (
-            /* Knowledge Graph — full center panel */
-            <KnowledgeGraphView
-              graph={knowledgeGraph}
-              activeFilePath={activeFilePath}
-              onNodeClick={handleGraphNodeClick}
-              onBack={() => setCenterView("editor")}
-            />
-          ) : (
-            /* Editor view — default center panel */
-            <div className="editor-wrapper">
+          <>
+            {/* Knowledge Graph — hidden when editor is active.
+                Only mount after the user has toggled to graph at least once. */}
+            {centerView === "graph" && (
+              <KnowledgeGraphView
+                graph={knowledgeGraph}
+                activeFilePath={activeFilePath}
+                onNodeClick={handleGraphNodeClick}
+                onBack={() => setCenterView("editor")}
+              />
+            )}
+
+            {/* Editor view — hidden (not unmounted) when graph is active.
+                Using display:none preserves the Monaco editor instance,
+                preventing content loss and blank editor bugs. */}
+            <div
+              className="editor-wrapper"
+              style={{ display: centerView === "editor" ? undefined : "none" }}
+            >
               {/* Tab bar -- visible only when at least one file is open */}
               <TabBar
                 openFiles={openFiles}
                 activeFileId={activeFileId}
                 onSelectTab={switchTab}
                 onCloseTab={closeTab}
+                onDropFile={handleFileOpen}
               />
 
               {activeFile && activeFilePath ? (
@@ -512,7 +521,7 @@ function AppInner() {
                 </div>
               )}
             </div>
-          )
+          </>
         }
 
         /* ----------------------------------------------------------------

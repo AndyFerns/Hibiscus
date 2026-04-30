@@ -9,6 +9,7 @@
  *   - Dirty (unsaved) indicator
  *   - Close button per tab
  *   - Mouse wheel horizontal scroll when tabs overflow
+ *   - Drop target for files dragged from the tree view
  *
  * PERFORMANCE:
  * - The component is memoized to prevent re-renders from unrelated App state.
@@ -20,7 +21,7 @@
  * ============================================================================
  */
 
-import { memo, useRef, useCallback } from "react"
+import { memo, useRef, useCallback, useState } from "react"
 import { OpenFile } from "../../types/editor"
 import "./TabBar.css"
 
@@ -33,6 +34,8 @@ interface TabBarProps {
   onSelectTab: (fileId: string) => void
   /** Fired when the close button on a tab is clicked */
   onCloseTab: (fileId: string) => void
+  /** Fired when a file is dropped from the tree onto the tab bar */
+  onDropFile?: (node: { id: string; name: string; path: string; type: string }) => void
 }
 
 export const TabBar = memo(function TabBar({
@@ -40,8 +43,10 @@ export const TabBar = memo(function TabBar({
   activeFileId,
   onSelectTab,
   onCloseTab,
+  onDropFile,
 }: TabBarProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [isDropTarget, setIsDropTarget] = useState(false)
 
   /**
    * Enable horizontal scrolling via mouse wheel on the tab strip.
@@ -54,13 +59,62 @@ export const TabBar = memo(function TabBar({
     }
   }, [])
 
-  // Hide the tab bar entirely when no files are open
+  // ---- Drop handlers for files dragged from TreeView ----
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    // Accept drag data from tree nodes
+    if (e.dataTransfer.types.includes("text/plain")) {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = "copy"
+      setIsDropTarget(true)
+    }
+  }, [])
+
+  const handleDragLeave = useCallback(() => {
+    setIsDropTarget(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDropTarget(false)
+
+    if (!onDropFile) return
+
+    const nodeId = e.dataTransfer.getData("text/plain")
+    if (!nodeId) return
+
+    // Build a minimal node object from the drag data.
+    // The nodeId is the relative path from the tree (e.g., "notes.md").
+    const name = nodeId.split(/[/\\]/).pop() || nodeId
+    onDropFile({
+      id: nodeId,
+      name,
+      path: nodeId,
+      type: "file",
+    })
+  }, [onDropFile])
+
+  // Show a minimal drop zone even when no files are open
   if (openFiles.length === 0) {
-    return null
+    return (
+      <div
+        className={`tab-bar tab-bar--empty${isDropTarget ? " tab-bar--drop-target" : ""}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      />
+    )
   }
 
   return (
-    <div className="tab-bar" role="tablist" aria-label="Open files">
+    <div
+      className={`tab-bar${isDropTarget ? " tab-bar--drop-target" : ""}`}
+      role="tablist"
+      aria-label="Open files"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div
         className="tab-bar-scroll"
         ref={scrollContainerRef}

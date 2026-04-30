@@ -296,15 +296,20 @@ export function FileRenderer({ file, content, children, showMarkdownPreview = tr
     return <PptxViewer />
   }
 
-  // Markdown → split editor + preview (if enabled)
+  // Markdown -> split editor + preview (if enabled)
   if (fileType === 'markdown') {
     if (showMarkdownPreview) {
       return (
-        <div style={{ display: 'flex', height: '100%' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+          <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             {children} {/* Monaco */}
           </div>
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div style={{
+            width: 1,
+            flexShrink: 0,
+            background: 'var(--border, rgba(255,255,255,0.06))'
+          }} />
+          <div style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
             <MarkdownViewer content={content} />
           </div>
         </div>

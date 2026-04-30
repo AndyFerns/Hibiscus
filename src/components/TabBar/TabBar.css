@@ -37,6 +37,21 @@
 
   /* Position context for potential decorations */
   position: relative;
+
+  /* Smooth border transition for drop target state */
+  transition: border-color var(--transition-fast, 0.1s ease-out);
+}
+
+/* Empty tab bar -- minimal height drop zone */
+.tab-bar--empty {
+  min-height: 8px;
+  height: 8px;
+}
+
+/* Visual feedback when a file is being dragged over the tab bar */
+.tab-bar--drop-target {
+  border-bottom-color: var(--accent, #7aa2f7);
+  background: var(--accent-soft, rgba(122, 162, 247, 0.15));
 }
 
 /* =============================================================================
