@@ -119,10 +119,10 @@ Self-referencing links are automatically filtered out.
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
+| Shortcut | Action                               |
+|----------|--------------------------------------|
 | `Ctrl+G` | Toggle between editor and graph view |
-| `Esc` | Return to editor from graph view |
+| `Esc`    | Return to editor from graph view     |
 
 ## Integration with Search
 
