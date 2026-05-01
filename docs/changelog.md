@@ -1,7 +1,141 @@
+<!-- markdownlint-disable MD024 -->
+
 # Changelog
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.11.1] - Editor Stability & Graph System
+
+### Major Features
+
+- **Knowledge Graph System**: Implemented a comprehensive graph-based knowledge management system with full-screen force-directed visualization
+- **Wiki-Link Support**: Added `[[note-name]]` syntax for creating bidirectional links between notes
+- **Backlinks Panel**: Real-time display of notes that link to the current document
+- **Interactive Graph Visualization**: Click-to-navigate nodes, zoom/pan controls, and degree-based node sizing
+- **Full-Screen Graph View**: Toggle between editor and graph visualization with `Ctrl+G`
+
+### Documentation & UX
+
+- **Comprehensive Documentation**: Added detailed user guides and architecture documentation for the knowledge graph system
+- **Drag-and-Drop File Support**: Enhanced file handling with drag-and-drop support in editor and tab bar
+- **Binary File Rendering**: Added support for PDF and DOCX file viewing in the editor
+- **Improved Binary File Handling**: Better rendering and integration for non-text file formats
+
+### Critical Bug Fixes
+
+- **Editor Corruption Bug**: FINALLY resolved the persistent editor corruption issue by ensuring Monaco editor is never unmounted during React runtime
+- **Monaco Stability**: Made Monaco (editorView) persistent throughout application lifecycle
+- **State Management**: Fixed React lifecycle issues causing editor content loss
+
+### Architecture Improvements
+
+- **Knowledge Index Core**: Implemented incremental parsing and indexing system with O(1) lookups
+- **Graph Builder**: Created efficient graph data structure with deduplication and name-based link resolution
+- **Performance Optimization**: Canvas-based rendering for smooth graph interaction with large knowledge bases
+- **Theme Integration**: Full CSS variable integration for consistent theming across graph components
+
+### Technical Details
+
+- **Force-Directed Layout**: D3-based physics simulation with custom tuning for optimal node positioning
+- **Incremental Updates**: Single-file re-parsing without full knowledge base rebuild
+- **Memory Management**: Efficient Map-based data structures with version tracking for memoization
+- **Cross-Platform**: Robust path handling and file type detection
+
+### Documentation Additions
+
+- **Knowledge Graph Guide**: Comprehensive user documentation covering link creation, navigation, and best practices
+- **Architecture Documentation**: Technical deep-dive into data structures, algorithms, and integration patterns
+- **API Reference**: Updated with new knowledge system commands and hooks
+
+---
+
+## [v0.11.0] - Knowledge Graph Integration
+
+### Major Features
+
+- **Knowledge Graph Visualization**: Implemented full-screen force-directed graph view for visualizing note relationships and connections
+- **Graph Toggle Functionality**: Added seamless switching between editor and graph view modes with keyboard shortcut support
+- **Knowledge System Integration**: Connected the knowledge indexing system with interactive graph visualization components
+- **Backlinks Visualization**: Integrated backlinks panel with graph view for comprehensive relationship mapping
+
+### Architecture Improvements
+
+- **Full-Screen Graph Layout**: Redesigned application layout to support full-screen graph mode replacing editor view
+- **Graph Data Pipeline**: Created efficient data flow from knowledge index to graph visualization
+- **Theme Integration**: Extended theme system to support graph visualization components
+- **Performance Optimization**: Optimized graph rendering for smooth interaction with large knowledge bases
+
+### Technical Details
+
+- **react-force-graph-2d**: Integrated force-directed graph library for visualization
+- **Canvas Rendering**: Hardware-accelerated rendering for smooth graph performance
+- **Interactive Controls**: Click-to-navigate, zoom, pan, and node dragging capabilities
+- **Responsive Design**: Graph view adapts to window resizing and layout changes
+
+---
+
+## [v0.10.1] - Icon System Refactor
+
+### New Features
+
+- **Griddy Icons System**: Replaced all inline SVG icons with centralized icon definitions from icon.ts
+- **Icon Handler Integration**: Incorporated griddy icons as the primary icon handling system throughout the application
+- **Placeholder Icon Updates**: Changed placeholder emoji icons to use consistent griddy icon definitions
+- **Icon Standardization**: Unified icon appearance and behavior across all UI components
+
+### Improvements
+
+- **Maintainability**: Centralized icon definitions for easier maintenance and updates
+- **Performance**: Reduced bundle size by eliminating duplicate inline SVG definitions
+- **Consistency**: Ensured consistent icon styling and behavior across the application
+- **Developer Experience**: Simplified icon usage through centralized icon library
+
+### Technical Details
+
+- **Icon Architecture**: Implemented centralized icon management with type-safe icon definitions
+- **SVG Optimization**: Optimized SVG definitions for better rendering performance
+- **Theme Integration**: Icons now properly integrate with theme system for consistent coloring
+- **Component Updates**: Updated all components to use centralized icon system
+
+---
+
+## [v0.10.0] - Multi-File Editor & Tab Bar
+
+### Major Features
+
+- **Multi-File Editor**: Implemented support for editing multiple files simultaneously with session persistence
+- **Tab Bar Interface**: Added scrollable tab bar with active state indication and close actions
+- **Session Persistence Layer**: Created robust session management for editor state and file history
+- **File Movement Operations**: Added backend support for moving files and folders with workspace awareness
+
+### User Interface Enhancements
+
+- **Tab Bar Functionality**: Scrollable tabs with active highlighting, close buttons, and overflow handling
+- **Multi-File State**: O(1) file lookup performance for seamless tab switching
+- **Session Management**: Automatic restoration of open files and editor states on application restart
+- **Visual Feedback**: Enhanced visual states for tab interactions and file operations
+
+### File Operations
+
+- **Drag-and-Drop Support**: Implemented drag-and-drop functionality for file and folder movement in tree view
+- **Visual Interaction States**: Added comprehensive visual feedback for drag-and-drop operations
+- **Move Command Backend**: Added Tauri `move_node` command for file system operations
+- **Workspace Integration**: Session-aware workspace handling for file movements
+
+### Architecture Improvements
+
+- **Editor State Management**: Redesigned editor state to support multiple concurrent files
+- **File Lookup Optimization**: Implemented O(1) file path lookup for instant tab switching
+- **Session Storage**: Created persistent session layer for editor state recovery
+- **Component Integration**: Seamlessly integrated tab bar and multi-file editor into application layout
+
+### Documentation
+
+- **Multi-File Documentation**: Added comprehensive documentation for the new tabbed editor component
+- **API Updates**: Updated API documentation to include new file movement commands
+- **User Guide**: Enhanced user documentation with multi-file editing workflows
+
+---
 
 ## [v0.9.4] - Search Navigation & UX Improvements
 
@@ -38,7 +172,7 @@ All notable changes to the **Hibiscus** project will be documented in this file.
 - **PDF & DOCX Document Support**: Extended the parsing system to handle PDF files using pdf-extract and DOCX files via zip+quick-xml streaming. Both parsers implement the existing Parser trait and include robust error handling for corrupt files.
 - **TF-IDF Scored Search Index**: Implemented a sophisticated scoring system alongside the existing keyword index. Uses the formula `score = ln(1 + tf) * ln(total_chunks / df)` with precomputed scores for zero query-time calculation. Automatically filters common words appearing in >50% of chunks.
 - **Intelligent Topic Grouping**: Added automatic topic extraction that groups chunks by heading text. Identical headings create the same topic, empty headings become "General", and small topics (<2 chunks) merge into "Miscellaneous". Uses BTreeMap for deterministic ordering.
-- **Advanced Query Engine**: Enhanced search with multiple matching strategies - exact match (score + 0.5), prefix match (score * 0.2), and fuzzy match with edit distance 1 (score * 0.1). Supports multi-word queries with accumulated scoring and pagination (max 100 results).
+- **Advanced Query Engine**: Enhanced search with multiple matching strategies - exact match (score + 0.5), prefix match (score \* 0.2), and fuzzy match with edit distance 1 (score \* 0.1). Supports multi-word queries with accumulated scoring and pagination (max 100 results).
 - **High-Performance LRU Cache**: Implemented dual in-memory caches - query cache (128 entries) and chunk cache (256 entries). Uses VecDeque for better CPU cache locality than HashMap+LinkedList. All-or-nothing cache invalidation on file changes.
 - **Extended Backend API**: Added new Tauri commands including `search_chunks` for ranked search with fuzzy/prefix support, and `get_topics` for topic retrieval. Enhanced existing commands with caching support.
 

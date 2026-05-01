@@ -124,11 +124,11 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
  * Maps event types to their visual representation.
  */
 export const EVENT_TYPE_CONFIG: Record<EventType, { color: string; icon: string; label: string }> = {
-    exam: { color: '#f7768e', icon: '📝', label: 'Exam' },
-    assignment: { color: '#ff9e64', icon: '📋', label: 'Assignment' },
-    study: { color: '#7aa2f7', icon: '📚', label: 'Study Session' },
-    reminder: { color: '#bb9af7', icon: '🔔', label: 'Reminder' },
-    custom: { color: '#787c99', icon: '📌', label: 'Custom' },
+    exam: { color: '#f7768e', icon: 'exam', label: 'Exam' },
+    assignment: { color: '#ff9e64', icon: 'assignment', label: 'Assignment' },
+    study: { color: '#7aa2f7', icon: 'study', label: 'Study Session' },
+    reminder: { color: '#bb9af7', icon: 'reminder', label: 'Reminder' },
+    custom: { color: '#787c99', icon: 'custom', label: 'Custom' },
 }
 
 /**

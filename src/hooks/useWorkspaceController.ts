@@ -188,6 +188,40 @@ export function useWorkspaceController() {
   }
 
   /**
+   * Move a node (file or folder) to a new destination folder
+   */
+  const moveNode = async (sourceId: string, destinationParentId: string): Promise<boolean> => {
+    if (!workspaceRoot) return false;
+
+    try {
+      // Node IDs from the tree are relative paths (e.g. "notes.md", "subfolder\\file.txt").
+      // Resolve to absolute paths for the backend move_node command.
+      const sourcePath = `${workspaceRoot}\\${sourceId.replace(/\//g, '\\')}`;
+      const destParentPath = `${workspaceRoot}\\${destinationParentId.replace(/\//g, '\\')}`;
+
+      const sourceName = sourceId.split(/[/\\]/).pop();
+      if (!sourceName) return false;
+
+      const destinationPath = `${destParentPath}\\${sourceName}`;
+      
+      // Call backend to move the file/folder
+      await invoke("move_node", { 
+        source: sourcePath, 
+        destination: destinationPath 
+      });
+      
+      // Refresh tree
+      const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot });
+      setWorkspace(prev => ({ ...prev, tree }));
+      
+      return true;
+    } catch (error) {
+      console.error("[Hibiscus] Failed to move node:", error);
+      return false;
+    }
+  }
+
+  /**
    * Close current workspace
    */
   const closeWorkspace = () => {
@@ -208,6 +242,7 @@ export function useWorkspaceController() {
     openFileDialog,
     createFile,
     createFolder,
+    moveNode,
     closeWorkspace,
     
     // Recent files

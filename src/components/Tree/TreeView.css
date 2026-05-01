@@ -2,12 +2,12 @@
  * ============================================================================
  * TreeView Component Styles
  * ============================================================================
- * 
+ *
  * Container styles for the file tree panel including:
- * - Panel header with title
+ * - Panel header with title and action buttons
  * - Scrollable content area
  * - Empty state styling
- * 
+ *
  * Uses design tokens from theme.css for consistency.
  * ============================================================================
  */
@@ -31,7 +31,7 @@
 
 /* =============================================================================
  * TREE VIEW HEADER
- * Panel header with title and optional actions
+ * Panel header with title and action buttons (New File, New Folder)
  * ============================================================================= */
 
 .tree-view-header {
@@ -60,6 +60,57 @@
 
     /* Muted color for secondary heading */
     color: var(--text-subtle);
+}
+
+/* =============================================================================
+ * ACTION BUTTONS
+ * New File and New Folder buttons in the header
+ * ============================================================================= */
+
+.tree-view-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+}
+
+.tree-view-action-btn {
+    /* Reset button defaults */
+    background: none;
+    border: none;
+    padding: var(--space-1, 4px);
+    margin: 0;
+
+    /* Icon button sizing */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+
+    /* Interactive styling */
+    cursor: pointer;
+    color: var(--text-subtle);
+    border-radius: var(--radius-sm, 4px);
+
+    /* Smooth hover transition */
+    transition:
+        background var(--transition-fast, 0.1s ease-out),
+        color var(--transition-fast, 0.1s ease-out);
+}
+
+.tree-view-action-btn:hover {
+    background: var(--panel-bg-hover);
+    color: var(--text);
+}
+
+.tree-view-action-btn:active {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.tree-view-action-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
 }
 
 /* =============================================================================

@@ -14,6 +14,7 @@
  */
 
 import "./Calendar.css"
+import { Icons } from "../Icons/icons"
 
 /**
  * Calendar Props Interface
@@ -45,7 +46,7 @@ export function Calendar({
         <div className="calendar">
             {/* Header */}
             <div className="calendar-header">
-                <span className="calendar-title">📅 Calendar</span>
+                <span className="calendar-title"><Icons.calendar size={16} /> Calendar</span>
             </div>
 
             {/* Current Month Display */}

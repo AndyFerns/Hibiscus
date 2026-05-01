@@ -23,6 +23,7 @@
 import { useState, useEffect, useRef } from "react"
 import type { AppSettings } from "./settingsTypes"
 import "./SettingsModal.css"
+// import { IconMenuItem } from "@tauri-apps/api/menu"
 
 // =============================================================================
 // TYPES
@@ -78,7 +79,7 @@ export function SettingsModal({
 
   // ---- Tab definitions ----
   const tabs: { id: SettingsTab; label: string; icon: string }[] = [
-    { id: "general", label: "General", icon: "⚙️" },
+    { id: "general", label: "General", icon: "⚙️"},
     { id: "pomodoro", label: "Pomodoro", icon: "⏱️" },
     { id: "future", label: "Future", icon: "🔮" },
   ]

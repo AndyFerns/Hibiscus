@@ -99,10 +99,69 @@ export function applyEditorThemeFromCSS(): void {
     base: detectBaseTheme(),
     inherit: true,
     rules: [
+      // Default text
       { token: "", foreground: stripHash(editorFg) },
+      
+      // Syntax highlighting tokens
       { token: "keyword", foreground: stripHash(keyword) },
+      { token: "keyword.control", foreground: stripHash(keyword) },
+      { token: "keyword.operator", foreground: stripHash(keyword) },
+      { token: "keyword.other", foreground: stripHash(keyword) },
+      
       { token: "string", foreground: stripHash(string) },
+      { token: "string.single", foreground: stripHash(string) },
+      { token: "string.double", foreground: stripHash(string) },
+      { token: "string.template", foreground: stripHash(string) },
+      { token: "string.regexp", foreground: stripHash(string) },
+      
       { token: "comment", foreground: stripHash(comment), fontStyle: "italic" },
+      { token: "comment.line", foreground: stripHash(comment), fontStyle: "italic" },
+      { token: "comment.block", foreground: stripHash(comment), fontStyle: "italic" },
+      { token: "comment.doc", foreground: stripHash(comment), fontStyle: "italic" },
+      
+      // Numbers and constants
+      { token: "number", foreground: stripHash(getCSSVar("--editor-number") || getCSSVar("--editor-string") || getCSSVar("--success") || "#9ece6a") },
+      { token: "constant", foreground: stripHash(getCSSVar("--editor-constant") || getCSSVar("--editor-string") || getCSSVar("--success") || "#9ece6a") },
+      { token: "constant.numeric", foreground: stripHash(getCSSVar("--editor-number") || getCSSVar("--editor-string") || getCSSVar("--success") || "#9ece6a") },
+      { token: "constant.language", foreground: stripHash(keyword) },
+      
+      // Functions and variables
+      { token: "function", foreground: stripHash(getCSSVar("--editor-function") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      { token: "function.call", foreground: stripHash(getCSSVar("--editor-function") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      { token: "variable", foreground: stripHash(getCSSVar("--editor-variable") || editorFg) },
+      { token: "variable.name", foreground: stripHash(getCSSVar("--editor-variable") || editorFg) },
+      { token: "variable.parameter", foreground: stripHash(getCSSVar("--editor-parameter") || getCSSVar("--info") || "#7dcfff") },
+      
+      // Types and classes
+      { token: "type", foreground: stripHash(getCSSVar("--editor-type") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      { token: "class", foreground: stripHash(getCSSVar("--editor-class") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      { token: "interface", foreground: stripHash(getCSSVar("--editor-interface") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      { token: "struct", foreground: stripHash(getCSSVar("--editor-type") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      
+      // Operators and punctuation
+      { token: "operator", foreground: stripHash(getCSSVar("--editor-operator") || keyword) },
+      { token: "punctuation", foreground: stripHash(getCSSVar("--editor-punctuation") || editorFg) },
+      { token: "punctuation.definition", foreground: stripHash(getCSSVar("--editor-punctuation") || editorFg) },
+      { token: "punctuation.terminator", foreground: stripHash(getCSSVar("--editor-punctuation") || editorFg) },
+      
+      // Tags and markup
+      { token: "tag", foreground: stripHash(getCSSVar("--editor-tag") || keyword) },
+      { token: "tag.name", foreground: stripHash(getCSSVar("--editor-tag") || keyword) },
+      { token: "tag.attribute", foreground: stripHash(getCSSVar("--editor-attribute") || getCSSVar("--info") || "#7dcfff") },
+      { token: "tag.value", foreground: stripHash(string) },
+      
+      // Meta and special
+      { token: "meta", foreground: stripHash(editorFg) },
+      { token: "meta.import", foreground: stripHash(keyword) },
+      { token: "meta.export", foreground: stripHash(keyword) },
+      { token: "support", foreground: stripHash(getCSSVar("--editor-support") || getCSSVar("--info") || "#7dcfff") },
+      { token: "support.function", foreground: stripHash(getCSSVar("--editor-support") || getCSSVar("--info") || "#7dcfff") },
+      { token: "support.type", foreground: stripHash(getCSSVar("--editor-type") || getCSSVar("--accent-secondary") || "#bb9af7") },
+      
+      // Error and warning
+      { token: "invalid", foreground: stripHash(getCSSVar("--editor-invalid") || getCSSVar("--error") || "#f7768e") },
+      { token: "invalid.illegal", foreground: stripHash(getCSSVar("--editor-invalid") || getCSSVar("--error") || "#f7768e") },
+      { token: "warning", foreground: stripHash(getCSSVar("--editor-warning") || getCSSVar("--warning") || "#e0af68") },
     ],
     colors: {
       "editor.background": editorBg,

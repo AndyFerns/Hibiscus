@@ -11,6 +11,7 @@
  */
 
 import { DailyTask, CalendarEvent } from "../../../types/calendar"
+import { Icons } from "../../Icons/icons"
 
 interface DailyPlannerProps {
     tasks: DailyTask[]
@@ -45,7 +46,7 @@ export function DailyPlanner({
                                         onClick={() => onOpenFile?.(event.linkedFile!)}
                                         title={`Open ${event.linkedFile}`}
                                     >
-                                        📄
+                                        <Icons.file size={12} />
                                     </button>
                                 )}
                             </div>

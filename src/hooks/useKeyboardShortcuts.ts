@@ -11,6 +11,8 @@ interface ShortcutHandlers {
     onToggleFocusMode?: () => void;
     onOpenSettings?: () => void;
     onOpenSearch?: () => void;
+    onToggleMarkdownPreview?: () => void;
+    onToggleGraphView?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -81,9 +83,23 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
                 e.preventDefault();
                 handlers.onOpenSettings?.();
             }
+
+            // Ctrl+M -> Toggle Markdown Preview
+            if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                handlers.onToggleMarkdownPreview?.();
+            }
+
+            // Ctrl+G -> Toggle Knowledge Graph view
+            if (isCtrl && !e.shiftKey && e.key.toLowerCase() === 'g') {
+                e.preventDefault();
+                handlers.onToggleGraphView?.();
+            }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        // Use capture phase (true) so global shortcuts fire BEFORE Monaco
+        // or other child components can swallow them and stop propagation.
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
     }, [handlers]);
 }

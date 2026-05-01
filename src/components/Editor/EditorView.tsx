@@ -23,6 +23,7 @@ import { useEffect, useRef } from "react"
 
 import { getEditorConfig } from "../Editor/editorConfig"
 import { applyEditorThemeFromCSS } from "../Editor/editorThemeAdapter"
+import { FileRenderer } from "./FileRenderer"
 
 import "./EditorView.css"
 
@@ -115,6 +116,7 @@ interface EditorViewProps {
   onChange: (value: string) => void
   onCursorChange?: (position: CursorPosition) => void
   onSave?: () => void
+  showMarkdownPreview?: boolean
 }
 
 export function EditorView({
@@ -124,6 +126,7 @@ export function EditorView({
   onChange,
   onCursorChange,
   onSave,
+  showMarkdownPreview = true,
 }: EditorViewProps) {
   // Refs for Monaco editor instance and container DOM element
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -235,20 +238,27 @@ export function EditorView({
     }
   }, [path])
 
+  // Always render Monaco with FileRenderer composition
   return (
     <div
-      ref={containerRef}
-      className="monaco-container"
       style={{
-        /**
-         * CRITICAL: These inline styles are intentionally kept here
-         * because they're essential for Monaco's layout calculation.
-         * Moving them to CSS can cause rendering issues.
-         */
-        flex: 1,        // Fill available space in flex container
-        minHeight: 0,   // Prevent overflow bugs in flex/grid contexts
+        flex: 1,
+        minHeight: 0,
+        overflow: 'hidden',
+        display: 'flex'
       }}
-    />
+    >
+      <FileRenderer file={{ path }} content={content} showMarkdownPreview={showMarkdownPreview}>
+        {/* Monaco Editor Container */}
+        <div
+          ref={containerRef}
+          className="monaco-container"
+          style={{
+            flex: 1,
+            minHeight: 0,
+          }}
+        />
+      </FileRenderer>
+    </div>
   )
 }
-

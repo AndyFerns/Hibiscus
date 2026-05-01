@@ -23,10 +23,11 @@
  * ============================================================================
  */
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Workbench } from "./layout/workbench"
 import { TitleBar } from "./components/TitleBar/TitleBar"
 import { TreeView } from "./components/Tree/TreeView"
+import { TabBar } from "./components/TabBar/TabBar"
 import { EditorView, CursorPosition } from "./components/Editor/EditorView"
 import { RightPanelContainer } from "./components/RightPanel/RightPanelContainer"
 import { LayoutToggle } from "./components/StatusBar/LayoutToggle"
@@ -57,6 +58,11 @@ export const APP_VERSION = versionInfo.version;
 
 import "./App.css"
 
+// Knowledge system
+import { useKnowledgeIndex } from "./features/knowledge/useKnowledgeIndex"
+import { buildGraph } from "./features/knowledge/buildGraph"
+import { KnowledgeGraphView } from "./features/knowledge/KnowledgeGraphView"
+
 /**
  * Inner app component that has access to StudyContext.
  * This separation is needed because useStudy() requires StudyProvider
@@ -75,6 +81,9 @@ function AppInner() {
     mode: "file"
   })
 
+  // Markdown preview toggle state
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(true)
+
   
   
   // ============================================================================
@@ -87,20 +96,20 @@ function AppInner() {
     changeWorkspace,
     openNode,
     openFileDialog,
+    moveNode,
     recentFiles, // Provide this explicitly
     closeWorkspace,
   } = useWorkspaceController()
 
   // ============================================================================
   // EDITOR STATE
-  // Active file, content, and save handling
+  // Active file, content, save handling, and multi-file tab management
   // ============================================================================
   const {
     activeFile,
     activeFilePath,
     fileContent,
     fileVersion,
-    isDirty,
     openFile,
     onChange,
     saveCurrentFile,
@@ -108,6 +117,13 @@ function AppInner() {
     saveAsFile,
     closeFile,
     handleExit: handleEditorExit,
+    // Multi-file tab interface
+    openFiles,
+    activeFileId,
+    switchTab,
+    closeTab,
+    // Buffer ref (for knowledge index)
+    buffersRef,
   } = useEditorController(workspaceRoot)
 
   // ============================================================================
@@ -151,12 +167,37 @@ function AppInner() {
   const notes = useNotesSynthesis(workspaceRoot)
 
   // ============================================================================
+  // KNOWLEDGE INDEX
+  // Tracks [[links]], #tags, and backlinks across workspace notes
+  // ============================================================================
+  const { index: knowledgeIndex, updateNote } = useKnowledgeIndex(
+    workspace.tree,
+    buffersRef
+  )
+
+  // Memoize graph data based on index version to avoid recalculation
+  const knowledgeGraph = useMemo(
+    () => buildGraph(knowledgeIndex),
+    [knowledgeIndex.version]
+  )
+
+  // ============================================================================
   // PANEL VISIBILITY STATE
   // Controls which panels are visible in the layout
   // ============================================================================
   const [showLeftPanel, setShowLeftPanel] = useState(true)
   const [showRightPanel, setShowRightPanel] = useState(false)
   const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
+
+  // ============================================================================
+  // CENTER VIEW MODE
+  // Toggle between editor and knowledge graph in the center panel
+  // ============================================================================
+  const [centerView, setCenterView] = useState<"editor" | "graph">("editor")
+
+  const toggleGraphView = useCallback(() => {
+    setCenterView((prev) => (prev === "editor" ? "graph" : "editor"))
+  }, [])
 
   // ============================================================================
   // CURSOR POSITION STATE
@@ -177,6 +218,20 @@ function AppInner() {
     // Reset cursor position when opening new file
     setCursorPosition({ line: 1, column: 1 })
   }
+
+  /**
+   * Handle editor content changes — forward to both buffer system
+   * and knowledge index for incremental link/tag parsing.
+   */
+  const handleEditorChange = useCallback(
+    (value: string) => {
+      onChange(value)
+      if (activeFilePath) {
+        updateNote(activeFilePath, value)
+      }
+    },
+    [onChange, activeFilePath, updateNote]
+  )
 
   /**
    * Toggle left panel (Explorer) visibility
@@ -204,6 +259,14 @@ function AppInner() {
       type: "file"
     })
   }, [handleFileOpen])
+
+  /**
+   * Open file from graph node click — switches to editor and opens file
+   */
+  const handleGraphNodeClick = useCallback((filePath: string) => {
+    setCenterView("editor")
+    openFileByPath(filePath)
+  }, [openFileByPath])
 
   /**
    * Handle file menu actions
@@ -253,23 +316,13 @@ function AppInner() {
 
   // ============================================================================
   // KEYBOARD SHORTCUTS
-  // Handle all global keyboard shortcuts using the centralized hook
+  // Handle all global keyboard shortcuts using the centralized hook.
+  // IMPORTANT: Only ONE useKeyboardShortcuts call is allowed. Multiple calls
+  // register duplicate event listeners, causing shortcuts to fire twice or
+  // interfere with each other (e.g., Ctrl+M calling preventDefault but not
+  // triggering the handler if onToggleMarkdownPreview is missing).
   // ============================================================================
   const { setRightPanelView } = useStudy()
-  
-  useKeyboardShortcuts({
-    onOpenFolder: openFileDialog,
-    onToggleLeftPanel: toggleLeftPanel,
-    onToggleRightPanel: toggleRightPanel,
-    onToggleShortcutOverlay: () => setShowShortcutOverlay(true),
-    onOpenPomodoro: () => openStudyTool("pomodoro"),
-    onToggleFocusMode: toggleFocusMode,
-    onOpenSettings: () => setSettingsOpen(true),
-    onOpenSearch: () => {
-      toggleRightPanel()
-      setRightPanelView("search")
-    },
-  })
 
   const handleOpenFile = useCallback(async () => {
     const filePath = await openFileDialog()
@@ -317,10 +370,6 @@ function AppInner() {
     [setActiveStudyPanel]
   )
 
-  // ============================================================================
-  // KEYBOARD SHORTCUTS
-  // Global registry for app-wide shortcuts
-  // ============================================================================
   useKeyboardShortcuts({
     onOpenFolder: changeWorkspace,
     onToggleLeftPanel: toggleLeftPanel,
@@ -329,6 +378,12 @@ function AppInner() {
     onOpenPomodoro: () => openStudyTool("pomodoro"),
     onToggleFocusMode: toggleFocusMode,
     onOpenSettings: () => setSettingsOpen(true),
+    onOpenSearch: () => {
+      setShowRightPanel(true)
+      setRightPanelView("search")
+    },
+    onToggleMarkdownPreview: () => setShowMarkdownPreview((prev) => !prev),
+    onToggleGraphView: toggleGraphView,
   })
 
   // ============================================================================
@@ -385,6 +440,10 @@ function AppInner() {
               tree={workspace.tree}
               activeNodeId={workspace.session?.active_node}
               onOpen={handleFileOpen}
+              onNewFile={handleNewFile}
+              onNewFolder={handleNewFolder}
+              onMoveNode={moveNode}
+              onToggleGraph={toggleGraphView}
             />
           ) : null
         }
@@ -394,47 +453,69 @@ function AppInner() {
          * Monaco editor when a file is selected, placeholder otherwise
          * ---------------------------------------------------------------- */
         main={
-          <div className="editor-wrapper">
-            {activeFile && activeFilePath ? (
-              <>
-                {/* File header with name and dirty indicator */}
-                <div className="editor-header">
-                  <span className="editor-header-title">
-                    <span className="editor-header-icon">📄</span>
-                    {activeFile.name}
-                    {isDirty && <span className="editor-dirty-indicator">*</span>}
-                  </span>
-                  <div className="editor-header-actions">
-                    {isDirty && (
-                      <span className="editor-unsaved-hint" title="Press Ctrl+S to save">
-                        Unsaved
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Monaco editor container */}
-                <div className="editor-container">
-                  <EditorView
-                    path={activeFilePath}
-                    content={fileContent}
-                    version={fileVersion}
-                    onChange={onChange}
-                    onCursorChange={setCursorPosition}
-                    onSave={saveCurrentFile}
-                  />
-                </div>
-              </>
-            ) : (
-              /* Placeholder when no file is selected */
-              <div className="editor-placeholder">
-                <span className="editor-placeholder-icon">📂</span>
-                <span className="editor-placeholder-text">
-                  Select a file from the tree to start editing
-                </span>
-              </div>
+          <>
+            {/* Knowledge Graph — hidden when editor is active.
+                Only mount after the user has toggled to graph at least once. */}
+            {centerView === "graph" && (
+              <KnowledgeGraphView
+                graph={knowledgeGraph}
+                activeFilePath={activeFilePath}
+                onNodeClick={handleGraphNodeClick}
+                onBack={() => setCenterView("editor")}
+              />
             )}
-          </div>
+
+            {/* Editor view — hidden (not unmounted) when graph is active.
+                Using display:none preserves the Monaco editor instance,
+                preventing content loss and blank editor bugs. */}
+            <div
+              className="editor-wrapper"
+              style={{ display: centerView === "editor" ? undefined : "none" }}
+            >
+              {/* Tab bar -- visible only when at least one file is open */}
+              <TabBar
+                openFiles={openFiles}
+                activeFileId={activeFileId}
+                onSelectTab={switchTab}
+                onCloseTab={closeTab}
+                onDropFile={(node) => handleFileOpen({
+                  id: node.id,
+                  name: node.name,
+                  path: node.path,
+                  type: (node.type === "file" || node.type === "folder") ? node.type : "file",
+                })}
+              />
+
+              {activeFile && activeFilePath ? (
+                <>
+                  {/* Monaco editor container */}
+                  <div className="editor-container">
+                    <EditorView
+                      path={activeFilePath}
+                      content={fileContent}
+                      version={fileVersion}
+                      onChange={handleEditorChange}
+                      onCursorChange={setCursorPosition}
+                      onSave={saveCurrentFile}
+                      showMarkdownPreview={showMarkdownPreview}
+                    />
+                  </div>
+                </>
+              ) : (
+                /* Placeholder when no file is selected */
+                <div className="editor-placeholder">
+                  <span className="editor-placeholder-icon">
+                    <svg width="48" height="48" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="editor-placeholder-text">
+                    Select a file from the tree to start editing
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
         }
 
         /* ----------------------------------------------------------------
@@ -450,6 +531,9 @@ function AppInner() {
             flashcards={flashcards}
             notes={notes}
             statsData={statsData}
+            knowledgeGraph={knowledgeGraph}
+            knowledgeIndex={knowledgeIndex}
+            activeFilePath={activeFilePath}
           />
         }
         showRightPanel={showRightPanel}
@@ -464,7 +548,10 @@ function AppInner() {
             <div className="status-bar-left">
               {workspaceRoot ? (
                 <span className="status-item">
-                  📁 {workspaceRoot.split(/[/\\]/).pop()}
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M14 12.5C14 13.0523 13.5523 13.5 13 13.5H3C2.44772 13.5 2 13.0523 2 12.5V3.5C2 2.94772 2.44772 2.5 3 2.5H6L7.5 4.5H13C13.5523 4.5 14 4.94772 14 5.5V12.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {workspaceRoot.split(/[/\\]/).pop()}
                 </span>
               ) : (
                 <span className="status-item status-item--muted">
@@ -473,7 +560,11 @@ function AppInner() {
               )}
               {focusMode && (
                 <span className="status-item status-item--accent" title="Focus Mode active">
-                  🔍 Focus
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M7 12.5C10.0376 12.5 12.5 10.0376 12.5 7C12.5 3.96243 10.0376 1.5 7 1.5C3.96243 1.5 1.5 3.96243 1.5 7C1.5 10.0376 3.96243 12.5 7 12.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 11L14.5 14.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Focus
                 </span>
               )}
             </div>

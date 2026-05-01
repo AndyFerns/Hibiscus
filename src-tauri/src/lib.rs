@@ -71,11 +71,13 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // File operations (async for non-blocking I/O)
             commands::read_text_file,
+            commands::read_file_binary,
             commands::write_text_file,
             commands::create_file,
             commands::create_folder,
             commands::delete_file,
             commands::delete_folder,
+            commands::move_node,
             // Workspace operations
             commands::load_workspace,
             commands::save_workspace,

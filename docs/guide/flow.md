@@ -31,7 +31,8 @@ Once your workspace is loaded, you don't need to manually import files.
 
 ### Exploring Your Files
 
-- **File Tree**: Use the left sidebar to navigate your folder structure. 
+- **File Tree**: Use the left sidebar to navigate your folder structure. You can drag and drop files to reorganize them.
+- **Multi-File Editor**: Open multiple files simultaneously using the tabbed interface. See the [Multi-File Editor Guide](multi-file-editor.md) for comprehensive tab management and session persistence features.
 - **Theming**: You can dynamically switch themes (e.g., Midnight, Dawn, Forest) to suit your environment.
 
 ### Advanced Search & Retrieval
