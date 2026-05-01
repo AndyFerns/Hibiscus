@@ -12,13 +12,13 @@
         <meta name="author" content="Andrew Ferns">
       
       
-        <link rel="canonical" href="https://andyferns.github.io/Hibiscus/guide/theming/">
+        <link rel="canonical" href="https://andyferns.github.io/Hibiscus/guide/multi-file-editor/">
       
       
-        <link rel="prev" href="../shortcuts/">
+        <link rel="prev" href="../flow/">
       
       
-        <link rel="next" href="../study-tools/">
+        <link rel="next" href="../search/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Theming - Hibiscus</title>
+        <title>Multi-File Editor - Hibiscus</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#theming-system" class="md-skip">
+        <a href="#multi-file-tabbed-editor" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Theming
+              Multi-File Editor
             
           </span>
         </div>
@@ -492,10 +492,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../multi-file-editor/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-File Editor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -511,6 +538,415 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tab-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tab Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tab Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opening-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opening Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tab-bar-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tab Bar Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tab-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tab Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Persistence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Session Persistence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-session-saving" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Session Saving
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-restoration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Restoration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-data-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Data Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-tree-drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Tree Drag-and-Drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Tree Drag-and-Drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-html5-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native HTML5 Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drag-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drag Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-feedback-states" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Feedback States
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend-file-movement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend File Movement
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editor-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editor Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editor Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#monaco-editor-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monaco Editor Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-switching-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Switching Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard Shortcuts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keyboard Shortcuts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tab-management_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tab Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-operations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#saving-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-closing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Closing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-system-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File System Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Notes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Optimizations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -632,37 +1068,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Theming
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../theming/" class="md-nav__link">
         
   
   
@@ -678,87 +1087,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#available-built-in-themes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Available Built-in Themes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#core-css-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core CSS Structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#theme-variants" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Theme Variants
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#local-persistence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Local Persistence
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1075,42 +1403,201 @@
   
 
 
-<h1 id="theming-system">Theming System</h1>
-<p>Hibiscus leverages a highly flexible, CSS variable-driven <strong>Hot-Swappable Theme System</strong>. Themes are applied universally without requiring a window reload.</p>
-<h2 id="available-built-in-themes">Available Built-in Themes</h2>
-<p>You can switch themes seamlessly at runtime using the <code>ThemeSelector</code> located in the bottom right <strong>Status Bar</strong>.</p>
-<ol>
-<li><strong>Midnight</strong> (Default): A high-contrast, deep purple/blue dark mode tailored for late-night editing.</li>
-<li><strong>Dawn</strong>: A soft, warm, low-contrast light mode that's easy on the eyes during daylight.</li>
-<li><strong>Forest</strong>: A calming, deep-green and earthy tone variant.</li>
-</ol>
-<h2 id="architecture">Architecture</h2>
-<p>Theming is built upon <code>[data-theme]</code> attributes injected directly into <code>document.documentElement</code> by the <code>ThemeContext.tsx</code> provider.</p>
-<p><img alt="Hibiscus Theming" src="../../assets/Hibiscus%20Theme%20Selection.png" /></p>
-<h3 id="core-css-structure">Core CSS Structure</h3>
-<p>The base layout defines semantic tokens within the <code>:root</code> scope in <code>src/styles/theme.css</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">:</span><span class="nd">root</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nv">--font-sans</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Inter&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">system-ui</span><span class="p">,</span><span class="w"> </span><span class="kc">sans-serif</span><span class="p">;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nv">--spacing-md</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="kt">px</span><span class="p">;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c">/* Structural variables */</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="theme-variants">Theme Variants</h3>
-<p>Color definitions are strictly mapped onto specific theme blocks:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">[</span><span class="nt">data-theme</span><span class="o">=</span><span class="s2">&quot;midnight&quot;</span><span class="o">]</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nv">--bg-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#0f111a</span><span class="p">;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nv">--text-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#ffffff</span><span class="p">;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nv">--accent</span><span class="p">:</span><span class="w"> </span><span class="mh">#bb86fc</span><span class="p">;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="o">[</span><span class="nt">data-theme</span><span class="o">=</span><span class="s2">&quot;dawn&quot;</span><span class="o">]</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nv">--bg-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#f8f9fa</span><span class="p">;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nv">--text-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#212529</span><span class="p">;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nv">--accent</span><span class="p">:</span><span class="w"> </span><span class="mh">#fd7e14</span><span class="p">;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="local-persistence">Local Persistence</h3>
-<p>Your selection is cached seamlessly via <code>localStorage</code> directly in <code>ThemeContext</code>, retaining your visual layout across reboots.</p>
+<h1 id="multi-file-tabbed-editor">Multi-File Tabbed Editor</h1>
+<p>Hibiscus features a powerful multi-file tabbed editor system that allows you to work with multiple files simultaneously while maintaining exceptional performance and a clean, intuitive interface. The implementation leverages Monaco Editor's internal model swapping to provide seamless tab switching without component remounting.</p>
+<h2 id="tab-management">Tab Management</h2>
+<h3 id="opening-files">Opening Files</h3>
+<p>You can open files in several ways:</p>
+<ul>
+<li><strong>Double-click</strong> any file in the file tree to open it in a new tab</li>
+<li><strong>Right-click</strong> files and select "Open" from the context menu</li>
+<li><strong>Search results</strong> automatically open files in new tabs when clicked</li>
+<li>Files are opened as tabs, not replacing the current editor content</li>
+</ul>
+<h3 id="tab-bar-interface">Tab Bar Interface</h3>
+<p>The tab bar sits above the editor and provides:</p>
+<ul>
+<li><strong>Horizontal scrolling</strong> with mouse wheel support for many tabs</li>
+<li><strong>Visual indicators</strong> for unsaved changes (dirty state)</li>
+<li><strong>Close buttons</strong> on individual tabs</li>
+<li><strong>Active tab highlighting</strong> with theme-consistent styling</li>
+<li><strong>File names</strong> with proper truncation for long names</li>
+</ul>
+<h3 id="tab-navigation">Tab Navigation</h3>
+<p>Switch between tabs using:</p>
+<ul>
+<li><strong>Click</strong> any tab to make it active</li>
+<li><strong>Ctrl+W</strong> to close the active tab</li>
+<li><strong>Mouse wheel</strong> over tab bar to scroll horizontally</li>
+<li>Tab order is maintained based on when files were opened</li>
+</ul>
+<h3 id="performance-architecture">Performance Architecture</h3>
+<p>The tab system is designed for high performance:</p>
+<ul>
+<li><strong>No component remounting</strong> when switching tabs</li>
+<li><strong>Monaco model swapping</strong> for instant content changes</li>
+<li><strong>O(1) content lookups</strong> using optimized data structures</li>
+<li><strong>Ordered file list</strong> maintains tab sequence</li>
+<li><strong>Buffer map</strong> provides instant content access</li>
+</ul>
+<h2 id="session-persistence">Session Persistence</h2>
+<h3 id="automatic-session-saving">Automatic Session Saving</h3>
+<p>Hibiscus automatically preserves your editing session:</p>
+<ul>
+<li><strong>Session file</strong>: <code>.hibiscus/session.json</code> stores open files and active tab</li>
+<li><strong>Debounced saving</strong>: 300ms delay prevents excessive disk I/O</li>
+<li><strong>Atomic operations</strong>: Ensures session integrity</li>
+<li><strong>Background persistence</strong>: Saves automatically as you work</li>
+</ul>
+<h3 id="session-restoration">Session Restoration</h3>
+<p>When you reopen a workspace:</p>
+<ul>
+<li><strong>Automatic restore</strong> of previously open files</li>
+<li><strong>Active tab recovery</strong> to your last editing position</li>
+<li><strong>Content preservation</strong> for all open files</li>
+<li><strong>One-time restoration</strong> fires exactly when workspace loads</li>
+</ul>
+<h3 id="session-data-structure">Session Data Structure</h3>
+<p>The session stores:</p>
+<ul>
+<li><strong>Open file paths</strong> in correct tab order</li>
+<li><strong>Active file path</strong> for current tab</li>
+<li><strong>File metadata</strong> for quick restoration</li>
+<li><strong>Workspace context</strong> for proper file resolution</li>
+</ul>
+<h2 id="file-tree-drag-and-drop">File Tree Drag-and-Drop</h2>
+<h3 id="native-html5-implementation">Native HTML5 Implementation</h3>
+<p>The file tree supports drag-and-drop without external dependencies:</p>
+<ul>
+<li><strong>Native HTML5 DnD API</strong> for maximum compatibility</li>
+<li><strong>Visual feedback</strong> during drag operations</li>
+<li><strong>Drop target highlighting</strong> for valid destinations</li>
+<li><strong>Smooth animations</strong> and transitions</li>
+</ul>
+<h3 id="drag-operations">Drag Operations</h3>
+<p>You can:</p>
+<ul>
+<li><strong>Drag files</strong> between folders to move them</li>
+<li><strong>Drag folders</strong> to reorganize directory structure</li>
+<li><strong>Multiple file selection</strong> support (planned)</li>
+<li><strong>Cancel operations</strong> by dragging outside valid targets</li>
+</ul>
+<h3 id="visual-feedback-states">Visual Feedback States</h3>
+<p>CSS states provide clear visual indicators:</p>
+<ul>
+<li><strong>--dragging</strong>: Applied to nodes being dragged</li>
+<li><strong>--drop-target</strong>: Applied to valid drop destinations</li>
+<li><strong>--invalid-drop</strong>: Applied to invalid drop targets</li>
+<li><strong>Smooth transitions</strong> between states</li>
+</ul>
+<h3 id="backend-file-movement">Backend File Movement</h3>
+<p>File movements use robust backend operations:</p>
+<ul>
+<li><strong>Atomic operations</strong> when supported by the filesystem</li>
+<li><strong>Error handling</strong> for permission issues</li>
+<li><strong>Tree refresh</strong> after successful moves</li>
+<li><strong>Session update</strong> for moved files</li>
+</ul>
+<h2 id="editor-integration">Editor Integration</h2>
+<h3 id="monaco-editor-features">Monaco Editor Features</h3>
+<p>The editor maintains all Monaco capabilities:</p>
+<ul>
+<li><strong>Syntax highlighting</strong> for all supported languages</li>
+<li><strong>Code completion</strong> and IntelliSense</li>
+<li><strong>Multiple cursors</strong> and selection modes</li>
+<li><strong>Find and replace</strong> functionality</li>
+<li><strong>Theme integration</strong> with Hibiscus theming system</li>
+</ul>
+<h3 id="file-switching-performance">File Switching Performance</h3>
+<p>Tab switching is optimized for speed:</p>
+<ul>
+<li><strong>Instant content swap</strong> without editor recreation</li>
+<li><strong>Preserved cursor position</strong> and selection</li>
+<li><strong>Maintained scroll position</strong> within files</li>
+<li><strong>Smooth transitions</strong> between files</li>
+</ul>
+<h3 id="memory-management">Memory Management</h3>
+<p>The system efficiently manages memory:</p>
+<ul>
+<li><strong>Buffer cleanup</strong> for closed tabs</li>
+<li><strong>Lazy loading</strong> for large files</li>
+<li><strong>Memory leaks prevention</strong> through proper cleanup</li>
+<li><strong>Optimized data structures</strong> for file tracking</li>
+</ul>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
+<h3 id="tab-management_1">Tab Management</h3>
+<ul>
+<li><strong>Ctrl+W</strong>: Close active tab</li>
+<li><strong>Ctrl+Tab</strong>: Cycle through tabs (planned)</li>
+<li><strong>Ctrl+Shift+Tab</strong>: Reverse tab cycle (planned)</li>
+</ul>
+<h3 id="file-operations">File Operations</h3>
+<ul>
+<li><strong>Ctrl+S</strong>: Save current file</li>
+<li><strong>Ctrl+Shift+S</strong>: Save all open files</li>
+<li><strong>Ctrl+O</strong>: Open new file (workspace browser)</li>
+</ul>
+<h2 id="file-operations_1">File Operations</h2>
+<h3 id="saving-files">Saving Files</h3>
+<p>Files are saved with multiple mechanisms:</p>
+<ul>
+<li><strong>Auto-save</strong>: 1-second debounced saving</li>
+<li><strong>Manual save</strong>: Ctrl+S for immediate save</li>
+<li><strong>Save all</strong>: Ctrl+Shift+S for all open files</li>
+<li><strong>Dirty indicators</strong>: Visual feedback for unsaved changes</li>
+</ul>
+<h3 id="file-closing">File Closing</h3>
+<p>When closing tabs:</p>
+<ul>
+<li><strong>Auto-prompt</strong> for unsaved changes</li>
+<li><strong>Session update</strong> removes closed files</li>
+<li><strong>Buffer cleanup</strong> frees memory</li>
+<li><strong>Tab reordering</strong> maintains sequence</li>
+</ul>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="file-system-errors">File System Errors</h3>
+<p>The system handles various error conditions:</p>
+<ul>
+<li><strong>Permission denied</strong> when moving files</li>
+<li><strong>File not found</strong> during restoration</li>
+<li><strong>Disk full</strong> scenarios</li>
+<li><strong>Network drive</strong> connectivity issues</li>
+</ul>
+<h3 id="session-recovery">Session Recovery</h3>
+<p>Session persistence includes error recovery:</p>
+<ul>
+<li><strong>Corrupted session</strong> fallback to empty state</li>
+<li><strong>Missing files</strong> gracefully skipped</li>
+<li><strong>Partial restoration</strong> for available files</li>
+<li><strong>Error logging</strong> for debugging</li>
+</ul>
+<h2 id="development-notes">Development Notes</h2>
+<h3 id="architecture-decisions">Architecture Decisions</h3>
+<p>Key design choices in the implementation:</p>
+<ul>
+<li><strong>Ordered list + Map</strong> combination for performance</li>
+<li><strong>Monaco model swapping</strong> instead of component remounting</li>
+<li><strong>Native DnD API</strong> instead of external libraries</li>
+<li><strong>Debounced session saving</strong> for performance</li>
+<li><strong>Clean SVG icons</strong> instead of emoji for consistency</li>
+</ul>
+<h3 id="performance-optimizations">Performance Optimizations</h3>
+<p>Several optimizations ensure smooth operation:</p>
+<ul>
+<li><strong>O(1) file content lookup</strong> using Map data structure</li>
+<li><strong>Minimal re-renders</strong> through careful state management</li>
+<li><strong>Efficient tab scrolling</strong> with native browser optimization</li>
+<li><strong>Background session persistence</strong> without blocking UI</li>
+</ul>
+<h3 id="future-enhancements">Future Enhancements</h3>
+<p>Planned improvements for the multi-file editor:</p>
+<ul>
+<li><strong>Tab grouping</strong> and organization</li>
+<li><strong>Split-screen editing</strong> with multiple panes</li>
+<li><strong>Tab pinning</strong> for frequently used files</li>
+<li><strong>Recent files</strong> quick access</li>
+<li><strong>File templates</strong> and quick creation</li>
+</ul>
 
 
 

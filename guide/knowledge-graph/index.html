@@ -12,13 +12,13 @@
         <meta name="author" content="Andrew Ferns">
       
       
-        <link rel="canonical" href="https://andyferns.github.io/Hibiscus/guide/theming/">
+        <link rel="canonical" href="https://andyferns.github.io/Hibiscus/guide/knowledge-graph/">
       
       
-        <link rel="prev" href="../shortcuts/">
+        <link rel="prev" href="../search/">
       
       
-        <link rel="next" href="../study-tools/">
+        <link rel="next" href="../modal-system/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Theming - Hibiscus</title>
+        <title>Knowledge Graph - Hibiscus</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#theming-system" class="md-skip">
+        <a href="#knowledge-graph-system" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Theming
+              Knowledge Graph
             
           </span>
         </div>
@@ -548,10 +548,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../knowledge-graph/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Graph
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -567,6 +594,426 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating Links
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating Links">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wiki-link-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wiki-Link Syntax
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tag-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tag Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graph Visualization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Graph Visualization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#accessing-the-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing the Graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graph-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graph Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Elements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backlinks-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backlinks Panel
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backlinks Panel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backlinks-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backlinks Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance &amp; Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance &amp; Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#incremental-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incremental Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-file-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported File Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#link-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Link Resolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Link Resolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#name-based-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Name-Based Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unresolved-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unresolved Links
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard Shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration with Search
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#empty-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empty Graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missing-backlinks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing Backlinks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#link-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Link Organization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graph-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Graph Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#content-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Content Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Structures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parsing-regex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parsing Regex
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-graph-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force Graph Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -632,37 +1079,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Theming
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../theming/" class="md-nav__link">
         
   
   
@@ -678,87 +1098,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#available-built-in-themes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Available Built-in Themes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#core-css-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core CSS Structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#theme-variants" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Theme Variants
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#local-persistence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Local Persistence
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1075,42 +1414,195 @@
   
 
 
-<h1 id="theming-system">Theming System</h1>
-<p>Hibiscus leverages a highly flexible, CSS variable-driven <strong>Hot-Swappable Theme System</strong>. Themes are applied universally without requiring a window reload.</p>
-<h2 id="available-built-in-themes">Available Built-in Themes</h2>
-<p>You can switch themes seamlessly at runtime using the <code>ThemeSelector</code> located in the bottom right <strong>Status Bar</strong>.</p>
+<h1 id="knowledge-graph-system">Knowledge Graph System</h1>
+<p>The Knowledge Graph system transforms your notes into an interconnected web of ideas, enabling visual navigation and discovery of relationships between your documents.</p>
+<h2 id="overview">Overview</h2>
+<p>The knowledge graph system consists of three main components:</p>
+<ul>
+<li><strong>Knowledge Index</strong> - Parses and indexes wiki-links and tags from your notes</li>
+<li><strong>Graph Visualization</strong> - Interactive force-directed graph showing note relationships</li>
+<li><strong>Backlinks Panel</strong> - Displays which notes link to the current document</li>
+</ul>
+<p><img alt="Knowledge Graph View" src="../../assets/Hibiscus%20Knowledge%20Graph.png" /></p>
+<p><em>The knowledge graph provides an intuitive way to navigate and discover relationships in your notes.</em></p>
+<h2 id="creating-links">Creating Links</h2>
+<h3 id="wiki-link-syntax">Wiki-Link Syntax</h3>
+<p>Create connections between notes using double-bracket syntax:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>See [[Concept Mapping]] for more details.
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Related: [[Mind Mapping Techniques]] and [[Knowledge Management]]
+</code></pre></div>
+<h3 id="tag-support">Tag Support</h3>
+<p>Organize notes with hashtags:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gh">#project-management #research #todo</span>
+</code></pre></div>
+<h2 id="graph-visualization">Graph Visualization</h2>
+<h3 id="accessing-the-graph">Accessing the Graph</h3>
+<p>Toggle between editor and graph view using:</p>
+<ul>
+<li><strong>Keyboard Shortcut</strong>: <code>Ctrl+G</code></li>
+<li><strong>View Menu</strong>: "View → Knowledge Graph"</li>
+<li><strong>Graph Button</strong>: In the right panel when knowledge mode is active</li>
+</ul>
+<h3 id="graph-features">Graph Features</h3>
+<ul>
+<li><strong>Interactive Nodes</strong>: Click any note node to open it in the editor</li>
+<li><strong>Node Sizing</strong>: Larger nodes indicate more connections</li>
+<li><strong>Active Highlighting</strong>: Current file appears with a distinct glow</li>
+<li><strong>Zoom &amp; Pan</strong>: Mouse wheel to zoom, drag to pan</li>
+<li><strong>Node Dragging</strong>: Reposition nodes manually</li>
+<li><strong>Tooltips</strong>: Hover to see note name and connection count</li>
+</ul>
+<h3 id="visual-elements">Visual Elements</h3>
+<ul>
+<li><strong>Node Color</strong>: Uses theme accent colors</li>
+<li><strong>Node Size</strong>: Proportional to connection degree (4-14px radius)</li>
+<li><strong>Edge Thickness</strong>: Consistent 0.6px lines</li>
+<li><strong>Labels</strong>: Shown when zoomed in sufficiently (scale &gt; 0.6)</li>
+</ul>
+<h2 id="backlinks-panel">Backlinks Panel</h2>
+<p>The backlinks panel shows all notes that reference the current file, helping you discover:</p>
+<ul>
+<li><strong>Incoming Links</strong>: Which notes depend on this content</li>
+<li><strong>Context Discovery</strong>: How this note fits into your knowledge network</li>
+<li><strong>Relationship Mapping</strong>: Bidirectional relationships between concepts</li>
+</ul>
+<h3 id="backlinks-features">Backlinks Features</h3>
+<ul>
+<li><strong>Real-time Updates</strong>: Automatically updates as you edit</li>
+<li><strong>Click to Navigate</strong>: Open any backlinked note instantly</li>
+<li><strong>Deduplication</strong>: Prevents duplicate entries</li>
+<li><strong>Empty States</strong>: Clear messaging when no backlinks exist</li>
+</ul>
+<h2 id="performance-architecture">Performance &amp; Architecture</h2>
+<h3 id="incremental-updates">Incremental Updates</h3>
+<p>The knowledge system uses efficient incremental updates:</p>
+<ul>
+<li><strong>Single File Parsing</strong>: Only re-parses changed files</li>
+<li><strong>Backlink Rebuilding</strong>: Updates only affected relationships</li>
+<li><strong>Version Tracking</strong>: Memoization prevents unnecessary re-renders</li>
+</ul>
+<h3 id="memory-management">Memory Management</h3>
+<ul>
+<li><strong>In-Memory Index</strong>: Fast lookups without disk I/O</li>
+<li><strong>Deduplication</strong>: Prevents duplicate links and tags</li>
+<li><strong>Guard Conditions</strong>: Prevents concurrent rebuild operations</li>
+</ul>
+<h3 id="supported-file-types">Supported File Types</h3>
+<p>The knowledge system indexes:</p>
+<ul>
+<li><strong>Markdown Files</strong> (<code>.md</code>, <code>.markdown</code>)</li>
+<li><strong>Text Files</strong> (<code>.txt</code>)</li>
+<li><strong>Future</strong>: PDF and DOCX support (planned)</li>
+</ul>
+<h2 id="link-resolution">Link Resolution</h2>
+<h3 id="name-based-resolution">Name-Based Resolution</h3>
+<p>Links are resolved by note name (case-insensitive):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[[Project Plan]] → matches &quot;Project Plan.md&quot;
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[[project-plan]] → matches &quot;Project Plan.md&quot;
+</code></pre></div>
+<h3 id="unresolved-links">Unresolved Links</h3>
+<p>Links to non-existent notes are safely ignored and won't break the graph.</p>
+<h3 id="self-references">Self-References</h3>
+<p>Self-referencing links are automatically filtered out.</p>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+G</code></td>
+<td>Toggle between editor and graph view</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>Return to editor from graph view</td>
+</tr>
+</tbody>
+</table>
+<h2 id="integration-with-search">Integration with Search</h2>
+<p>The knowledge graph integrates with Hibiscus's search system:</p>
+<ul>
+<li><strong>Indexed Content</strong>: Wiki-links and tags are searchable</li>
+<li><strong>Contextual Results</strong>: Search results show note relationships</li>
+<li><strong>Navigation</strong>: Jump from search to graph visualization</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="empty-graph">Empty Graph</h3>
+<p>If your graph appears empty:</p>
 <ol>
-<li><strong>Midnight</strong> (Default): A high-contrast, deep purple/blue dark mode tailored for late-night editing.</li>
-<li><strong>Dawn</strong>: A soft, warm, low-contrast light mode that's easy on the eyes during daylight.</li>
-<li><strong>Forest</strong>: A calming, deep-green and earthy tone variant.</li>
+<li>Ensure you have notes with wiki-link syntax</li>
+<li>Check that files are indexed (<code>.md</code>, <code>.txt</code>)</li>
+<li>Verify links use correct <code>[[target]]</code> syntax</li>
 </ol>
-<h2 id="architecture">Architecture</h2>
-<p>Theming is built upon <code>[data-theme]</code> attributes injected directly into <code>document.documentElement</code> by the <code>ThemeContext.tsx</code> provider.</p>
-<p><img alt="Hibiscus Theming" src="../../assets/Hibiscus%20Theme%20Selection.png" /></p>
-<h3 id="core-css-structure">Core CSS Structure</h3>
-<p>The base layout defines semantic tokens within the <code>:root</code> scope in <code>src/styles/theme.css</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">:</span><span class="nd">root</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nv">--font-sans</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Inter&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">system-ui</span><span class="p">,</span><span class="w"> </span><span class="kc">sans-serif</span><span class="p">;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nv">--spacing-md</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="kt">px</span><span class="p">;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c">/* Structural variables */</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
+<h3 id="missing-backlinks">Missing Backlinks</h3>
+<p>If backlinks don't appear:</p>
+<ol>
+<li>Confirm the linking note is saved</li>
+<li>Check link syntax matches target note name exactly</li>
+<li>Ensure both files are supported formats</li>
+</ol>
+<h3 id="performance-issues">Performance Issues</h3>
+<p>For large knowledge bases:</p>
+<ol>
+<li>The system uses incremental updates automatically</li>
+<li>Graph rendering is canvas-based for better performance</li>
+<li>Consider breaking very large notes into smaller, linked concepts</li>
+</ol>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="link-organization">Link Organization</h3>
+<ul>
+<li><strong>Descriptive Names</strong>: Use clear, descriptive note names</li>
+<li><strong>Consistent Naming</strong>: Maintain consistent naming conventions</li>
+<li><strong>Hierarchical Structure</strong>: Create parent-child relationships</li>
+</ul>
+<h3 id="graph-navigation">Graph Navigation</h3>
+<ul>
+<li><strong>Hub Notes</strong>: Create overview notes that link to many concepts</li>
+<li><strong>Cross-References</strong>: Link related concepts bidirectionally</li>
+<li><strong>Tag Strategy</strong>: Use tags for categorical organization</li>
+</ul>
+<h3 id="content-structure">Content Structure</h3>
+<ul>
+<li><strong>Atomic Notes</strong>: Keep notes focused on single concepts</li>
+<li><strong>Link Density</strong>: Balance between too few and too many links</li>
+<li><strong>Regular Maintenance</strong>: Review and update links periodically</li>
+</ul>
+<h2 id="technical-details">Technical Details</h2>
+<h3 id="data-structures">Data Structures</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">IndexedNote</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">links</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w">   </span><span class="c1">// [[wiki-links]]</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w">    </span><span class="c1">// #hashtags</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">GraphNode</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">}</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">GraphEdge</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="nx">source</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="nx">target</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="theme-variants">Theme Variants</h3>
-<p>Color definitions are strictly mapped onto specific theme blocks:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">[</span><span class="nt">data-theme</span><span class="o">=</span><span class="s2">&quot;midnight&quot;</span><span class="o">]</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nv">--bg-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#0f111a</span><span class="p">;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nv">--text-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#ffffff</span><span class="p">;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nv">--accent</span><span class="p">:</span><span class="w"> </span><span class="mh">#bb86fc</span><span class="p">;</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="o">[</span><span class="nt">data-theme</span><span class="o">=</span><span class="s2">&quot;dawn&quot;</span><span class="o">]</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nv">--bg-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#f8f9fa</span><span class="p">;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nv">--text-primary</span><span class="p">:</span><span class="w"> </span><span class="mh">#212529</span><span class="p">;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nv">--accent</span><span class="p">:</span><span class="w"> </span><span class="mh">#fd7e14</span><span class="p">;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="local-persistence">Local Persistence</h3>
-<p>Your selection is cached seamlessly via <code>localStorage</code> directly in <code>ThemeContext</code>, retaining your visual layout across reboots.</p>
+<h3 id="parsing-regex">Parsing Regex</h3>
+<ul>
+<li><strong>Wiki Links</strong>: <code>/\[\[(.*?)\]\]/g</code></li>
+<li><strong>Tags</strong>: <code>/(^|\s)#([a-zA-Z0-9\-_]+)/g</code></li>
+</ul>
+<h3 id="force-graph-configuration">Force Graph Configuration</h3>
+<ul>
+<li><strong>Engine</strong>: react-force-graph-2d</li>
+<li><strong>Physics</strong>: D3 force simulation with custom tuning</li>
+<li><strong>Rendering</strong>: Canvas-based for performance</li>
+<li><strong>Theme Integration</strong>: CSS variable-driven colors</li>
+</ul>
+<hr />
 
 
 
