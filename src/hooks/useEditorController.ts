@@ -37,6 +37,7 @@ import {
   persistEditorSession,
   loadEditorSession,
 } from "../state/editorSession"
+import { isBinaryFile } from "../utils/fileLoader"
 
 /**
  * Buffer entry for an open file.
@@ -221,11 +222,8 @@ export function useEditorController(workspaceRoot: string | null) {
 
       if (!buffer) {
         // Detect binary file types that cannot be read as UTF-8 text.
-        // FileRenderer handles rendering these via read_file_binary instead.
-        const ext = fullPath.split(".").pop()?.toLowerCase() || ""
-        const isBinaryFile = ["docx", "pdf", "pptx", "xlsx", "zip", "png", "jpg", "jpeg", "gif", "bmp", "ico", "webp"].includes(ext)
-
-        if (isBinaryFile) {
+        // FileRenderer handles rendering these via loadBinaryFile() instead.
+        if (isBinaryFile(fullPath)) {
           // Binary files get an empty placeholder buffer.
           // FileRenderer will use read_file_binary to load and display them.
           buffer = {

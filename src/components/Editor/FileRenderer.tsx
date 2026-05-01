@@ -9,7 +9,7 @@
  * This component integrates with the existing data flow using:
  * - buffersRef for file content cache
  * - openFiles for file metadata
- * - Tauri for binary file reading
+ * - fileLoader for unified binary/text reading
  * ============================================================================
  */
 
@@ -17,10 +17,20 @@ import { useMemo, useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Document, Page, pdfjs } from 'react-pdf'
 import mammoth from 'mammoth'
-import { invoke } from '@tauri-apps/api/core'
+import { loadBinaryFile } from '../../utils/fileLoader'
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
+// Import react-pdf required styles
+import 'react-pdf/dist/Page/TextLayer.css'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+
+// ---------------------------------------------------------------------------
+// PDF.js Worker Setup — LOCAL, no CDN
+// ---------------------------------------------------------------------------
+// pdfjs-dist v5 uses .mjs files. Vite's ?url suffix gives us the local asset
+// path at build time, avoiding CORS errors from unpkg/cdnjs.
+// ---------------------------------------------------------------------------
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl
 
 /**
  * File type detection from file path extension
@@ -77,41 +87,40 @@ function MarkdownViewer({ content }: { content: string }) {
 
 /**
  * PDF Viewer Component
- * Uses react-pdf with Tauri binary reading
- * Renders only the first page as specified
+ * Uses react-pdf with local worker and Tauri binary reading.
+ * Worker is loaded from node_modules (no CDN/CORS issues).
  */
 function PdfViewer({ file }: { file: { path: string } }) {
-  const [pdfUrl, setPdfUrl] = useState<string>('')
+  const [pdfData, setPdfData] = useState<{ data: Uint8Array } | null>(null)
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
+    let cancelled = false
+
     const loadPdf = async () => {
       try {
-        // Use Tauri to read binary file
-        const arrayBuffer = await invoke<ArrayBuffer>('read_file_binary', { 
-          path: file.path 
-        })
-        
-        // Convert ArrayBuffer to Blob to Object URL
-        const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
-        const url = URL.createObjectURL(blob)
-        setPdfUrl(url)
+        // Read binary via unified loader
+        const arrayBuffer = await loadBinaryFile(file.path)
 
-        return () => {
-          URL.revokeObjectURL(url)
-        }
+        if (cancelled) return
+
+        // Pass raw bytes to react-pdf (avoids Blob URL lifecycle issues)
+        setPdfData({ data: new Uint8Array(arrayBuffer) })
       } catch (err) {
-        setError('Failed to load PDF file')
-        console.error('PDF loading error:', err)
+        if (!cancelled) {
+          setError('Failed to load PDF file')
+          console.error('[Hibiscus] PDF loading error:', err)
+        }
       }
     }
 
+    // Reset state for new file
+    setPdfData(null)
+    setError('')
     loadPdf()
-  }, [file.path])
 
-  const onDocumentLoadSuccess = () => {
-    // PDF loaded successfully
-  }
+    return () => { cancelled = true }
+  }, [file.path])
 
   if (error) {
     return (
@@ -128,7 +137,7 @@ function PdfViewer({ file }: { file: { path: string } }) {
     )
   }
 
-  if (!pdfUrl) {
+  if (!pdfData) {
     return (
       <div style={{ 
         padding: '20px', 
@@ -138,7 +147,7 @@ function PdfViewer({ file }: { file: { path: string } }) {
         justifyContent: 'center',
         color: 'var(--text-secondary)'
       }}>
-        Loading PDF...
+        Loading PDF…
       </div>
     )
   }
@@ -152,25 +161,33 @@ function PdfViewer({ file }: { file: { path: string } }) {
       backgroundColor: 'var(--bg-primary)'
     }}>
       <Document
-        file={pdfUrl}
-        onLoadSuccess={onDocumentLoadSuccess}
-        loading={<div style={{ padding: '20px' }}>Loading PDF...</div>}
+        file={pdfData}
+        loading={<div style={{ padding: '20px' }}>Loading PDF…</div>}
         error={<div style={{ padding: '20px', color: 'var(--error)' }}>Failed to load PDF</div>}
       >
         <Page 
           pageNumber={1} 
           renderTextLayer={true}
           renderAnnotationLayer={false}
-          width={Math.max(600, window.innerWidth * 0.8)}
+          width={Math.max(600, window.innerWidth * 0.6)}
         />
       </Document>
     </div>
   )
 }
 
+// ---------------------------------------------------------------------------
+// DOCX HTML Cache — persists across re-renders to avoid re-conversion
+// ---------------------------------------------------------------------------
+const docxCache = new Map<string, string>()
+
 /**
  * DOCX Viewer Component
- * Uses mammoth to convert DOCX to HTML with caching
+ * Uses mammoth to convert DOCX to HTML.
+ *
+ * CRITICAL FIX: Tauri's read_file_binary returns Vec<u8> serialized as
+ * JSON number[]. We use loadBinaryFile() which converts to ArrayBuffer
+ * via new Uint8Array(bytes).buffer before passing to mammoth.
  */
 function DocxViewer({ file }: { file: { path: string } }) {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -178,31 +195,48 @@ function DocxViewer({ file }: { file: { path: string } }) {
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
+    let cancelled = false
+
     const convertDocx = async () => {
       try {
         setLoading(true)
-        
-        // Use Tauri to read binary file
-        const arrayBuffer = await invoke<ArrayBuffer>('read_file_binary', { 
-          path: file.path 
-        })
-        
-        // Convert DOCX to HTML using mammoth
+        setError('')
+
+        // Check cache first — avoid re-converting on tab switch
+        const cached = docxCache.get(file.path)
+        if (cached !== undefined) {
+          setHtmlContent(cached)
+          setLoading(false)
+          return
+        }
+
+        // Read binary via unified loader (returns real ArrayBuffer)
+        const arrayBuffer = await loadBinaryFile(file.path)
+        if (cancelled) return
+
+        // mammoth expects { arrayBuffer: ArrayBuffer }
         const result = await mammoth.convertToHtml({ arrayBuffer })
+        if (cancelled) return
+
+        // Cache and display
+        docxCache.set(file.path, result.value)
         setHtmlContent(result.value)
         
         if (result.messages.length > 0) {
-          console.warn('DOCX conversion warnings:', result.messages)
+          console.warn('[Hibiscus] DOCX conversion warnings:', result.messages)
         }
       } catch (err) {
-        setError('Failed to load DOCX file')
-        console.error('DOCX loading error:', err)
+        if (!cancelled) {
+          setError('Failed to load DOCX file. The file may be corrupted.')
+          console.error('[Hibiscus] DOCX loading error:', err)
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     convertDocx()
+    return () => { cancelled = true }
   }, [file.path])
 
   if (loading) {
@@ -215,7 +249,7 @@ function DocxViewer({ file }: { file: { path: string } }) {
         justifyContent: 'center',
         color: 'var(--text-secondary)'
       }}>
-        Loading DOCX...
+        Loading DOCX…
       </div>
     )
   }
@@ -267,14 +301,6 @@ function PptxViewer() {
     </div>
   )
 }
-
-// /**
-//  * Monaco Fallback Component
-//  * Returns null to let EditorView handle Monaco rendering
-//  */
-// function MonacoFallback() {
-//   return null
-// }
 
 /**
  * Main FileRenderer Component
