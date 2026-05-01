@@ -44,4 +44,6 @@ When you configure a directory as your **workspace**, Hibiscus drops a hidden `.
 
 - Master the [Multi-File Editor](multi-file-editor.md) for efficient workflow management.
 - Learn how to navigate the app rapidly with [Keyboard Shortcuts](shortcuts.md).
+- Explore the [Knowledge Graph](knowledge-graph.md) to visualize connections between your notes.
 - Personalize your editor using [Theming](theming.md).
+- Discover powerful search capabilities with the [Search System](search.md).

@@ -38,6 +38,7 @@ nav:
       - Application Flow: guide/flow.md
       - Multi-File Editor: guide/multi-file-editor.md
       - Search System: guide/search.md
+      - Knowledge Graph: guide/knowledge-graph.md
       - Modal System: guide/modal-system.md
       - Keyboard Shortcuts: guide/shortcuts.md
       - Theming: guide/theming.md
@@ -45,6 +46,8 @@ nav:
   - Developer:
       - Architecture: dev/architecture.md
       - Knowledge Pipeline: dev/knowledge-pipeline.md
+      - Knowledge Graph Architecture: dev/knowledge-graph-architecture.md
+      - Icon System: dev/icon-system.md
       - API Reference: dev/api-reference.md
       - Contributing: dev/contributing.md
   - Changelog: changelog.md

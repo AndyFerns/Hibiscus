@@ -11,6 +11,7 @@ Hibiscus is designed for keyboard-centric power users. Using the integrated `use
 | **Toggle Right Panel** | `Ctrl + J` | `Cmd + J` | Collapses or expands the Right Panel containing study tools. |
 | **Open Search** | `Ctrl + Shift + F` | `Cmd + Shift + F` | Opens right panel if collapsed and switches to search tab. |
 | **Open Pomodoro** | `Ctrl + Alt + P` | `Cmd + Alt + P` | Opens right panel and switches to Pomodoro timer. |
+| **Toggle Knowledge Graph** | `Ctrl + G` | `Cmd + G` | Switch between editor and knowledge graph view. |
 | **Toggle Focus Mode** | `Ctrl + F` (chord) → `M` | `Cmd + F` (chord) → `M` | Enters focus mode by typing Ctrl+F, then M. |
 | **Toggle Shortcuts Overlay** | `Ctrl + ?` | `Cmd + ?` | Opens an accessibility modal detailing all mapped hotkeys. |
 | **Open Settings** | `Ctrl + ,` | `Cmd + ,` | Opens the application settings modal. |
@@ -32,6 +33,16 @@ When your cursor is focused inside of main Editor panel, native Monaco shortcuts
 | **Next Result** | `Tab` | Navigate to next search result (auto-opens file) |
 | **Previous Result** | `Shift + Tab` | Navigate to previous search result (auto-opens file) |
 | **Open Result** | `Enter` or `Space` | Open selected search result at exact location |
+
+## Knowledge Graph Navigation
+
+| Action | Shortcut | Description |
+| :--- | :--- |
+| **Toggle Graph View** | `Ctrl + G` | Switch between editor and knowledge graph view |
+| **Return to Editor** | `Esc` | Exit graph view and return to editor |
+| **Navigate to Node** | `Click` | Click any node in graph to open that file |
+| **Zoom In/Out** | `Mouse Wheel` | Zoom in and out of the graph view |
+| **Pan View** | `Drag` | Click and drag to pan the graph view |
 
 ## Study Tools Navigation
 
