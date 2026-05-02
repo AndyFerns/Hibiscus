@@ -4,6 +4,18 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.11.3] - Icon System Overhaul
+
+- Added theme-aware icon wrapper system (`withThemeVariant`)
+- Refactored icon architecture for composability
+- Fixed binary file handling (`read_binary_file`)
+- Bumped version across configs## [v0.11.3] - Icon System Overhaul
+
+- Added theme-aware icon wrapper system (`withThemeVariant`)
+- Refactored icon architecture for composability
+- Fixed binary file handling (`read_binary_file`)
+- Bumped version across configs
+
 ## [v0.11.1] - Editor Stability & Graph System
 
 ### Major Features
