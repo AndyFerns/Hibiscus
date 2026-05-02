@@ -25,6 +25,8 @@ import { useTheme } from "../../state/ThemeContext"
 import { openImportDialog } from "../../state/themeIO"
 import "./ThemeSelector.css"
 
+import { Icons } from "../Icons/icons"
+
 export function ThemeSelector() {
   const {
     themes,
@@ -157,10 +159,10 @@ export function ThemeSelector() {
 
           {/* Action buttons */}
           <button className="theme-option theme-option-action" onClick={handleEdit}>
-            🎨 Edit Theme...
+            <span><Icons.edit size={10} /> Edit Theme</span>
           </button>
           <button className="theme-option theme-option-action" onClick={handleImport}>
-            📂 Import Theme...
+            <span><Icons.import size={10}/> Import Theme</span>
           </button>
         </div>
       )}

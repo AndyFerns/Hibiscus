@@ -92,6 +92,9 @@ export const ALL_TOKENS = [
   // Selection colors
   "--selection-bg",
   "--selection-text",
+
+  // Light/Darkmode override switch
+  "--theme-mode ",
 ] as const
 
 // =============================================================================
@@ -149,6 +152,8 @@ export const MIDNIGHT_THEME: Theme = {
 
     "--selection-bg": "rgba(122, 162, 247, 0.25)",
     "--selection-text": "#ffffff",
+
+    "--theme-mode": "dark",
   },
 }
 
@@ -202,6 +207,8 @@ export const DAWN_THEME: Theme = {
 
     "--selection-bg": "rgba(59, 130, 246, 0.3)",
     "--selection-text": "#ffffff",
+
+    "--theme-mode": "light",
   },
 }
 
@@ -255,6 +262,8 @@ export const FOREST_THEME: Theme = {
 
     "--selection-bg": "rgba(52, 211, 153, 0.3)",
     "--selection-text": "#ffffff",
+
+    "--theme-mode": "dark",
   },
 }
 
