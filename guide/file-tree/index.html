@@ -1,0 +1,1318 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A lightweight, high-performance study planner and code editor built with React, Tauri, and Rust.">
+      
+      
+        <meta name="author" content="Andrew Ferns">
+      
+      
+        <link rel="canonical" href="https://andyferns.github.io/Hibiscus/guide/file-tree/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>File Explorer & Tree View - Hibiscus</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#file-explorer-tree-view" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Hibiscus" class="md-header__button md-logo" aria-label="Hibiscus" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hibiscus
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              File Explorer &amp; Tree View
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AndyFerns/Hibiscus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AndyFerns/Hibiscus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dev/architecture/" class="md-tabs__link">
+          
+  
+  
+  Developer
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Hibiscus" class="md-nav__button md-logo" aria-label="Hibiscus" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Hibiscus
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AndyFerns/Hibiscus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AndyFerns/Hibiscus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi-file-editor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-File Editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Search System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modal-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modal System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shortcuts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keyboard Shortcuts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../study-tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Study Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/knowledge-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/knowledge-graph-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Graph Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/icon-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Icon System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="file-explorer-tree-view">File Explorer &amp; Tree View</h1>
+<p>The <strong>File Explorer</strong> (left panel) is your workspace navigation hub. It displays your folder structure as an interactive tree, supports drag-and-drop organization, and provides quick access to all your files.</p>
+<hr />
+<h2 id="tree-view-interface">Tree View Interface</h2>
+<p>The TreeView component renders your workspace as a hierarchical file tree:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>📁 workspace/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── 📁 documents/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── 📄 notes.md
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── 📄 ideas.txt
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── 📁 archive/
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│       └── 📄 old-notes.md
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── 📁 projects/
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── 📄 todo.md
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   └── 📄 plan.md
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>└── 📄 README.md
+</code></pre></div>
+<h3 id="visual-elements">Visual Elements</h3>
+<ul>
+<li><strong>Folder Icons</strong>: Closed (📁) and open (📂) states</li>
+<li><strong>File Icons</strong>: Different icons by file type (📄 for generic)</li>
+<li><strong>Expand/Collapse</strong>: Chevron indicators for folders with children</li>
+<li><strong>Active State</strong>: Highlighted background for selected file</li>
+<li><strong>Hover Effects</strong>: Subtle background change on mouseover</li>
+</ul>
+<hr />
+<h2 id="navigation">Navigation</h2>
+<h3 id="opening-files">Opening Files</h3>
+<p><strong>Double-Click</strong>: Opens file in new editor tab
+<strong>Single Click</strong>: Selects file (without opening)</p>
+<h3 id="expandingcollapsing-folders">Expanding/Collapsing Folders</h3>
+<ul>
+<li><strong>Click Arrow</strong>: Toggle folder expand/collapse</li>
+<li><strong>Double-Click Folder</strong>: Expand and show contents</li>
+<li><strong>Alt+Click</strong>: Expand/collapse all subfolders recursively</li>
+</ul>
+<h3 id="keyboard-navigation">Keyboard Navigation</h3>
+<p>When TreeView is focused:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>↑ / ↓</code></td>
+<td>Navigate up/down tree</td>
+</tr>
+<tr>
+<td><code>←</code></td>
+<td>Collapse folder or go to parent</td>
+</tr>
+<tr>
+<td><code>→</code></td>
+<td>Expand folder</td>
+</tr>
+<tr>
+<td><code>Enter</code></td>
+<td>Open selected file/folder</td>
+</tr>
+<tr>
+<td><code>Space</code></td>
+<td>Toggle folder expand/collapse</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="drag-drop">Drag &amp; Drop</h2>
+<p>Hibiscus features a native HTML5 drag-and-drop system for file organization:</p>
+<h3 id="moving-files">Moving Files</h3>
+<ol>
+<li><strong>Drag</strong>: Click and hold any file or folder</li>
+<li><strong>Hover</strong>: Move over target folder</li>
+<li><strong>Drop</strong>: Release to move the item</li>
+</ol>
+<h3 id="visual-feedback">Visual Feedback</h3>
+<ul>
+<li><strong>Dragging State</strong>: Semi-transparent ghost of the item</li>
+<li><strong>Valid Target</strong>: Target folder highlights with accent color</li>
+<li><strong>Invalid Target</strong>: Red indicator (e.g., dropping folder into its own child)</li>
+<li><strong>Drop Success</strong>: Brief flash animation, tree refreshes</li>
+</ul>
+<h3 id="supported-operations">Supported Operations</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Target</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File</td>
+<td>Folder</td>
+<td>File moved into folder</td>
+</tr>
+<tr>
+<td>Folder</td>
+<td>Folder</td>
+<td>Folder becomes subdirectory</td>
+</tr>
+<tr>
+<td>File</td>
+<td>Root</td>
+<td>File moved to workspace root</td>
+</tr>
+<tr>
+<td>Multiple</td>
+<td>Folder</td>
+<td>All items moved (planned)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="backend-operations">Backend Operations</h3>
+<p>File moves use atomic filesystem operations:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Pseudo-code of move operation</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="mf">1.</span><span class="w"> </span><span class="n">Validate</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="n">exists</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="mf">2.</span><span class="w"> </span><span class="n">Validate</span><span class="w"> </span><span class="n">target</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">directory</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="mf">3.</span><span class="w"> </span><span class="n">Check</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">conflicts</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="mf">4.</span><span class="w"> </span><span class="n">Perform</span><span class="w"> </span><span class="n">atomic</span><span class="w"> </span><span class="k">move</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="mf">5.</span><span class="w"> </span><span class="n">Update</span><span class="w"> </span><span class="n">workspace</span><span class="w"> </span><span class="n">session</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="mf">6.</span><span class="w"> </span><span class="n">Refresh</span><span class="w"> </span><span class="n">tree</span><span class="w"> </span><span class="n">view</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="mf">7.</span><span class="w"> </span><span class="n">Update</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">watchers</span>
+</code></pre></div>
+<hr />
+<h2 id="context-menu">Context Menu</h2>
+<p>Right-click any item for context actions:</p>
+<h3 id="file-operations">File Operations</h3>
+<ul>
+<li><strong>Open</strong>: Open in editor</li>
+<li><strong>Open to the Side</strong>: Open in split view (planned)</li>
+<li><strong>Reveal in File Manager</strong>: Open OS file explorer</li>
+<li><strong>Copy Path</strong>: Copy absolute path to clipboard</li>
+<li><strong>Rename</strong>: Inline rename editing</li>
+<li><strong>Delete</strong>: Move to trash (with confirmation)</li>
+</ul>
+<h3 id="folder-operations">Folder Operations</h3>
+<ul>
+<li><strong>New File</strong>: Create file in this folder</li>
+<li><strong>New Folder</strong>: Create subdirectory</li>
+<li><strong>Expand All</strong>: Open all nested folders</li>
+<li><strong>Collapse All</strong>: Close all nested folders</li>
+<li><strong>Refresh</strong>: Rescan folder contents</li>
+</ul>
+<h3 id="bulk-operations-planned">Bulk Operations (planned)</h3>
+<ul>
+<li><strong>Select Multiple</strong>: Ctrl/Cmd + Click</li>
+<li><strong>Cut/Copy/Paste</strong>: Standard clipboard operations</li>
+<li><strong>Delete Multiple</strong>: Confirm once for selection</li>
+</ul>
+<hr />
+<h2 id="file-creation">File Creation</h2>
+<h3 id="new-filefolder">New File/Folder</h3>
+<p><strong>Keyboard Shortcut</strong>: 
+- <code>Ctrl+N</code> → New File
+- <code>Ctrl+Shift+N</code> → New Folder</p>
+<p><strong>Context Menu</strong>: Right-click parent → "New File" or "New Folder"</p>
+<p><strong>Tree Header</strong>: Buttons in the panel toolbar</p>
+<h3 id="creation-modal">Creation Modal</h3>
+<p>The <strong>NewItemModal</strong> provides:</p>
+<ul>
+<li><strong>Name Input</strong>: With validation and suggestions</li>
+<li><strong>Path Display</strong>: Shows where item will be created</li>
+<li><strong>Validation</strong>: </li>
+<li>Prevents invalid characters</li>
+<li>Checks for duplicates</li>
+<li>Validates name length</li>
+<li><strong>Quick Create</strong>: Press Enter to confirm</li>
+</ul>
+<h3 id="suggestions-system">Suggestions System</h3>
+<p>When creating files, the modal suggests:</p>
+<ul>
+<li><strong>Recent Locations</strong>: Folders you've used recently</li>
+<li><strong>Current Context</strong>: The folder you right-clicked</li>
+<li><strong>Common Extensions</strong>: <code>.md</code>, <code>.txt</code>, <code>.py</code>, <code>.js</code>, etc.</li>
+</ul>
+<hr />
+<h2 id="file-watching">File Watching</h2>
+<p>The TreeView automatically updates when files change:</p>
+<h3 id="detected-changes">Detected Changes</h3>
+<ul>
+<li><strong>File Created</strong>: New item appears in tree</li>
+<li><strong>File Deleted</strong>: Item removed with fade animation</li>
+<li><strong>File Modified</strong>: Visual indicator (dot) for external changes</li>
+<li><strong>File Moved</strong>: Tree restructures automatically</li>
+</ul>
+<h3 id="external-editor-support">External Editor Support</h3>
+<p>Edit files in other editors while Hibiscus is open:</p>
+<ul>
+<li>Changes reflect immediately in TreeView</li>
+<li>Open files in Hibiscus show "modified externally" indicator</li>
+<li>No manual refresh needed</li>
+</ul>
+<hr />
+<h2 id="workspace-session">Workspace Session</h2>
+<p>The TreeView maintains state across restarts:</p>
+<h3 id="persisted-state">Persisted State</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;session&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">&quot;expanded_nodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="s2">&quot;/workspace/documents&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="s2">&quot;/workspace/projects&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">&quot;active_node&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/workspace/projects/todo.md&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">&quot;scroll_position&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="restoration">Restoration</h3>
+<p>On workspace load:</p>
+<ol>
+<li>Tree structure rebuilds from disk</li>
+<li>Previously expanded folders reopen</li>
+<li>Last active file is highlighted</li>
+<li>Scroll position restored</li>
+</ol>
+<hr />
+<h2 id="search-integration">Search Integration</h2>
+<p>The TreeView connects to the search system:</p>
+<ul>
+<li><strong>Filter</strong>: Type while focused to filter visible items</li>
+<li><strong>Search Results</strong>: Highlighted with special styling</li>
+<li><strong>Quick Open</strong>: Press <code>Ctrl+P</code> for fuzzy file finder (planned)</li>
+</ul>
+<hr />
+<h2 id="performance">Performance</h2>
+<p>The TreeView is optimized for large workspaces:</p>
+<h3 id="optimizations">Optimizations</h3>
+<ul>
+<li><strong>Virtual Scrolling</strong>: Only visible nodes rendered (planned)</li>
+<li><strong>Lazy Loading</strong>: Folder contents loaded on expand</li>
+<li><strong>Debounced Updates</strong>: Rapid changes batched</li>
+<li><strong>Incremental Refresh</strong>: Only changed branches updated</li>
+</ul>
+<h3 id="limits">Limits</h3>
+<ul>
+<li><strong>Max Depth</strong>: 20 levels (configurable)</li>
+<li><strong>Max Files</strong>: 10,000 items (soft limit)</li>
+<li><strong>Hidden Files</strong>: Ignored by default</li>
+</ul>
+<hr />
+<h2 id="ignored-patterns">Ignored Patterns</h2>
+<p>The following are excluded from the tree:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>.git/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>node_modules/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>__pycache__/
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>.hibiscus/
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>*.tmp
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>*.log
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>.hidden files
+</code></pre></div>
+<p>Customize via workspace settings (planned).</p>
+<hr />
+<h2 id="screenshots">Screenshots</h2>
+<p><em>[PHOTO PLACEHOLDER: Tree View Overview]</em>
+<em>Add screenshot showing the file tree with various file types, expanded and collapsed folders</em></p>
+<p><em>[PHOTO PLACEHOLDER: Drag and Drop]</em>
+<em>Add screenshot or GIF showing drag-and-drop in action with visual feedback</em></p>
+<p><em>[PHOTO PLACEHOLDER: New Item Modal]</em>
+<em>Add screenshot showing the file creation modal with path suggestions</em></p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="tree-not-updating">Tree Not Updating</h3>
+<ol>
+<li>Check file watcher is active (status bar indicator)</li>
+<li>Try manual refresh: Right-click → Refresh</li>
+<li>Restart Hibiscus if watcher crashed</li>
+</ol>
+<h3 id="drag-drop-not-working">Drag &amp; Drop Not Working</h3>
+<ul>
+<li>Ensure target folder has write permissions</li>
+<li>Check if source is locked by another process</li>
+<li>Verify you're not dragging into a subfolder of itself</li>
+</ul>
+<h3 id="file-icons-missing">File Icons Missing</h3>
+<ul>
+<li>Icons are SVG-based and built-in</li>
+<li>Check if CSS loaded correctly (restart app)</li>
+<li>Verify file extension is recognized</li>
+</ul>
+<h3 id="slow-performance">Slow Performance</h3>
+<ul>
+<li>Consider excluding large directories (node_modules)</li>
+<li>Reduce tree depth if very deeply nested</li>
+<li>Close unnecessary expanded folders</li>
+</ul>
+<hr />
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="../multi-file-editor/">Multi-File Editor</a> - Working with opened files</li>
+<li><a href="../search/">Search System</a> - Finding files</li>
+<li><a href="../modal-system/">Modal System</a> - File creation dialogs</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

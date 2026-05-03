@@ -924,15 +924,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#file-operations-filesrs" class="md-nav__link">
+  <a href="#file-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File Operations (files.rs)
+        File Operations
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="File Operations (files.rs)">
+    <nav class="md-nav" aria-label="File Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Read Operations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -945,6 +957,34 @@
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#read_file_binarypath-string-resultvecu8-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_file_binary(path: String) -&gt; Result&lt;Vec&lt;u8&gt;, HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Write Operations">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#write_text_filepath-string-contents-string-result-hibiscuserror" class="md-nav__link">
@@ -961,24 +1001,146 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#workspace-management-workspacers" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#filefolder-creation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workspace Management (workspace.rs)
+        File/Folder Creation
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Workspace Management (workspace.rs)">
+    <nav class="md-nav" aria-label="File/Folder Creation">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#discover_workspacepath-string-resultoptionstring-hibiscuserror" class="md-nav__link">
+  <a href="#create_filepath-string-result-hibiscuserror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        discover_workspace(path: String) -&gt; Result&lt;Option&lt;String&gt;, HibiscusError&gt;
+        create_file(path: String) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_folderpath-string-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create_folder(path: String) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_itempath-string-is_file-bool-resultstring-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create_item(path: String, is_file: bool) -&gt; Result&lt;String, HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deletion-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deletion Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deletion Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#delete_filepath-string-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_file(path: String) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_folderpath-string-recursive-bool-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_folder(path: String, recursive: bool) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#move-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Move Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Move Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#move_nodesource-string-target-string-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        move_node(source: String, target: String) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workspace-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workspace Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workspace Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#discover_workspaceroot-string-workspacediscovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        discover_workspace(root: String) -&gt; WorkspaceDiscovery
       
     </span>
   </a>
@@ -1013,22 +1175,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#file-structure-treers" class="md-nav__link">
+  <a href="#tree-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File Structure (tree.rs)
+        Tree Operations
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="File Structure (tree.rs)">
+    <nav class="md-nav" aria-label="Tree Operations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#get_directory_treepath-string-resultnode-hibiscuserror" class="md-nav__link">
+  <a href="#build_treeroot-string-resultvecnode-hibiscuserror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        get_directory_tree(path: String) -&gt; Result&lt;Node, HibiscusError&gt;
+        build_tree(root: String) -&gt; Result&lt;Vec&lt;Node&gt;, HibiscusError&gt;
       
     </span>
   </a>
@@ -1041,15 +1203,76 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#calendar-api-calendarrs" class="md-nav__link">
+  <a href="#file-watcher" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Calendar API (calendar.rs)
+        File Watcher
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Calendar API (calendar.rs)">
+    <nav class="md-nav" aria-label="File Watcher">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#watch_workspacepath-string-result-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch_workspace(path: String) -&gt; Result&lt;(), String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop_watching-result-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stop_watching() -&gt; Result&lt;(), String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_watching-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_watching() -&gt; bool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_watched_path-optionstring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_watched_path() -&gt; Option&lt;String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calendar-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calendar Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calendar Operations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1080,22 +1303,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#filesystem-watcher-watcherrs" class="md-nav__link">
+  <a href="#theme-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Filesystem Watcher (watcher.rs)
+        Theme Operations
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Filesystem Watcher (watcher.rs)">
+    <nav class="md-nav" aria-label="Theme Operations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#watch_workspacepath-string" class="md-nav__link">
+  <a href="#load_themesroot-string-resultthemecollection-hibiscuserror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        watch_workspace(path: String)
+        load_themes(root: String) -&gt; Result&lt;ThemeCollection, HibiscusError&gt;
       
     </span>
   </a>
@@ -1103,10 +1326,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stop_watching" class="md-nav__link">
+  <a href="#save_themeroot-string-theme-themedefinition-result-hibiscuserror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        stop_watching()
+        save_theme(root: String, theme: ThemeDefinition) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_themeroot-string-name-string-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_theme(root: String, name: String) -&gt; Result&lt;(), HibiscusError&gt;
       
     </span>
   </a>
@@ -1115,6 +1349,312 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#study-data-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Study Data Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Study Data Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read_study_dataroot-string-resultstudydata-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_study_data(root: String) -&gt; Result&lt;StudyData, HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save_study_dataroot-string-data-studydata-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_study_data(root: String, data: StudyData) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#knowledge-indexing-phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Indexing (Phase 1)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Knowledge Indexing (Phase 1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#search_knowledgekeyword-string-state-state-resultvecsearchresult-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        search_knowledge(keyword: String, state: State) -&gt; Result&lt;Vec&lt;SearchResult&gt;, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_chunkchunk_id-string-state-state-resultsearchresult-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_chunk(chunk_id: String, state: State) -&gt; Result&lt;SearchResult, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rebuild_knowledge_indexstate-state-resultusize-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rebuild_knowledge_index(state: State) -&gt; Result&lt;usize, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#knowledge-indexing-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Indexing (Phase 2)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Knowledge Indexing (Phase 2)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#search_chunksquery-string-offset-optionusize-limit-optionusize-state-state-resultvecrankedsearchresult-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        search_chunks(query: String, offset: Option&lt;usize&gt;, limit: Option&lt;usize&gt;, state: State) -&gt; Result&lt;Vec&lt;RankedSearchResult&gt;, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_topicsstate-state-resulttopicmap-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_topics(state: State) -&gt; Result&lt;TopicMap, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#path-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Utilities
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Path Utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#normalize_pathpath-string-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalize_path(path: String) -&gt; String
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#join_pathsbase-string-segments-vecstring-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        join_paths(base: String, segments: Vec&lt;String&gt;) -&gt; String
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-frontend-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend → Frontend Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend → Frontend Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fs-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fs-changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-a-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#searching-knowledge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Searching Knowledge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#listening-for-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Listening for Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-summary-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Summary Table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1210,32 +1750,678 @@
 
 
 <h1 id="api-reference">API Reference</h1>
-<p>Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (<code>@tauri-apps/api/core</code>). Below is a comprehensive list of all exposed endpoints along with their Rust signatures and intended uses.</p>
-<h2 id="file-operations-filesrs">File Operations (<code>files.rs</code>)</h2>
-<h3 id="read_text_filepath-string-resultstring-hibiscuserror"><code>read_text_file(path: String) -&gt; Result&lt;String, HibiscusError&gt;</code></h3>
-<p>Reads a text-based file fully into memory and returning it as a string to the editor buffer. Handles basic validation to prevent reading paths outside root bounds.</p>
-<h3 id="write_text_filepath-string-contents-string-result-hibiscuserror"><code>write_text_file(path: String, contents: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h3>
-<p>Writes changes from the Monaco buffer onto the disk natively. Triggers atomic saves when viable to prevent partial writes.</p>
-<h2 id="workspace-management-workspacers">Workspace Management (<code>workspace.rs</code>)</h2>
-<h3 id="discover_workspacepath-string-resultoptionstring-hibiscuserror"><code>discover_workspace(path: String) -&gt; Result&lt;Option&lt;String&gt;, HibiscusError&gt;</code></h3>
-<p>Scans upwards from the given directory path searching for an initialized <code>.hibiscus</code> directory.</p>
-<h3 id="load_workspacepath-string-resultworkspacefile-hibiscuserror"><code>load_workspace(path: String) -&gt; Result&lt;WorkspaceFile, HibiscusError&gt;</code></h3>
-<p>Reads <code>.hibiscus/workspace.json</code>, applies necessary schemas migrations (<code>migration.rs</code>), and parses the resulting tree configuration to feed the frontend session data.</p>
-<h3 id="save_workspacepath-string-workspace-workspacefile-result-hibiscuserror"><code>save_workspace(path: String, workspace: WorkspaceFile) -&gt; Result&lt;(), HibiscusError&gt;</code></h3>
-<p>Saves tracking information (like recently active files, open sidebar state) into the workspace config. Triggers <code>backup.rs</code> file rotation inherently.</p>
-<h2 id="file-structure-treers">File Structure (<code>tree.rs</code>)</h2>
-<h3 id="get_directory_treepath-string-resultnode-hibiscuserror"><code>get_directory_tree(path: String) -&gt; Result&lt;Node, HibiscusError&gt;</code></h3>
-<p>Recursively models and returns the folder hierarchy within the active workspace root. Ignores configured system paths (<code>.git</code>, <code>node_modules</code>, <code>__pycache__</code>).</p>
-<h2 id="calendar-api-calendarrs">Calendar API (<code>calendar.rs</code>)</h2>
-<h3 id="read_calendar_dataroot-string-resultserde_jsonvalue-hibiscuserror"><code>read_calendar_data(root: String) -&gt; Result&lt;serde_json::Value, HibiscusError&gt;</code></h3>
-<p>Reads the user's planner data directly via their root workspace path. Implements native schema upgrades internally upon initialization.</p>
-<h3 id="save_calendar_dataroot-string-data-serde_jsonvalue-result-hibiscuserror"><code>save_calendar_data(root: String, data: serde_json::Value) -&gt; Result&lt;(), HibiscusError&gt;</code></h3>
-<p>Dumps user modifications (events, scheduled tasks) into the calendar disk instance. Also triggers autonomous <code>.bak</code> creation via the backup module.</p>
-<h2 id="filesystem-watcher-watcherrs">Filesystem Watcher (<code>watcher.rs</code>)</h2>
-<h3 id="watch_workspacepath-string"><code>watch_workspace(path: String)</code></h3>
-<p>Spawns an asynchronous native Thread utilizing the <code>notify</code> crate, accumulating modifying file operations within a debounced pool to be emitted natively utilizing the <code>fs-changed</code> payload channel.</p>
-<h3 id="stop_watching"><code>stop_watching()</code></h3>
-<p>Gracefully halts the currently active thread watcher, usually occurring right before swapping user contexts/roots.</p>
+<p>Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (<code>@tauri-apps/api/core</code>). This reference documents all available commands.</p>
+<p><strong>Version</strong>: 0.3.7<br />
+<strong>Last Updated</strong>: May 2026</p>
+<hr />
+<h2 id="file-operations">File Operations</h2>
+<p>All file operations include path validation to prevent directory traversal attacks.</p>
+<h3 id="read-operations">Read Operations</h3>
+<h4 id="read_text_filepath-string-resultstring-hibiscuserror"><code>read_text_file(path: String) -&gt; Result&lt;String, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Reads a text file into memory for editor display.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to file</p>
+<p><strong>Returns:</strong>
+- <code>Ok(String)</code>: File contents
+- <code>Err</code>: FileNotFound, InvalidPathType, Io errors</p>
+<p><strong>Security:</strong>
+- Validates path doesn't contain <code>..</code>
+- Checks path depth limits (50 levels)
+- Verifies path is within workspace bounds</p>
+<hr />
+<h4 id="read_file_binarypath-string-resultvecu8-hibiscuserror"><code>read_file_binary(path: String) -&gt; Result&lt;Vec&lt;u8&gt;, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Reads file as binary data for non-text content.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to file</p>
+<p><strong>Returns:</strong>
+- <code>Ok(Vec&lt;u8&gt;)</code>: Raw bytes
+- <code>Err</code>: FileNotFound, Io errors</p>
+<p><strong>Use Cases:</strong>
+- PDF rendering
+- Image display
+- Binary file handling</p>
+<hr />
+<h3 id="write-operations">Write Operations</h3>
+<h4 id="write_text_filepath-string-contents-string-result-hibiscuserror"><code>write_text_file(path: String, contents: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Writes text content to file using atomic save strategy.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to file
+- <code>contents</code>: Text content to write</p>
+<p><strong>Save Strategy:</strong>
+1. Write to temp file: <code>filename.hibiscus-save~</code>
+2. Sync to disk
+3. Delete original (Windows compatibility)
+4. Atomic rename temp to target
+5. Cleanup on failure</p>
+<p><strong>Returns:</strong>
+- <code>Ok(())</code>: Success
+- <code>Err</code>: PathValidation, Io errors</p>
+<hr />
+<h3 id="filefolder-creation">File/Folder Creation</h3>
+<h4 id="create_filepath-string-result-hibiscuserror"><code>create_file(path: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Creates a new empty file.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path for new file</p>
+<p><strong>Behavior:</strong>
+- Creates parent directories if needed
+- Returns error if file exists
+- Validates path security</p>
+<hr />
+<h4 id="create_folderpath-string-result-hibiscuserror"><code>create_folder(path: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Creates a new directory.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path for new folder</p>
+<p><strong>Behavior:</strong>
+- Creates parent directories recursively
+- Returns error if folder exists
+- Validates path security</p>
+<hr />
+<h4 id="create_itempath-string-is_file-bool-resultstring-hibiscuserror"><code>create_item(path: String, is_file: bool) -&gt; Result&lt;String, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/create_item.rs</code></p>
+<p>Unified item creation with per-path locking to prevent race conditions.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path for new item
+- <code>is_file</code>: true = file, false = folder</p>
+<p><strong>Returns:</strong>
+- <code>Ok(String)</code>: The created item path
+- <code>Err</code>: AlreadyExists, Io, PathValidation errors</p>
+<p><strong>Locking:</strong>
+- Uses per-path mutex to prevent concurrent creation
+- Thread-safe across all operations</p>
+<hr />
+<h3 id="deletion-operations">Deletion Operations</h3>
+<h4 id="delete_filepath-string-result-hibiscuserror"><code>delete_file(path: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Permanently deletes a file.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to file</p>
+<p><strong>Behavior:</strong>
+- Validates file exists and is a file
+- Immediate permanent deletion (no trash)
+- Updates file watchers</p>
+<hr />
+<h4 id="delete_folderpath-string-recursive-bool-result-hibiscuserror"><code>delete_folder(path: String, recursive: bool) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Deletes a directory.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to folder
+- <code>recursive</code>: If true, deletes contents; if false, only empty folders</p>
+<p><strong>Behavior:</strong>
+- Validates folder exists
+- Recursive mode removes all contents
+- Non-recursive fails on non-empty folders</p>
+<hr />
+<h3 id="move-operations">Move Operations</h3>
+<h4 id="move_nodesource-string-target-string-result-hibiscuserror"><code>move_node(source: String, target: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Moves a file or folder to a new location.</p>
+<p><strong>Parameters:</strong>
+- <code>source</code>: Current absolute path
+- <code>target</code>: Destination absolute path</p>
+<p><strong>Behavior:</strong>
+- Works for both files and folders
+- Atomic operation when possible
+- Updates all internal state
+- Handles cross-device moves</p>
+<hr />
+<h2 id="workspace-operations">Workspace Operations</h2>
+<h4 id="discover_workspaceroot-string-workspacediscovery"><code>discover_workspace(root: String) -&gt; WorkspaceDiscovery</code></h4>
+<p><strong>File</strong>: <code>commands/workspace.rs</code></p>
+<p>Scans for existing workspace configuration.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Directory to check for <code>.hibiscus/workspace.json</code></p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">WorkspaceDiscovery</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">found</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h4 id="load_workspacepath-string-resultworkspacefile-hibiscuserror"><code>load_workspace(path: String) -&gt; Result&lt;WorkspaceFile, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/workspace.rs</code></p>
+<p>Loads workspace configuration with schema migration.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Path to <code>workspace.json</code></p>
+<p><strong>Behavior:</strong>
+- Reads and parses JSON
+- Applies schema migrations
+- Validates structure
+- Returns default if file missing</p>
+<p><strong>Returns:</strong>
+- <code>Ok(WorkspaceFile)</code>: Parsed workspace data
+- <code>Err</code>: Io, JsonParse errors</p>
+<hr />
+<h4 id="save_workspacepath-string-workspace-workspacefile-result-hibiscuserror"><code>save_workspace(path: String, workspace: WorkspaceFile) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/workspace.rs</code></p>
+<p>Persists workspace configuration.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Path to save <code>workspace.json</code>
+- <code>workspace</code>: Workspace data structure</p>
+<p><strong>Behavior:</strong>
+- Atomic write (temp file + rename)
+- Triggers backup creation
+- Creates parent directories</p>
+<hr />
+<h2 id="tree-operations">Tree Operations</h2>
+<h4 id="build_treeroot-string-resultvecnode-hibiscuserror"><code>build_tree(root: String) -&gt; Result&lt;Vec&lt;Node&gt;, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/tree.rs</code></p>
+<p>Builds recursive directory tree structure.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Root directory to scan</p>
+<p><strong>Returns:</strong>
+- <code>Ok(Vec&lt;Node&gt;)</code>: Tree nodes</p>
+<p><strong>Behavior:</strong>
+- Respects max depth (20 levels)
+- Ignores: <code>.git</code>, <code>node_modules</code>, <code>__pycache__</code>, <code>.hibiscus</code>, hidden files
+- Sorts: folders first, then files, alphabetically
+- Uses parallel scanning for performance</p>
+<hr />
+<h2 id="file-watcher">File Watcher</h2>
+<h4 id="watch_workspacepath-string-result-string"><code>watch_workspace(path: String) -&gt; Result&lt;(), String&gt;</code></h4>
+<p><strong>File</strong>: <code>watcher.rs</code></p>
+<p>Starts filesystem watcher for real-time updates.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Root directory to watch</p>
+<p><strong>Behavior:</strong>
+- Spawns async notify thread
+- Debounces events (300ms)
+- Emits <code>fs-changed</code> events to frontend
+- Watches recursively</p>
+<hr />
+<h4 id="stop_watching-result-string"><code>stop_watching() -&gt; Result&lt;(), String&gt;</code></h4>
+<p><strong>File</strong>: <code>watcher.rs</code></p>
+<p>Stops the active filesystem watcher.</p>
+<p><strong>Behavior:</strong>
+- Gracefully shuts down watcher thread
+- Clears internal state
+- Safe to call when not watching</p>
+<hr />
+<h4 id="is_watching-bool"><code>is_watching() -&gt; bool</code></h4>
+<p><strong>File</strong>: <code>watcher.rs</code></p>
+<p>Check if watcher is currently active.</p>
+<p><strong>Returns:</strong>
+- <code>true</code>: Watcher running
+- <code>false</code>: Watcher stopped</p>
+<hr />
+<h4 id="get_watched_path-optionstring"><code>get_watched_path() -&gt; Option&lt;String&gt;</code></h4>
+<p><strong>File</strong>: <code>watcher.rs</code></p>
+<p>Get currently watched path.</p>
+<p><strong>Returns:</strong>
+- <code>Some(String)</code>: Active watch path
+- <code>None</code>: No active watcher</p>
+<hr />
+<h2 id="calendar-operations">Calendar Operations</h2>
+<h4 id="read_calendar_dataroot-string-resultserde_jsonvalue-hibiscuserror"><code>read_calendar_data(root: String) -&gt; Result&lt;serde_json::Value, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/calendar.rs</code></p>
+<p>Loads calendar events and tasks.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path</p>
+<p><strong>Returns:</strong>
+- Calendar data JSON with events, tasks, settings
+- Default empty structure if file missing</p>
+<p><strong>Data Structure:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;events&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;tasks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;settings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">&quot;view&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;month&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">&quot;startOfWeek&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;monday&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h4 id="save_calendar_dataroot-string-data-serde_jsonvalue-result-hibiscuserror"><code>save_calendar_data(root: String, data: serde_json::Value) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/calendar.rs</code></p>
+<p>Persists calendar modifications.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path
+- <code>data</code>: Calendar JSON data</p>
+<p><strong>Behavior:</strong>
+- Atomic write
+- Creates backup before modification
+- Schema validation</p>
+<hr />
+<h2 id="theme-operations">Theme Operations</h2>
+<h4 id="load_themesroot-string-resultthemecollection-hibiscuserror"><code>load_themes(root: String) -&gt; Result&lt;ThemeCollection, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/themes.rs</code></p>
+<p>Loads all custom themes from workspace.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path</p>
+<p><strong>Returns:</strong>
+- Collection of custom theme definitions
+- Empty collection if no custom themes</p>
+<hr />
+<h4 id="save_themeroot-string-theme-themedefinition-result-hibiscuserror"><code>save_theme(root: String, theme: ThemeDefinition) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/themes.rs</code></p>
+<p>Saves a custom theme.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path
+- <code>theme</code>: Theme definition object</p>
+<p><strong>Behavior:</strong>
+- Writes to <code>.hibiscus/themes/&lt;name&gt;.json</code>
+- Creates themes directory if needed
+- Validates theme structure</p>
+<hr />
+<h4 id="delete_themeroot-string-name-string-result-hibiscuserror"><code>delete_theme(root: String, name: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/themes.rs</code></p>
+<p>Deletes a custom theme.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path
+- <code>name</code>: Theme name to delete</p>
+<p><strong>Behavior:</strong>
+- Removes theme file
+- Safe to call for non-existent themes</p>
+<hr />
+<h2 id="study-data-operations">Study Data Operations</h2>
+<h4 id="read_study_dataroot-string-resultstudydata-hibiscuserror"><code>read_study_data(root: String) -&gt; Result&lt;StudyData, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/study.rs</code></p>
+<p>Loads all study-related data.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path</p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">StudyData</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">sessions</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">StudySession</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">flashcards</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">FlashcardDeck</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">settings</span><span class="p">:</span><span class="w"> </span><span class="nc">StudySettings</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Data Includes:</strong>
+- Pomodoro session history
+- Flashcard decks and cards
+- Study statistics
+- User preferences</p>
+<hr />
+<h4 id="save_study_dataroot-string-data-studydata-result-hibiscuserror"><code>save_study_data(root: String, data: StudyData) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/study.rs</code></p>
+<p>Persists study data.</p>
+<p><strong>Parameters:</strong>
+- <code>root</code>: Workspace root path
+- <code>data</code>: Complete study data structure</p>
+<p><strong>Behavior:</strong>
+- Atomic write
+- Creates backup
+- Validates data integrity</p>
+<hr />
+<h2 id="knowledge-indexing-phase-1">Knowledge Indexing (Phase 1)</h2>
+<h4 id="search_knowledgekeyword-string-state-state-resultvecsearchresult-string"><code>search_knowledge(keyword: String, state: State) -&gt; Result&lt;Vec&lt;SearchResult&gt;, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge</code></p>
+<p>Basic keyword search (legacy, Phase 1).</p>
+<p><strong>Parameters:</strong>
+- <code>keyword</code>: Search term (normalized automatically)
+- <code>state</code>: Managed KnowledgeState</p>
+<p><strong>Returns:</strong>
+- List of matching chunks with content</p>
+<p><strong>Note:</strong> Use <code>search_chunks</code> (Phase 2) for production queries.</p>
+<hr />
+<h4 id="get_chunkchunk_id-string-state-state-resultsearchresult-string"><code>get_chunk(chunk_id: String, state: State) -&gt; Result&lt;SearchResult, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge</code></p>
+<p>Retrieves a specific chunk by ID.</p>
+<p><strong>Parameters:</strong>
+- <code>chunk_id</code>: Unique chunk identifier
+- <code>state</code>: Managed KnowledgeState</p>
+<p><strong>Returns:</strong>
+- Single chunk with full content</p>
+<hr />
+<h4 id="rebuild_knowledge_indexstate-state-resultusize-string"><code>rebuild_knowledge_index(state: State) -&gt; Result&lt;usize, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge</code></p>
+<p>Triggers full workspace re-index.</p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: Managed KnowledgeState</p>
+<p><strong>Returns:</strong>
+- Number of files processed (including skipped)</p>
+<p><strong>Behavior:</strong>
+- Scans entire workspace
+- Uses content hashes to skip unchanged files
+- Processes in background worker
+- Non-blocking operation</p>
+<hr />
+<h2 id="knowledge-indexing-phase-2">Knowledge Indexing (Phase 2)</h2>
+<h4 id="search_chunksquery-string-offset-optionusize-limit-optionusize-state-state-resultvecrankedsearchresult-string"><code>search_chunks(query: String, offset: Option&lt;usize&gt;, limit: Option&lt;usize&gt;, state: State) -&gt; Result&lt;Vec&lt;RankedSearchResult&gt;, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge/query.rs</code></p>
+<p>Advanced ranked search with TF-IDF scoring.</p>
+<p><strong>Parameters:</strong>
+- <code>query</code>: Search query (supports multi-word)
+- <code>offset</code>: Pagination offset (default: 0)
+- <code>limit</code>: Max results (default: 20)
+- <code>state</code>: Managed KnowledgeState</p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">RankedSearchResult</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">chunk_id</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">content</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">file_path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">topic</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">score</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w">        </span><span class="c1">// TF-IDF relevance score</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Features:</strong>
+- TF-IDF ranking
+- Fuzzy matching (edit distance ≤ 1)
+- Prefix matching
+- Multi-word query support
+- LRU result caching</p>
+<hr />
+<h4 id="get_topicsstate-state-resulttopicmap-string"><code>get_topics(state: State) -&gt; Result&lt;TopicMap, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge/topics.rs</code></p>
+<p>Retrieves topic clustering data.</p>
+<p><strong>Parameters:</strong>
+- <code>state</code>: Managed KnowledgeState</p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">TopicMap</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">topics</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w">  </span><span class="c1">// topic -&gt; chunk_ids</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Behavior:</strong>
+- Topics extracted from headings
+- Deterministic clustering
+- No ML or external dependencies</p>
+<hr />
+<h2 id="path-utilities">Path Utilities</h2>
+<h4 id="normalize_pathpath-string-string"><code>normalize_path(path: String) -&gt; String</code></h4>
+<p><strong>File</strong>: <code>commands/path.rs</code></p>
+<p>Normalizes path separators for current platform.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Input path string</p>
+<p><strong>Returns:</strong>
+- Normalized path with correct separators</p>
+<p><strong>Behavior:</strong>
+- Converts <code>/</code> to <code>\</code> on Windows
+- Converts <code>\</code> to <code>/</code> on Unix
+- Handles mixed separators</p>
+<hr />
+<h4 id="join_pathsbase-string-segments-vecstring-string"><code>join_paths(base: String, segments: Vec&lt;String&gt;) -&gt; String</code></h4>
+<p><strong>File</strong>: <code>commands/path.rs</code></p>
+<p>Safely joins path segments.</p>
+<p><strong>Parameters:</strong>
+- <code>base</code>: Base path
+- <code>segments</code>: Path components to append</p>
+<p><strong>Returns:</strong>
+- Combined path string</p>
+<p><strong>Behavior:</strong>
+- Handles trailing/leading slashes
+- Validates each segment
+- Prevents traversal attempts</p>
+<hr />
+<h2 id="error-types">Error Types</h2>
+<p>All commands return <code>HibiscusError</code> on failure:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">HibiscusError</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">Io</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                    </span><span class="c1">// File system errors</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">FileNotFound</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">          </span><span class="c1">// Missing files</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">InvalidPathType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">expected</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">actual</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">PathValidation</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">        </span><span class="c1">// Security violations</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="n">JsonParse</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// JSON errors</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="n">AlreadyExists</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">         </span><span class="c1">// Creation conflicts</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="n">WorkspaceNotFound</span><span class="p">,</span><span class="w">             </span><span class="c1">// Missing workspace</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="n">Migration</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Schema upgrade failures</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="n">Knowledge</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Indexing errors</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="n">Theme</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                 </span><span class="c1">// Theme-related errors</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Serialization:</strong>
+Errors serialize to frontend-friendly strings while preserving type information for programmatic handling.</p>
+<hr />
+<h2 id="event-system">Event System</h2>
+<h3 id="backend-frontend-events">Backend → Frontend Events</h3>
+<h4 id="fs-changed"><code>fs-changed</code></h4>
+<p><strong>Source</strong>: <code>watcher.rs</code></p>
+<p>Emitted when filesystem changes detected.</p>
+<p><strong>Payload:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">FsChangedEvent</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;create&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;modify&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;delete&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;rename&quot;</span><span class="p">;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">oldPath?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// For renames</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Frontend Usage:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">listen</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;File changed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">event</span><span class="p">.</span><span class="nx">payload</span><span class="p">);</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nx">refreshTree</span><span class="p">();</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="p">});</span>
+</code></pre></div></p>
+<hr />
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="reading-a-file">Reading a File</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">invoke</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/core&quot;</span><span class="p">;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;read_text_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/notes.md&quot;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="creating-a-file">Creating a File</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;create_item&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/new-file.md&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nx">is_file</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="searching-knowledge">Searching Knowledge</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;search_chunks&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;rust async&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nx">limit</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">});</span>
+</code></pre></div>
+<h3 id="listening-for-changes">Listening for Changes</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">unlisten</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">listen</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="c1">// Update UI</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">});</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">// Cleanup</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="nx">unlisten</span><span class="p">();</span>
+</code></pre></div>
+<hr />
+<h2 id="command-summary-table">Command Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>File</th>
+<th>Async</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>read_text_file</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Read text content</td>
+</tr>
+<tr>
+<td><code>read_file_binary</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Read binary content</td>
+</tr>
+<tr>
+<td><code>write_text_file</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Write text content</td>
+</tr>
+<tr>
+<td><code>create_file</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Create empty file</td>
+</tr>
+<tr>
+<td><code>create_folder</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Create directory</td>
+</tr>
+<tr>
+<td><code>delete_file</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Delete file</td>
+</tr>
+<tr>
+<td><code>delete_folder</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Delete directory</td>
+</tr>
+<tr>
+<td><code>move_node</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Move file/folder</td>
+</tr>
+<tr>
+<td><code>create_item</code></td>
+<td>create_item.rs</td>
+<td>✓</td>
+<td>Unified creation with locking</td>
+</tr>
+<tr>
+<td><code>discover_workspace</code></td>
+<td>workspace.rs</td>
+<td>✗</td>
+<td>Find workspace</td>
+</tr>
+<tr>
+<td><code>load_workspace</code></td>
+<td>workspace.rs</td>
+<td>✓</td>
+<td>Load workspace data</td>
+</tr>
+<tr>
+<td><code>save_workspace</code></td>
+<td>workspace.rs</td>
+<td>✓</td>
+<td>Save workspace data</td>
+</tr>
+<tr>
+<td><code>build_tree</code></td>
+<td>tree.rs</td>
+<td>✗</td>
+<td>Build file tree</td>
+</tr>
+<tr>
+<td><code>watch_workspace</code></td>
+<td>watcher.rs</td>
+<td>✗</td>
+<td>Start file watcher</td>
+</tr>
+<tr>
+<td><code>stop_watching</code></td>
+<td>watcher.rs</td>
+<td>✗</td>
+<td>Stop file watcher</td>
+</tr>
+<tr>
+<td><code>is_watching</code></td>
+<td>watcher.rs</td>
+<td>✗</td>
+<td>Check watcher status</td>
+</tr>
+<tr>
+<td><code>get_watched_path</code></td>
+<td>watcher.rs</td>
+<td>✗</td>
+<td>Get watched path</td>
+</tr>
+<tr>
+<td><code>read_calendar_data</code></td>
+<td>calendar.rs</td>
+<td>✓</td>
+<td>Load calendar</td>
+</tr>
+<tr>
+<td><code>save_calendar_data</code></td>
+<td>calendar.rs</td>
+<td>✓</td>
+<td>Save calendar</td>
+</tr>
+<tr>
+<td><code>load_themes</code></td>
+<td>themes.rs</td>
+<td>✓</td>
+<td>Load custom themes</td>
+</tr>
+<tr>
+<td><code>save_theme</code></td>
+<td>themes.rs</td>
+<td>✓</td>
+<td>Save custom theme</td>
+</tr>
+<tr>
+<td><code>delete_theme</code></td>
+<td>themes.rs</td>
+<td>✓</td>
+<td>Delete custom theme</td>
+</tr>
+<tr>
+<td><code>read_study_data</code></td>
+<td>study.rs</td>
+<td>✓</td>
+<td>Load study data</td>
+</tr>
+<tr>
+<td><code>save_study_data</code></td>
+<td>study.rs</td>
+<td>✓</td>
+<td>Save study data</td>
+</tr>
+<tr>
+<td><code>normalize_path</code></td>
+<td>path.rs</td>
+<td>✗</td>
+<td>Normalize separators</td>
+</tr>
+<tr>
+<td><code>join_paths</code></td>
+<td>path.rs</td>
+<td>✗</td>
+<td>Join path segments</td>
+</tr>
+<tr>
+<td><code>search_knowledge</code></td>
+<td>knowledge</td>
+<td>✓</td>
+<td>Legacy search</td>
+</tr>
+<tr>
+<td><code>get_chunk</code></td>
+<td>knowledge</td>
+<td>✓</td>
+<td>Get chunk by ID</td>
+</tr>
+<tr>
+<td><code>rebuild_knowledge_index</code></td>
+<td>knowledge</td>
+<td>✓</td>
+<td>Rebuild index</td>
+</tr>
+<tr>
+<td><code>search_chunks</code></td>
+<td>knowledge</td>
+<td>✓</td>
+<td>Ranked search</td>
+</tr>
+<tr>
+<td><code>get_topics</code></td>
+<td>knowledge</td>
+<td>✓</td>
+<td>Get topic map</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="../architecture/">Architecture</a> - System overview</li>
+<li><a href="../knowledge-pipeline/">Knowledge Pipeline</a> - Indexing system details</li>
+<li><a href="../contributing/">Contributing</a> - Development guidelines</li>
+</ul>
 
 
 
