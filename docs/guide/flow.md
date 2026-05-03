@@ -6,6 +6,8 @@ Welcome to the Hibiscus application flow guide. This document provides a compreh
 
 Hibiscus is a local-first study workspace. It is designed to act as a central hub for all your study materials—whether they are markdown notes, plain text files, or heavier documents like PDFs and DOCXs. The entire system is built around a non-destructive, background-indexing architecture that makes your notes instantly searchable without modifying your original files.
 
+![Hibiscus Backlinks Demo](../assets/Hibiscus%20Backlinks%20Demo.gif)
+
 ---
 
 ## Setting Up Your Workspace
