@@ -42,8 +42,24 @@ When you configure a directory as your **workspace**, Hibiscus drops a hidden `.
 
 ## Next Steps
 
-- Master the [Multi-File Editor](multi-file-editor.md) for efficient workflow management.
-- Learn how to navigate the app rapidly with [Keyboard Shortcuts](shortcuts.md).
-- Explore the [Knowledge Graph](knowledge-graph.md) to visualize connections between your notes.
-- Personalize your editor using [Theming](theming.md).
-- Discover powerful search capabilities with the [Search System](search.md).
+### Core Workflow
+- Understand the [Workbench Layout](workbench.md) - IDE-style panel system
+- Master the [Multi-File Editor](multi-file-editor.md) for efficient workflow management
+- Learn the [File Explorer](file-tree.md) - Navigate and organize your workspace
+- Discover the [Editor System](editor.md) - Monaco features and markdown preview
+
+### Productivity Features  
+- Schedule with the [Calendar & Daily Planner](calendar.md)
+- Study effectively with [Study Tools](study-tools.md) - Pomodoro, flashcards, stats
+- Navigate rapidly with [Keyboard Shortcuts](shortcuts.md)
+- Explore the [Knowledge Graph](knowledge-graph.md) - Visualize note connections
+- Search everything with the [Search System](search.md)
+
+### Customization
+- Personalize appearance with [Theming](theming.md)
+- Create custom themes with the [Theme Editor](theme-editor.md)
+- Master the [Status Bar](status-bar.md) - Quick controls and indicators
+
+### Development
+- Understand [Application Flow](flow.md) - How Hibiscus works
+- Review [Developer Documentation](../dev/architecture.md) for technical details

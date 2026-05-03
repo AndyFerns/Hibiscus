@@ -32,3 +32,62 @@ Hibiscus stands apart by rejecting the trend of bloated, cloud-dependent workspa
 ## Quick Start
 
 Ready to dive in? Head over to the [Getting Started Guide](guide/getting-started.md) to set up your environment or download the latest release!
+
+---
+
+## User Documentation
+
+### Core Features
+- **[Getting Started](guide/getting-started.md)** - Installation, setup, and core concepts
+- **[Workbench Layout](guide/workbench.md)** - Understanding the IDE-style panel system
+- **[File Explorer](guide/file-tree.md)** - Navigating and organizing your workspace
+- **[Multi-File Editor](guide/multi-file-editor.md)** - Working with tabs and multiple files
+- **[Editor System](guide/editor.md)** - Monaco integration and markdown preview
+
+### Productivity Tools
+- **[Calendar & Daily Planner](guide/calendar.md)** - Scheduling, events, and task management
+- **[Study Tools](guide/study-tools.md)** - Pomodoro, flashcards, notes synthesis, statistics
+- **[Search System](guide/search.md)** - Finding content across your workspace
+- **[Knowledge Graph](guide/knowledge-graph.md)** - Visualizing note connections
+- **[Modal System](guide/modal-system.md)** - File creation dialogs
+
+### Customization
+- **[Theming System](guide/theming.md)** - Built-in themes and CSS variables
+- **[Theme Editor](guide/theme-editor.md)** - Creating custom color schemes
+- **[Status Bar](guide/status-bar.md)** - Layout controls and quick actions
+- **[Keyboard Shortcuts](guide/shortcuts.md)** - Complete shortcut reference
+
+### Workflow
+- **[Application Flow](guide/flow.md)** - Understanding the Hibiscus workflow
+
+---
+
+## Developer Documentation
+
+### Architecture
+- **[System Architecture](dev/architecture.md)** - Frontend/backend design
+- **[React Hooks](dev/hooks.md)** - Controller hooks and state management
+- **[Icon System](dev/icon-system.md)** - Centralized icon management
+
+### Backend & APIs
+- **[API Reference](dev/api-reference.md)** - Complete Tauri command reference
+- **[Knowledge Pipeline](dev/knowledge-pipeline.md)** - Indexing system architecture
+- **[Knowledge Graph Architecture](dev/knowledge-graph-architecture.md)** - Graph implementation
+
+### Contributing
+- **[Contributing Guide](dev/contributing.md)** - Development setup and guidelines
+
+---
+
+## Documentation Overview
+
+| Topic | Guide | Developer |
+|-------|-------|-----------|
+| Installation | [Getting Started](guide/getting-started.md) | [Contributing](dev/contributing.md) |
+| File Management | [File Tree](guide/file-tree.md), [Editor](guide/editor.md) | [API](dev/api-reference.md#file-operations) |
+| Calendar | [Calendar](guide/calendar.md) | [API](dev/api-reference.md#calendar-operations) |
+| Search | [Search](guide/search.md) | [Pipeline](dev/knowledge-pipeline.md) |
+| Knowledge Graph | [User Guide](guide/knowledge-graph.md) | [Architecture](dev/knowledge-graph-architecture.md) |
+| Theming | [Theming](guide/theming.md), [Editor](guide/theme-editor.md) | [API](dev/api-reference.md#theme-operations) |
+| Study Tools | [Study Tools](guide/study-tools.md) | [Hooks](dev/hooks.md#usepomodoro) |
+| Layout | [Workbench](guide/workbench.md), [Status Bar](guide/status-bar.md) | [Hooks](dev/hooks.md) |
