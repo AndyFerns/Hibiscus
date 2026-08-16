@@ -709,6 +709,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Supported Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binary-document-viewers-pdf-docx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binary Document Viewers (PDF &amp; DOCX)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-binary-files-are-read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why binary files are read-only
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -719,6 +747,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Markdown Preview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extract-to-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extract to Note
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1948,30 +1993,56 @@
 <tr>
 <td>Markdown</td>
 <td><code>.md</code>, <code>.markdown</code></td>
-<td>Editor + Preview</td>
+<td>Editor + Live preview</td>
 </tr>
 <tr>
 <td>Text</td>
 <td><code>.txt</code></td>
-<td>Editor only</td>
+<td>Editor with syntax highlight</td>
 </tr>
 <tr>
 <td>Code</td>
-<td><code>.js</code>, <code>.py</code>, <code>.rs</code>, etc.</td>
+<td><code>.js</code>, <code>.ts</code>, <code>.py</code>, <code>.rs</code>, etc.</td>
 <td>Editor with syntax highlight</td>
 </tr>
 <tr>
 <td>PDF</td>
 <td><code>.pdf</code></td>
-<td>Native viewer (planned)</td>
+<td>Paginated viewer (all pages)</td>
+</tr>
+<tr>
+<td>DOCX</td>
+<td><code>.docx</code></td>
+<td>Styled document viewer</td>
 </tr>
 <tr>
 <td>Images</td>
-<td><code>.png</code>, <code>.jpg</code>, etc.</td>
-<td>Image preview (planned)</td>
+<td><code>.png</code>, <code>.jpg</code>, <code>.gif</code>, <code>.svg</code>, etc.</td>
+<td>Native image preview</td>
 </tr>
 </tbody>
 </table>
+<h4 id="binary-document-viewers-pdf-docx">Binary Document Viewers (PDF &amp; DOCX)</h4>
+<p>PDF and DOCX files are <strong>read-only</strong> in Hibiscus — they open in a dedicated viewer rather than Monaco. A toolbar above each viewer shows a <strong>"Read-only"</strong> badge and an <strong>"Extract to Note"</strong> button.</p>
+<p><strong>PDF viewer:</strong>
+- Renders all pages in a vertical scroll, each in its own framed canvas.
+- Sized to the actual container width via <code>ResizeObserver</code> (previously used <code>window.innerWidth</code>, which broke in narrower layouts).
+- Reloads automatically when the file changes on disk.
+- Page labels (<code>Page 1</code>, <code>Page 2</code>, …) match the section headings used in the knowledge index, so search results and viewer stay in sync.</p>
+<p><strong>DOCX viewer:</strong>
+- Converts the document to HTML using <code>mammoth.js</code> in the frontend.
+- The raw mammoth output is sanitised through <code>DOMParser</code> before rendering: <code>&lt;script&gt;</code> tags, <code>on*</code> event attributes, and <code>javascript:</code> / <code>data:text/html</code> URIs are stripped. No external sanitiser library required.
+- Styled as a page-column layout (<code>max-width: 72ch</code>) via <code>FileRenderer.css</code> CSS variables — fully themed with the rest of the app.
+- Cache invalidated on <code>fs-changed</code> events: if you edit the file in Word and save, reopening or switching back to the tab shows the updated content.</p>
+<h4 id="why-binary-files-are-read-only">Why binary files are read-only</h4>
+<p>Monaco is kept mounted and hidden at all times (it must never unmount, to avoid the persistent corruption bug). This means it is bound to whatever buffer is in memory for the active file, including the empty placeholder for PDFs and DOCX files. Multiple code paths in <code>useEditorController</code> could previously reach <code>write_text_file</code> with that empty buffer — silently zeroing the document:</p>
+<ul>
+<li>Auto-save (1 s debounce after any <code>onChange</code> event, even from Monaco while hidden)</li>
+<li>"Save As" (wrote the buffer instead of copying bytes)</li>
+<li>Unmount handler (flushed all dirty buffers)</li>
+<li>Session restore (reloaded all paths as text, discarding the binary file's tab)</li>
+</ul>
+<p>Every one of these paths now checks <code>isBinaryFile(path)</code> and bails out early. <code>copy_file</code> is used for binary Save As. Regression tests in <code>tests/binaryFileSafety.test.ts</code> cover all failure modes.</p>
 <h3 id="markdown-preview">Markdown Preview</h3>
 <p>Toggle markdown preview with <code>Ctrl+Shift+V</code>:</p>
 <p><strong>Features:</strong>
@@ -1984,28 +2055,35 @@
 - Scroll sync (editor ↔ preview) (planned)
 - Export to HTML (planned)
 - Print-friendly styling</p>
+<h4 id="extract-to-note">Extract to Note</h4>
+<p>The <strong>"Extract to Note"</strong> button in the document toolbar triggers the <code>extract_document_to_note</code> Tauri command. It runs the full knowledge parser (same one the indexer uses) and writes a structured Markdown file alongside the original document:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>document.pdf         →   document-note.md   (or document-note-2.md if that exists)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>research.docx        →   research-note.md
+</code></pre></div>
+<p>The resulting note has YAML frontmatter recording the source path, and the body preserves the heading structure extracted from the document (page numbers for PDFs, Word heading styles for DOCX). The indexer picks it up immediately as a regular note, making it searchable, linkable, and visible in the graph. This is the recommended path if you need to add wiki-links or annotations to a PDF or DOCX — edit the note, not the original.</p>
+<hr />
 <h3 id="file-loading-states">File Loading States</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Loading...     → Reading file from disk
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Parsing...     → Determining file type
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Rendering...   → Setting up editor model
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Ready          → Editor ready for input
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Loading...     → Reading file from disk
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Parsing...     → Determining file type
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Rendering...   → Setting up editor model
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Ready          → Editor ready for input
 </code></pre></div>
 <hr />
 <h2 id="monaco-integration">Monaco Integration</h2>
 <h3 id="editor-configuration">Editor Configuration</h3>
 <p>The editor is configured via <code>editorConfig.ts</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">defaultEditorOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">fontSize</span><span class="o">:</span><span class="w"> </span><span class="kt">14</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">fontFamily</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&#39;JetBrains Mono&#39;, &#39;Fira Code&#39;, monospace&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">minimap</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enabled</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nx">wordWrap</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;on&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nx">lineNumbers</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;on&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nx">automaticLayout</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nx">scrollBeyondLastLine</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nx">renderWhitespace</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;selection&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nx">tabSize</span><span class="o">:</span><span class="w"> </span><span class="kt">2</span><span class="p">,</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nx">insertSpaces</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">defaultEditorOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">fontSize</span><span class="o">:</span><span class="w"> </span><span class="kt">14</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">fontFamily</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&#39;JetBrains Mono&#39;, &#39;Fira Code&#39;, monospace&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">minimap</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">enabled</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">wordWrap</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;on&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nx">lineNumbers</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;on&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nx">automaticLayout</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nx">scrollBeyondLastLine</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nx">renderWhitespace</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;selection&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">tabSize</span><span class="o">:</span><span class="w"> </span><span class="kt">2</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="nx">insertSpaces</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="theme-adaptation">Theme Adaptation</h3>
 <p>Monaco themes are dynamically generated from Hibiscus CSS variables:</p>
@@ -2015,21 +2093,21 @@
 3. Apply via <code>editor.defineTheme()</code>
 4. Update when Hibiscus theme changes</p>
 <p><strong>Example Adaptation:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// CSS variables → Monaco theme</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">theme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">base</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;vs-dark&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">inherit</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">rules</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.textPrimary</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.textMuted</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;keyword&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.accent</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="p">],</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">colors</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="s2">&quot;editor.background&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">bgPrimary</span><span class="p">,</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="s2">&quot;editor.foreground&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">textPrimary</span><span class="p">,</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="s2">&quot;editor.lineHighlightBackground&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">bgSecondary</span><span class="p">,</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// CSS variables → Monaco theme</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">theme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">base</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;vs-dark&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">inherit</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nx">rules</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.textPrimary</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.textMuted</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;keyword&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">foreground</span><span class="o">:</span><span class="w"> </span><span class="kt">css.accent</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nx">colors</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="s2">&quot;editor.background&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">bgPrimary</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="s2">&quot;editor.foreground&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">textPrimary</span><span class="p">,</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="s2">&quot;editor.lineHighlightBackground&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">css</span><span class="p">.</span><span class="nx">bgSecondary</span><span class="p">,</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="p">}</span>
 </code></pre></div></p>
 <hr />
 <h2 id="tab-bar-integration">Tab Bar Integration</h2>
@@ -2068,11 +2146,11 @@
 </ul>
 <h3 id="save-strategy">Save Strategy</h3>
 <p>Files are saved atomically to prevent corruption:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Write to temp file: .filename.hibiscus-save~
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>2. Sync to disk
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>3. Delete original (Windows)
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>4. Rename temp to original
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>5. Cleanup on any failure
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>1. Write to temp file: .filename.hibiscus-save~
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>2. Sync to disk
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>3. Delete original (Windows)
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>4. Rename temp to original
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>5. Cleanup on any failure
 </code></pre></div>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
@@ -2146,13 +2224,13 @@
 <hr />
 <h2 id="cursor-position-tracking">Cursor Position Tracking</h2>
 <p>The editor tracks cursor position for the status bar:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">CursorPosition</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nx">line</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">      </span><span class="c1">// 1-indexed line number</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nx">column</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 1-indexed column number</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">CursorPosition</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">line</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">      </span><span class="c1">// 1-indexed line number</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">column</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w">    </span><span class="c1">// 1-indexed column number</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>Status Bar Display:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Ln 42, Col 7
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Ln 42, Col 7
 </code></pre></div></p>
 <hr />
 <h2 id="file-change-detection">File Change Detection</h2>
@@ -2166,14 +2244,14 @@
 </ol>
 <h3 id="conflict-resolution">Conflict Resolution</h3>
 <p>For conflicts between disk and buffer:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>┌─────────────────────────────────────────┐
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>│  File Changed on Disk                   │
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├─────────────────────────────────────────┤
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│  &quot;notes.md&quot; was modified by another     │
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│  program. What would you like to do?   │
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│                                          │
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│  [Keep Current]  [Reload from Disk]      │
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>└─────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>┌─────────────────────────────────────────┐
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>│  File Changed on Disk                   │
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─────────────────────────────────────────┤
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>│  &quot;notes.md&quot; was modified by another     │
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>│  program. What would you like to do?   │
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>│                                          │
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│  [Keep Current]  [Reload from Disk]      │
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>└─────────────────────────────────────────┘
 </code></pre></div>
 <hr />
 <h2 id="error-handling">Error Handling</h2>

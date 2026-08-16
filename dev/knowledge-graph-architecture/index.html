@@ -1322,6 +1322,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="System Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-each-layer-owns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What each layer owns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1427,10 +1444,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rendering-pipeline" class="md-nav__link">
+  <a href="#node-visual-encoding" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rendering Pipeline
+        Node Visual Encoding
       
     </span>
   </a>
@@ -1438,10 +1455,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#visual-features" class="md-nav__link">
+  <a href="#drag-behaviour-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Visual Features
+        Drag Behaviour Fix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fit-relayout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fit / Relayout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legend
       
     </span>
   </a>
@@ -2053,13 +2092,41 @@
 <h1 id="knowledge-graph-architecture">Knowledge Graph Architecture</h1>
 <p>This document details the technical architecture of Hibiscus's knowledge graph system, including data structures, algorithms, and integration patterns.</p>
 <h2 id="system-overview">System Overview</h2>
-<p>The knowledge graph system is a client-side React-based implementation that provides:</p>
-<ul>
-<li>Real-time wiki-link parsing and indexing</li>
-<li>Incremental graph updates</li>
-<li>Force-directed visualization</li>
-<li>Backlink tracking</li>
-</ul>
+<p>The knowledge graph system has two cooperating layers:</p>
+<p><strong>Backend (canonical source of truth)</strong>: The Rust pipeline indexes all files — Markdown, plain text, PDF, and DOCX — into a persisted, content-addressable chunk store. Graph nodes and backlink maps are derived from this store and surfaced via <code>get_knowledge_graph</code> and <code>get_backlinks</code> Tauri commands. This data survives restarts and reflects the full workspace including binary document content.</p>
+<p><strong>Frontend (live in-editor layer)</strong>: <code>useKnowledgeIndex</code> continues to provide real-time wiki-link and tag parsing for the active buffer while the user types, driving live backlink counts before a file is saved. It is intentionally scoped to Markdown and should not be used as the graph or backlinks data source.</p>
+<p><code>useBackendKnowledge</code> is the correct hook for any component that consumes the graph or backlinks. It replaces a previous 5-second polling interval with reactive <code>fs-changed</code> / <code>knowledge-updated</code> event listeners, meaning the graph updates within ~600ms of a file save rather than on a fixed schedule.</p>
+<h3 id="what-each-layer-owns">What each layer owns</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Layer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Graph visualization data</td>
+<td>Backend (<code>get_knowledge_graph</code>)</td>
+</tr>
+<tr>
+<td>Backlinks panel data</td>
+<td>Backend (<code>get_backlinks</code>)</td>
+</tr>
+<tr>
+<td>Search results</td>
+<td>Backend (<code>search_chunks</code>)</td>
+</tr>
+<tr>
+<td>Live wiki-link highlighting in editor</td>
+<td>Frontend (<code>useKnowledgeIndex</code>)</td>
+</tr>
+<tr>
+<td>PDF / DOCX content in graph</td>
+<td>Backend only</td>
+</tr>
+</tbody>
+</table>
 <h2 id="core-components">Core Components</h2>
 <h3 id="1-knowledge-index-useknowledgeindex">1. Knowledge Index (<code>useKnowledgeIndex</code>)</h3>
 <p>The central hook that maintains the knowledge state.</p>
@@ -2104,47 +2171,85 @@
 <li><strong>Deduplication</strong>: Set-based edge filtering</li>
 </ul>
 <h3 id="3-graph-visualization-knowledgegraphview">3. Graph Visualization (<code>KnowledgeGraphView</code>)</h3>
-<p>Full-screen force-directed graph component using react-force-graph-2d.</p>
-<h4 id="rendering-pipeline">Rendering Pipeline</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Node sizing based on degree</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">getNodeRadius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">node</span><span class="o">:</span><span class="w"> </span><span class="kt">FGNode</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">node</span><span class="p">.</span><span class="nx">degree</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">maxDegree</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">MIN_NODE_RADIUS</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="nx">MAX_NODE_RADIUS</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">MIN_NODE_RADIUS</span><span class="p">)</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
-</code></pre></div>
-<h4 id="visual-features">Visual Features</h4>
-<ul>
-<li><strong>Canvas Rendering</strong>: Hardware-accelerated performance</li>
-<li><strong>Theme Integration</strong>: CSS variable-driven colors</li>
-<li><strong>Responsive Design</strong>: ResizeObserver-based layout</li>
-<li><strong>Interactive Controls</strong>: Zoom, pan, node dragging</li>
-</ul>
+<p>Full-screen force-directed graph component using <code>react-force-graph-2d</code>. Canvas-rendered via D3 with custom <code>nodeCanvasObject</code> for all node drawing.</p>
+<h4 id="node-visual-encoding">Node Visual Encoding</h4>
+<p>Nodes encode file type through <strong>both colour and shape</strong> so they remain distinguishable in colour-blind contexts and at small sizes.</p>
+<table>
+<thead>
+<tr>
+<th>File type</th>
+<th>Colour</th>
+<th>Shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Markdown</td>
+<td>Blue (<code>#7aa2f7</code>)</td>
+<td>Circle</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>Red (<code>#f7768e</code>)</td>
+<td>Diamond</td>
+</tr>
+<tr>
+<td>DOCX / Word</td>
+<td>Green (<code>#9ece6a</code>)</td>
+<td>Square</td>
+</tr>
+<tr>
+<td>Plain text</td>
+<td>Yellow (<code>#e0af68</code>)</td>
+<td>Triangle</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>Muted (<code>#565f89</code>)</td>
+<td>Hexagon</td>
+</tr>
+</tbody>
+</table>
+<p>High-degree "hub" nodes render with an additional ring at 130% radius. Orphan nodes (zero connections) render hollow to visually distinguish them from connected nodes. Hovered edges turn amber (<code>#f5a623</code>).</p>
+<h4 id="drag-behaviour-fix">Drag Behaviour Fix</h4>
+<p>A previous bug caused the simulation to explode when a node was dragged — all non-dragged nodes would zoom out and leave the viewport. This was fixed by:
+1. Setting <code>alphaTarget(0.3)</code> on drag start (prevents the simulation from cooling) and resetting to <code>0</code> on release.
+2. Capping <code>d3ManyBodyStrength</code> and constraining forces so the simulation energy stays bounded.
+3. Tracking a <code>isDraggingRef</code> flag to suppress camera re-centering while a drag is active.</p>
+<h4 id="fit-relayout">Fit / Relayout</h4>
+<p>Two toolbar buttons in the graph header:
+- <strong>Fit</strong> — calls <code>zoomToFit()</code> with a guard for <code>prefers-reduced-motion</code> (skips animation if the user has it enabled).
+- <strong>Relayout</strong> — reheats the simulation (<code>alpha(1)</code>) to re-run the force layout from the current positions, useful when nodes have drifted after a large graph update.</p>
+<h4 id="legend">Legend</h4>
+<p>A collapsible legend panel (bottom-left) lists each file-type category with its matching colour swatch and shape glyph rendered as inline SVG. The legend collapses to a single toggle button to free viewport space on small screens.</p>
 <h4 id="physics-configuration">Physics Configuration</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">d3AlphaDecay</span><span class="o">:</span><span class="w"> </span><span class="kt">0.02</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">d3VelocityDecay</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">warmupTicks</span><span class="o">:</span><span class="w"> </span><span class="kt">50</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nx">cooldownTicks</span><span class="o">:</span><span class="w"> </span><span class="kt">200</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">d3AlphaDecay</span><span class="o">:</span><span class="w"> </span><span class="kt">0.02</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">d3VelocityDecay</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">d3ManyBodyStrength</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">120</span><span class="p">,</span><span class="w">  </span><span class="c1">// bounded to prevent explosion</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">warmupTicks</span><span class="o">:</span><span class="w"> </span><span class="kt">50</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nx">cooldownTicks</span><span class="o">:</span><span class="w"> </span><span class="kt">200</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="4-backlinks-panel-backlinkspanel">4. Backlinks Panel (<code>BacklinksPanel</code>)</h3>
-<p>Displays incoming links to the current note.</p>
+<p>Displays incoming links to the current file.</p>
 <h4 id="data-flow">Data Flow</h4>
 <ol>
-<li><strong>Current Path</strong>: Monitors active file</li>
-<li><strong>Backlink Lookup</strong>: Retrieves from <code>index.backlinks</code></li>
-<li><strong>UI Rendering</strong>: Lists clickable backlink sources</li>
-<li><strong>Navigation</strong>: Opens source notes on click</li>
+<li><strong>Current Path</strong>: Receives the active file path as a prop.</li>
+<li><strong>Backlink Lookup</strong>: Receives a pre-resolved <code>string[]</code> of source paths — the component no longer touches <code>KnowledgeIndex</code> directly. The resolved list comes from <code>useBackendKnowledge().backlinks[activePath]</code>.</li>
+<li><strong>UI Rendering</strong>: Lists clickable backlink sources with filename display.</li>
+<li><strong>Navigation</strong>: Calls <code>onOpenFile</code> to open the source note on click.</li>
 </ol>
+<p>This consolidation means there is one place (<code>App.tsx</code> via <code>useBackendKnowledge</code>) that owns backlink resolution, rather than two competing sources.</p>
 <h2 id="data-flow-architecture">Data Flow Architecture</h2>
 <h3 id="initialization-flow">Initialization Flow</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Workspace Files → flattenFiles() → parseNote() → buildIndex() → GraphData
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Workspace Files → flattenFiles() → parseNote() → buildIndex() → GraphData
 </code></pre></div>
 <h3 id="update-flow">Update Flow</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>File Change → updateNote() → Backlink Update → Version Increment → Re-render
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>File Change → updateNote() → Backlink Update → Version Increment → Re-render
 </code></pre></div>
 <h3 id="rendering-flow">Rendering Flow</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>KnowledgeIndex → buildGraph() → GraphData → ForceGraph2D → Canvas
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>KnowledgeIndex → buildGraph() → GraphData → ForceGraph2D → Canvas
 </code></pre></div>
 <h2 id="performance-optimizations">Performance Optimizations</h2>
 <h3 id="1-incremental-updates">1. Incremental Updates</h3>
@@ -2167,25 +2272,25 @@
 </ul>
 <h2 id="integration-patterns">Integration Patterns</h2>
 <h3 id="editor-integration">Editor Integration</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// File buffer monitoring</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">buffersRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useRef</span><span class="o">&lt;</span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">FileBuffer</span><span class="o">&gt;&gt;</span><span class="p">()</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1">// Incremental updates on content change</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="c1">// Update single note in index</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// File buffer monitoring</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">buffersRef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useRef</span><span class="o">&lt;</span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">FileBuffer</span><span class="o">&gt;&gt;</span><span class="p">()</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// Incremental updates on content change</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="c1">// Update single note in index</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
 </code></pre></div>
 <h3 id="theme-system-integration">Theme System Integration</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Dynamic color resolution</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">colors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useMemo</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getComputedStyle</span><span class="p">(</span><span class="nx">root</span><span class="p">)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nx">bg</span><span class="o">:</span><span class="w"> </span><span class="kt">style.getPropertyValue</span><span class="p">(</span><span class="s2">&quot;--editor-bg&quot;</span><span class="p">).</span><span class="nx">trim</span><span class="p">(),</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nx">accent</span><span class="o">:</span><span class="w"> </span><span class="kt">style.getPropertyValue</span><span class="p">(</span><span class="s2">&quot;--accent&quot;</span><span class="p">).</span><span class="nx">trim</span><span class="p">(),</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="c1">// ... other theme colors</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">fgData</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// Dynamic color resolution</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">colors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useMemo</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">getComputedStyle</span><span class="p">(</span><span class="nx">root</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nx">bg</span><span class="o">:</span><span class="w"> </span><span class="kt">style.getPropertyValue</span><span class="p">(</span><span class="s2">&quot;--editor-bg&quot;</span><span class="p">).</span><span class="nx">trim</span><span class="p">(),</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nx">accent</span><span class="o">:</span><span class="w"> </span><span class="kt">style.getPropertyValue</span><span class="p">(</span><span class="s2">&quot;--accent&quot;</span><span class="p">).</span><span class="nx">trim</span><span class="p">(),</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="c1">// ... other theme colors</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="p">},</span><span class="w"> </span><span class="p">[</span><span class="nx">fgData</span><span class="p">])</span>
 </code></pre></div>
 <h3 id="search-system-integration">Search System Integration</h3>
 <ul>
@@ -2194,41 +2299,42 @@
 <li><strong>Navigation</strong>: Jump from search to graph nodes</li>
 </ul>
 <h2 id="file-structure">File Structure</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>src/features/knowledge/
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>├── KnowledgeGraphView.tsx    # Main graph component
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>├── buildGraph.ts             # Graph data builder
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>├── useKnowledgeIndex.ts      # Core indexing hook
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>├── BacklinksPanel.tsx        # Backlinks UI
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>├── KnowledgeGraph.css        # Graph-specific styles
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>└── BacklinksPanel.css        # Backlinks styles
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>src/features/knowledge/
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├── KnowledgeGraphView.tsx    # Main graph component (canvas, legend, toolbar)
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>├── KnowledgeGraph.css        # Graph-specific styles + legend
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>├── buildGraph.ts             # Graph data builder (GraphData type)
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>├── useKnowledgeIndex.ts      # Frontend-only live indexing (editor use only)
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>├── useBackendKnowledge.ts    # Canonical backend graph + backlinks hook
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>├── BacklinksPanel.tsx        # Backlinks UI (receives resolved string[])
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>└── BacklinksPanel.css        # Backlinks styles
 </code></pre></div>
 <h2 id="algorithm-details">Algorithm Details</h2>
 <h3 id="link-resolution-algorithm">Link Resolution Algorithm</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">resolveLinks</span><span class="p">(</span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">IndexedNote</span><span class="o">&gt;</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">backlinks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">()</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">nameToPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="o">&gt;</span><span class="p">()</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="c1">// Build name→path lookup</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">notes</span><span class="p">.</span><span class="nx">entries</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nx">nameToPath</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">(),</span><span class="w"> </span><span class="nx">path</span><span class="p">)</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="c1">// Resolve each note&#39;s links</span>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">sourcePath</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">notes</span><span class="p">.</span><span class="nx">entries</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">linkTarget</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">note</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">targetPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">nameToPath</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">())</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">targetPath</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">targetPath</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">sourcePath</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">        </span><span class="c1">// Add backlink entry</span>
-<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">existing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">backlinks</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">targetPath</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">[]</span>
-<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">existing</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="nx">sourcePath</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">          </span><span class="nx">backlinks</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">targetPath</span><span class="p">,</span><span class="w"> </span><span class="p">[...</span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="nx">sourcePath</span><span class="p">])</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>
-<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">backlinks</span>
-<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">resolveLinks</span><span class="p">(</span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">IndexedNote</span><span class="o">&gt;</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">backlinks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">()</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">nameToPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="o">&gt;</span><span class="p">()</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="c1">// Build name→path lookup</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">notes</span><span class="p">.</span><span class="nx">entries</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nx">nameToPath</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">(),</span><span class="w"> </span><span class="nx">path</span><span class="p">)</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="c1">// Resolve each note&#39;s links</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">sourcePath</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">]</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">notes</span><span class="p">.</span><span class="nx">entries</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">linkTarget</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">note</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">targetPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">nameToPath</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">linkTarget</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">())</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">targetPath</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">targetPath</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">sourcePath</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">        </span><span class="c1">// Add backlink entry</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">existing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">backlinks</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">targetPath</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">[]</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">existing</span><span class="p">.</span><span class="nx">includes</span><span class="p">(</span><span class="nx">sourcePath</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">          </span><span class="nx">backlinks</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">targetPath</span><span class="p">,</span><span class="w"> </span><span class="p">[...</span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="nx">sourcePath</span><span class="p">])</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">backlinks</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="graph-layout-algorithm">Graph Layout Algorithm</h3>
 <p>Uses D3's force simulation with custom tuning:</p>
@@ -2240,31 +2346,31 @@
 </ul>
 <h2 id="state-management">State Management</h2>
 <h3 id="react-state-pattern">React State Pattern</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">setIndex</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="o">&lt;</span><span class="nx">KnowledgeIndex</span><span class="o">&gt;</span><span class="p">({</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(),</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nx">backlinks</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(),</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">0</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">index</span><span class="p">,</span><span class="w"> </span><span class="nx">setIndex</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useState</span><span class="o">&lt;</span><span class="nx">KnowledgeIndex</span><span class="o">&gt;</span><span class="p">({</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(),</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="nx">backlinks</span><span class="o">:</span><span class="w"> </span><span class="kt">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(),</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">0</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">})</span>
 </code></pre></div>
 <h3 id="update-pattern">Update Pattern</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nx">setIndex</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">notes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(</span><span class="nx">prev</span><span class="p">.</span><span class="nx">notes</span><span class="p">)</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">backlinks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(</span><span class="nx">prev</span><span class="p">.</span><span class="nx">backlinks</span><span class="p">)</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="c1">// Remove old backlinks</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="nx">removeBacklinksFrom</span><span class="p">(</span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">)</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span><span class="c1">// Parse updated content</span>
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">note</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseNote</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="p">)</span>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="nx">notes</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">)</span>
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">    </span><span class="c1">// Add new backlinks</span>
-<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">    </span><span class="nx">addBacklinksFrom</span><span class="p">(</span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">notes</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span>
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>
-<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">notes</span><span class="p">,</span><span class="w"> </span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">prev.version</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">  </span><span class="p">})</span>
-<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">updateNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">useCallback</span><span class="p">((</span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nx">setIndex</span><span class="p">(</span><span class="nx">prev</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">notes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(</span><span class="nx">prev</span><span class="p">.</span><span class="nx">notes</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">backlinks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="p">(</span><span class="nx">prev</span><span class="p">.</span><span class="nx">backlinks</span><span class="p">)</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="c1">// Remove old backlinks</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="nx">removeBacklinksFrom</span><span class="p">(</span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">)</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="c1">// Parse updated content</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">note</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">parseNote</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="nx">notes</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">)</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="c1">// Add new backlinks</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="nx">addBacklinksFrom</span><span class="p">(</span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">notes</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">note</span><span class="p">.</span><span class="nx">links</span><span class="p">)</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">notes</span><span class="p">,</span><span class="w"> </span><span class="nx">backlinks</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">prev.version</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">  </span><span class="p">})</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="p">},</span><span class="w"> </span><span class="p">[])</span>
 </code></pre></div>
 <h2 id="error-handling">Error Handling</h2>
 <h3 id="graceful-degradation">Graceful Degradation</h3>
@@ -2301,10 +2407,9 @@
 <h2 id="future-extensibility">Future Extensibility</h2>
 <h3 id="planned-enhancements">Planned Enhancements</h3>
 <ul>
-<li><strong>File Type Support</strong>: PDF, DOCX integration</li>
 <li><strong>Advanced Layout</strong>: Hierarchical and clustering layouts</li>
-<li><strong>Link Types</strong>: Differentiated link relationships</li>
-<li><strong>Graph Analytics</strong>: Connection metrics and insights</li>
+<li><strong>Link Types</strong>: Differentiated link relationships (citation vs. reference vs. embed)</li>
+<li><strong>Graph Analytics</strong>: Connection metrics and insights (PageRank, community detection)</li>
 </ul>
 <h3 id="architecture-preparedness">Architecture Preparedness</h3>
 <ul>

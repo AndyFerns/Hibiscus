@@ -1350,6 +1350,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Parser System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a New Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1390,6 +1407,17 @@
     <span class="md-ellipsis">
       
         8. Query API &amp; Caching Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregate-rebuild-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregate Rebuild Performance
       
     </span>
   </a>
@@ -1604,19 +1632,28 @@
 <p><code>Watcher -&gt; Debounced Queue -&gt; Worker Pool -&gt; Parser -&gt; Chunker -&gt; Indexer -&gt; Storage -&gt; Query API</code></p>
 <h3 id="1-watcher">1. Watcher</h3>
 <p>The filesystem watcher monitors your workspace root for any <code>Create</code>, <code>Modify</code>, or <code>Delete</code> events affecting <code>.md</code>, <code>.txt</code>, <code>.pdf</code>, and <code>.docx</code> files. These events are immediately forwarded to the knowledge queue.</p>
+<p><strong>Initial Scan on Open</strong>: When a workspace is first opened, <code>watch_workspace</code> now triggers <code>initial_scan()</code> automatically in a background thread before processing live events. This means the knowledge base, graph, and topic map are populated immediately on open — previously the index stayed empty until the user manually edited each file, because the pipeline was purely event-driven with no bootstrapping step.</p>
+<p>During the scan, the watcher emits two Tauri events the frontend can listen for:</p>
+<ul>
+<li><code>knowledge-indexing</code> (payload: <code>bool</code>) — <code>true</code> when the scan starts, <code>false</code> when it finishes.</li>
+<li><code>knowledge-updated</code> — fired once after the scan completes to trigger a graph/search refetch.</li>
+</ul>
+<p><code>useBackendKnowledge</code> subscribes to both events and exposes an <code>indexing</code> state flag you can wire to a loading indicator.</p>
 <h3 id="2-debounced-queue">2. Debounced Queue</h3>
 <p>To prevent redundant processing (e.g., rapid consecutive saves), events are debounced and deduplicated inside a queue. A batch is formed over a small time window and dispatched as a single unit to the worker pool.</p>
 <h3 id="3-worker-pool">3. Worker Pool</h3>
 <p>An asynchronous Tokio-based worker pool processes the batched events. Concurrency is bounded by the available CPU cores to prevent system starvation. Each file is processed entirely independently of others. 
 <strong>Ingestion Priorities</strong>: Extremely large files (e.g., &gt; 10MB) are efficiently bypassed to avoid unexpected memory spikes, ensuring background processing remains lightweight.</p>
 <h3 id="4-parser-system">4. Parser System</h3>
-<p>A trait-based parser system extracts structured sections from the raw files:</p>
+<p>A trait-based parser system (<code>Parser</code> trait in <code>knowledge/parser.rs</code>) extracts structured sections from the raw files. Each parser handles exactly one file format and returns <code>ParseError</code> on failure; the worker pool logs the error, marks the file as skipped, and moves on without halting the pipeline.</p>
 <ul>
-<li><strong>Markdown Parser</strong>: Splits documents based on ATX-style headings (<code>#</code>, <code>##</code>), capturing the heading context for each section.</li>
-<li><strong>Text Parser</strong>: Splits plain text files intelligently based on paragraph breaks.</li>
-<li><strong>PDF Parser</strong>: Uses text extraction to strip plain text from PDFs, falling back to basic paragraph heuristics.</li>
-<li><strong>DOCX Parser</strong>: Employs streaming XML parsing of <code>word/document.xml</code> for highly efficient text retrieval without loading the entire DOM.</li>
+<li><strong>Markdown Parser</strong>: Splits documents on ATX-style headings (<code>#</code>, <code>##</code>, etc.) using byte-level checks — no regex. Content before the first heading goes into a section with <code>heading: None</code>. Guarantees at least one section per file.</li>
+<li><strong>Text Parser</strong>: Splits plain text on blank-line-separated paragraphs. Simple and allocation-efficient.</li>
+<li><strong>PDF Parser</strong>: Calls <code>pdf_extract::extract_text_by_pages()</code> to extract text <strong>per page</strong>, using the page number (<code>"Page 1"</code>, <code>"Page 2"</code>, …) as each section's heading. This is intentional: a search hit in a 300-page document is useless without page provenance. Raw PDF text contains layout artifacts — hard line-breaks mid-sentence and hyphenated word-splits (<code>"knowl-\nedge"</code>) — so <code>normalize_pdf_text()</code> runs a single pass to rejoin them before chunking, otherwise those tokens never match full words in the index.</li>
+<li><strong>DOCX Parser</strong>: Opens the file as a ZIP archive and streams <code>word/document.xml</code> through <code>quick-xml</code> in event mode, never loading the full DOM. <code>&lt;w:p&gt;</code> boundaries delimit paragraphs; <code>&lt;w:pStyle&gt;</code> attributes (<code>Heading1</code>, <code>Heading 2</code>, <code>Title</code>, <code>Subtitle</code>, and localized variants) mark section boundaries. Before this was implemented, every paragraph became a heading-less section and all Word content collapsed into the "General" topic — the document structure was completely invisible to the graph and topic grouping.</li>
 </ul>
+<h4 id="adding-a-new-parser">Adding a New Parser</h4>
+<p>Implement <code>Parser</code> (two methods: <code>supports(ext) -&gt; bool</code> and <code>parse(path) -&gt; Result&lt;ParsedDocument, ParseError&gt;</code>), then add it to the dispatch table at the bottom of <code>parser_for_path()</code>. The worker pool and chunker need no changes.</p>
 <h3 id="5-chunker">5. Chunker</h3>
 <p>The chunking engine splits the parsed sections into size-bounded chunks (typically 200-500 words). It guarantees:</p>
 <ul>
@@ -1625,7 +1662,7 @@
 <li><strong>Deterministic Hashing</strong>: Each chunk receives a deterministic, content-addressable ID to easily track changes.</li>
 </ul>
 <h3 id="6-incremental-indexer-topic-extraction">6. Incremental Indexer &amp; Topic Extraction</h3>
-<p>An inverted keyword index (<code>keyword -&gt; [chunk_ids]</code>) is maintained. During processing, the indexer applies strict normalization:</p>
+<p>An inverted keyword index (<code>keyword -&gt; [chunk_ids]</code>) is maintained. During processing, the indexer applies strict normalisation:</p>
 <ul>
 <li>Keywords are lowercased and stripped of alphanumeric padding.</li>
 <li>Common English stopwords are filtered out.</li>
@@ -1634,7 +1671,7 @@
 <p><strong>TF-IDF Scored Index (Phase 2)</strong>: 
 After indexing, a lightweight TF-IDF score is precomputed for each keyword. This produces a <code>ScoredKeywordIndex</code> where <code>score = ln(1 + term_frequency) * ln(total_chunks / doc_frequency)</code>. This ensures that query-time ranking requires zero calculation.</p>
 <p><strong>Topic Grouping</strong>: 
-In parallel, a lightweight heuristic topic grouping runs, clustering chunks into topics based on heading text overlap deterministically (without relying on ML or external clustering libraries).</p>
+In parallel, a lightweight heuristic topic grouping runs, clustering chunks into topics based on heading text overlap deterministically (without relying on ML or external clustering libraries). Heading normalisation is <strong>case-insensitive and title-cased</strong>: <code>"introduction"</code> and <code>"Introduction"</code> and <code>"INTRODUCTION"</code> all resolve to the same topic <code>"Introduction"</code>. This matters especially for PDF extraction, where the same heading may appear in different capitalisation across pages.</p>
 <h3 id="7-storage-layer">7. Storage Layer</h3>
 <p>Derived data is serialized to JSON and stored locally within <code>.hibiscus/knowledge/</code>.</p>
 <ul>
@@ -1656,6 +1693,8 @@ In parallel, a lightweight heuristic topic grouping runs, clustering chunks into
 </ul>
 <p><strong>Caching</strong>:
 A custom in-memory LRU cache stores recent query results and retrieved chunks. This guarantees instant responses while typing. The cache implements an all-or-nothing invalidation strategy, seamlessly flushing stale results anytime a source file changes.</p>
+<h3 id="aggregate-rebuild-performance">Aggregate Rebuild Performance</h3>
+<p>A subtle O(n²) trap existed in the initial scan: <code>rebuild_note_metadata()</code>, <code>rebuild_scored_index()</code>, and <code>build_topic_map()</code> were each called after every individual file, so scanning 1000 files meant 3000 full-index rebuilds. These are now consolidated into a single <code>rebuild_aggregates(workspace_root, changed_file)</code> call that is <strong>deferred</strong> during batch scans and executed exactly once at the end. For live file-change events (post-scan) the function runs immediately, scoped to the changed file where possible, so incremental updates stay cheap.</p>
 <h2 id="robustness-upgrade-notes">Robustness Upgrade Notes</h2>
 <p>The knowledge store now treats the backend index as the source of truth for both search and graph metadata. Chunk records include stable SHA-256-derived IDs, location metadata for line-aware navigation, tags, wiki-links, and aliases. Derived graph/backlink snapshots are persisted under <code>.hibiscus/knowledge/metadata/</code>.</p>
 <p>Additional operational files are written alongside the index:</p>

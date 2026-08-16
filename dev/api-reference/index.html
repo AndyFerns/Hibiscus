@@ -1532,6 +1532,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#copy_filesource-string-destination-string-result-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        copy_file(source: String, destination: String) -&gt; Result&lt;(), HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file_existspath-string-resultbool-hibiscuserror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        file_exists(path: String) -&gt; Result&lt;bool, HibiscusError&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1888,6 +1910,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#knowledge-graph-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Graph API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Knowledge Graph API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_knowledge_graph-resultgraphdata-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_knowledge_graph() -&gt; Result&lt;GraphData, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_backlinks-resultrecordstring-string-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_backlinks() -&gt; Result&lt;Record&lt;string, string[]&gt;, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract_document_to_notesource_path-string-resultstring-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extract_document_to_note(source_path: String) -&gt; Result&lt;String, String&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#knowledge-indexing-phase-2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2005,6 +2077,28 @@
     <span class="md-ellipsis">
       
         fs-changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-indexing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        knowledge-indexing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        knowledge-updated
       
     </span>
   </a>
@@ -2197,8 +2291,8 @@
 
 <h1 id="api-reference">API Reference</h1>
 <p>Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (<code>@tauri-apps/api/core</code>). This reference documents all available commands.</p>
-<p><strong>Version</strong>: 0.3.7<br />
-<strong>Last Updated</strong>: May 2026</p>
+<p><strong>Version</strong>: 0.13.1<br />
+<strong>Last Updated</strong>: August 2026</p>
 <hr />
 <h2 id="file-operations">File Operations</h2>
 <p>All file operations include path validation to prevent directory traversal attacks.</p>
@@ -2302,6 +2396,26 @@
 - Recursive mode removes all contents
 - Non-recursive fails on non-empty folders</p>
 <hr />
+<h4 id="copy_filesource-string-destination-string-result-hibiscuserror"><code>copy_file(source: String, destination: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Copies a file byte-for-byte from one path to another. Used for binary "Save As" operations where writing a text buffer would destroy the original content.</p>
+<p><strong>Parameters:</strong>
+- <code>source</code>: Absolute path of the file to copy
+- <code>destination</code>: Absolute path for the copy</p>
+<p><strong>Security:</strong>
+- Both paths validated with <code>validate_path()</code> (prevents directory traversal)</p>
+<p><strong>When to use:</strong> Whenever you need to duplicate a PDF, DOCX, or other binary file. Do not use <code>write_text_file</code> for binary Save As — it will zero out the file.</p>
+<hr />
+<h4 id="file_existspath-string-resultbool-hibiscuserror"><code>file_exists(path: String) -&gt; Result&lt;bool, HibiscusError&gt;</code></h4>
+<p><strong>File</strong>: <code>commands/files.rs</code></p>
+<p>Cheap existence check without reading file contents. Used by session restore to decide whether to reopen a tab (true) or silently drop it (false) for files that were deleted while Hibiscus was closed.</p>
+<p><strong>Parameters:</strong>
+- <code>path</code>: Absolute path to check</p>
+<p><strong>Returns:</strong>
+- <code>Ok(true)</code>: File exists
+- <code>Ok(false)</code>: File does not exist
+- <code>Err</code>: Path validation failure</p>
+<hr />
 <h3 id="move-operations">Move Operations</h3>
 <h4 id="move_nodesource-string-target-string-result-hibiscuserror"><code>move_node(source: String, target: String) -&gt; Result&lt;(), HibiscusError&gt;</code></h4>
 <p><strong>File</strong>: <code>commands/files.rs</code></p>
@@ -2370,13 +2484,14 @@
 <h2 id="file-watcher">File Watcher</h2>
 <h4 id="watch_workspacepath-string-result-string"><code>watch_workspace(path: String) -&gt; Result&lt;(), String&gt;</code></h4>
 <p><strong>File</strong>: <code>watcher.rs</code></p>
-<p>Starts filesystem watcher for real-time updates.</p>
+<p>Starts the filesystem watcher and triggers the initial knowledge index scan.</p>
 <p><strong>Parameters:</strong>
 - <code>path</code>: Root directory to watch</p>
 <p><strong>Behavior:</strong>
 - Spawns async notify thread
-- Debounces events (300ms)
-- Emits <code>fs-changed</code> events to frontend
+- Runs <code>initial_scan()</code> in a background thread immediately on call, then begins live event monitoring
+- Debounces live events (300ms)
+- Emits <code>fs-changed</code>, <code>knowledge-indexing</code>, and <code>knowledge-updated</code> events to the frontend
 - Watches recursively</p>
 <hr />
 <h4 id="stop_watching-result-string"><code>stop_watching() -&gt; Result&lt;(), String&gt;</code></h4>
@@ -2526,6 +2641,54 @@
 - Processes in background worker
 - Non-blocking operation</p>
 <hr />
+<h2 id="knowledge-graph-api">Knowledge Graph API</h2>
+<h4 id="get_knowledge_graph-resultgraphdata-string"><code>get_knowledge_graph() -&gt; Result&lt;GraphData, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge/query.rs</code></p>
+<p>Returns the full knowledge graph derived from the persisted chunk store. This is the canonical data source for <code>KnowledgeGraphView</code> and should be preferred over the frontend-only <code>useKnowledgeIndex</code> for any graph rendering.</p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">GraphData</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">nodes</span><span class="o">:</span><span class="w"> </span><span class="kt">GraphNode</span><span class="p">[]</span><span class="w">  </span><span class="c1">// One per indexed file</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">edges</span><span class="o">:</span><span class="w"> </span><span class="kt">GraphEdge</span><span class="p">[]</span><span class="w">  </span><span class="c1">// Derived from wiki-links and backlinks</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
+</code></pre></div></p>
+<p><strong>Frontend usage:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">graph</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="o">&lt;</span><span class="nx">GraphData</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;get_knowledge_graph&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h4 id="get_backlinks-resultrecordstring-string-string"><code>get_backlinks() -&gt; Result&lt;Record&lt;string, string[]&gt;, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge/query.rs</code></p>
+<p>Returns a map of target path → list of source paths that link to it. Used by <code>BacklinksPanel</code> and <code>useBackendKnowledge</code>.</p>
+<p><strong>Returns:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// { &quot;/workspace/target.md&quot;: [&quot;/workspace/source.md&quot;, ...] }</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kr">type</span><span class="w"> </span><span class="nx">BacklinkMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span>
+</code></pre></div></p>
+<hr />
+<h4 id="extract_document_to_notesource_path-string-resultstring-string"><code>extract_document_to_note(source_path: String) -&gt; Result&lt;String, String&gt;</code></h4>
+<p><strong>Module</strong>: <code>knowledge/query.rs</code></p>
+<p>Runs the knowledge parser on a PDF or DOCX file and writes the extracted content as a structured Markdown note alongside the original document.</p>
+<p><strong>Parameters:</strong>
+- <code>source_path</code>: Absolute path to the PDF or DOCX file</p>
+<p><strong>Returns:</strong>
+- <code>Ok(String)</code>: The absolute path to the newly created note file</p>
+<p><strong>Behaviour:</strong>
+- Uses the same parsers as the indexer (page-per-section for PDF, heading-style detection for DOCX)
+- Writes YAML frontmatter with <code>source:</code> field recording the original document path
+- Never overwrites existing notes: uses numeric suffixes (<code>-note.md</code>, <code>-note-2.md</code>, etc.)
+- The created note is a regular Markdown file and will be picked up by the indexer on the next <code>fs-changed</code> event</p>
+<p><strong>Example output (<code>paper-note.md</code>):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>---
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="gu">source: /workspace/paper.pdf</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="gu">---</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="gh"># Page 1</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>First page content here…
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="gh"># Page 2</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>Second page content here…
+</code></pre></div></p>
+<hr />
 <h2 id="knowledge-indexing-phase-2">Knowledge Indexing (Phase 2)</h2>
 <h4 id="search_chunksquery-string-offset-optionusize-limit-optionusize-state-state-resultvecrankedsearchresult-string"><code>search_chunks(query: String, offset: Option&lt;usize&gt;, limit: Option&lt;usize&gt;, state: State) -&gt; Result&lt;Vec&lt;RankedSearchResult&gt;, String&gt;</code></h4>
 <p><strong>Module</strong>: <code>knowledge/query.rs</code></p>
@@ -2536,13 +2699,13 @@
 - <code>limit</code>: Max results (default: 20)
 - <code>state</code>: Managed KnowledgeState</p>
 <p><strong>Returns:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">RankedSearchResult</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">chunk_id</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">content</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">file_path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">topic</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">score</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w">        </span><span class="c1">// TF-IDF relevance score</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">RankedSearchResult</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="n">chunk_id</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">content</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="n">file_path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="n">topic</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="n">score</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w">        </span><span class="c1">// TF-IDF relevance score</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">}</span>
 </code></pre></div></p>
 <p><strong>Features:</strong>
 - TF-IDF ranking
@@ -2557,9 +2720,9 @@
 <p><strong>Parameters:</strong>
 - <code>state</code>: Managed KnowledgeState</p>
 <p><strong>Returns:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">TopicMap</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">topics</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w">  </span><span class="c1">// topic -&gt; chunk_ids</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">TopicMap</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="n">topics</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w">  </span><span class="c1">// topic -&gt; chunk_ids</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">}</span>
 </code></pre></div></p>
 <p><strong>Behavior:</strong>
 - Topics extracted from headings
@@ -2594,18 +2757,18 @@
 <hr />
 <h2 id="error-types">Error Types</h2>
 <p>All commands return <code>HibiscusError</code> on failure:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">HibiscusError</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">Io</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                    </span><span class="c1">// File system errors</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">FileNotFound</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">          </span><span class="c1">// Missing files</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">InvalidPathType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">expected</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">actual</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">PathValidation</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">        </span><span class="c1">// Security violations</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="n">JsonParse</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// JSON errors</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="n">AlreadyExists</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">         </span><span class="c1">// Creation conflicts</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="n">WorkspaceNotFound</span><span class="p">,</span><span class="w">             </span><span class="c1">// Missing workspace</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="n">Migration</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Schema upgrade failures</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="n">Knowledge</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Indexing errors</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="n">Theme</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                 </span><span class="c1">// Theme-related errors</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">HibiscusError</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">Io</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                    </span><span class="c1">// File system errors</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="n">FileNotFound</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">          </span><span class="c1">// Missing files</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="n">InvalidPathType</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">expected</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="n">actual</span><span class="p">:</span><span class="w"> </span><span class="nb">String</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="n">PathValidation</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">        </span><span class="c1">// Security violations</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="n">JsonParse</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// JSON errors</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="n">AlreadyExists</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">         </span><span class="c1">// Creation conflicts</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="n">WorkspaceNotFound</span><span class="p">,</span><span class="w">             </span><span class="c1">// Missing workspace</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="n">Migration</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Schema upgrade failures</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="n">Knowledge</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">             </span><span class="c1">// Indexing errors</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="n">Theme</span><span class="p">(</span><span class="nb">String</span><span class="p">),</span><span class="w">                 </span><span class="c1">// Theme-related errors</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>Serialization:</strong>
 Errors serialize to frontend-friendly strings while preserving type information for programmatic handling.</p>
@@ -2614,52 +2777,57 @@ Errors serialize to frontend-friendly strings while preserving type information 
 <h3 id="backend-frontend-events">Backend → Frontend Events</h3>
 <h4 id="fs-changed"><code>fs-changed</code></h4>
 <p><strong>Source</strong>: <code>watcher.rs</code></p>
-<p>Emitted when filesystem changes detected.</p>
-<p><strong>Payload:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">FsChangedEvent</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;create&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;modify&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;delete&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;rename&quot;</span><span class="p">;</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">oldPath?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// For renames</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">}</span>
-</code></pre></div></p>
+<p>Emitted when the filesystem watcher detects a change. Payload is an array of changed paths (strings). The editor uses this to reload open buffers; <code>useBackendKnowledge</code> uses it (debounced 600ms) to refetch the graph.</p>
+<p><strong>Payload:</strong> <code>string[]</code> — list of changed absolute paths</p>
 <p><strong>Frontend Usage:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">listen</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;File changed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">event</span><span class="p">.</span><span class="nx">payload</span><span class="p">);</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nx">refreshTree</span><span class="p">();</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nx">listen</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">event</span><span class="p">.</span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="c1">// reload buffer, invalidate DOCX cache, etc.</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">});</span>
 </code></pre></div></p>
+<hr />
+<h4 id="knowledge-indexing"><code>knowledge-indexing</code></h4>
+<p><strong>Source</strong>: <code>watcher.rs</code></p>
+<p>Emitted when the initial workspace scan starts (<code>true</code>) and when it finishes (<code>false</code>). Can be used to show a loading indicator while the graph is being populated for the first time.</p>
+<p><strong>Payload:</strong> <code>boolean</code></p>
+<hr />
+<h4 id="knowledge-updated"><code>knowledge-updated</code></h4>
+<p><strong>Source</strong>: <code>watcher.rs</code></p>
+<p>Emitted once after the initial scan completes. <code>useBackendKnowledge</code> listens for this to trigger an immediate graph refetch, ensuring the frontend reflects the freshly indexed workspace without waiting for the debounced <code>fs-changed</code> path.</p>
+<p><strong>Payload:</strong> none</p>
 <hr />
 <h2 id="usage-examples">Usage Examples</h2>
 <h3 id="reading-a-file">Reading a File</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">invoke</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/core&quot;</span><span class="p">;</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;read_text_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/notes.md&quot;</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">invoke</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/core&quot;</span><span class="p">;</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;read_text_file&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/notes.md&quot;</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">});</span>
 </code></pre></div>
 <h3 id="creating-a-file">Creating a File</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;create_item&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/new-file.md&quot;</span><span class="p">,</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nx">is_file</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;create_item&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/workspace/new-file.md&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nx">is_file</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="p">});</span>
 </code></pre></div>
 <h3 id="searching-knowledge">Searching Knowledge</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;search_chunks&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;rust async&quot;</span><span class="p">,</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nx">limit</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">invoke</span><span class="p">(</span><span class="s2">&quot;search_chunks&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nx">query</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;rust async&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nx">limit</span><span class="o">:</span><span class="w"> </span><span class="kt">10</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="p">});</span>
 </code></pre></div>
 <h3 id="listening-for-changes">Listening for Changes</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">unlisten</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">listen</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="c1">// Update UI</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">});</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">// Cleanup</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="nx">unlisten</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">listen</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@tauri-apps/api/event&quot;</span><span class="p">;</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">unlisten</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">listen</span><span class="p">(</span><span class="s2">&quot;fs-changed&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="c1">// Update UI</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="p">});</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1">// Cleanup</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="nx">unlisten</span><span class="p">();</span>
 </code></pre></div>
 <hr />
 <h2 id="command-summary-table">Command Summary Table</h2>
@@ -2690,6 +2858,18 @@ Errors serialize to frontend-friendly strings while preserving type information 
 <td>files.rs</td>
 <td>✓</td>
 <td>Write text content</td>
+</tr>
+<tr>
+<td><code>copy_file</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Byte-accurate file copy (binary Save As)</td>
+</tr>
+<tr>
+<td><code>file_exists</code></td>
+<td>files.rs</td>
+<td>✓</td>
+<td>Cheap existence check</td>
 </tr>
 <tr>
 <td><code>create_file</code></td>
@@ -2755,7 +2935,7 @@ Errors serialize to frontend-friendly strings while preserving type information 
 <td><code>watch_workspace</code></td>
 <td>watcher.rs</td>
 <td>✗</td>
-<td>Start file watcher</td>
+<td>Start watcher + initial scan</td>
 </tr>
 <tr>
 <td><code>stop_watching</code></td>
@@ -2830,10 +3010,28 @@ Errors serialize to frontend-friendly strings while preserving type information 
 <td>Join path segments</td>
 </tr>
 <tr>
+<td><code>get_knowledge_graph</code></td>
+<td>knowledge/query.rs</td>
+<td>✓</td>
+<td>Full graph (canonical)</td>
+</tr>
+<tr>
+<td><code>get_backlinks</code></td>
+<td>knowledge/query.rs</td>
+<td>✓</td>
+<td>Backlink map</td>
+</tr>
+<tr>
+<td><code>extract_document_to_note</code></td>
+<td>knowledge/query.rs</td>
+<td>✓</td>
+<td>PDF/DOCX → Markdown note</td>
+</tr>
+<tr>
 <td><code>search_knowledge</code></td>
 <td>knowledge</td>
 <td>✓</td>
-<td>Legacy search</td>
+<td>Legacy search (Phase 1)</td>
 </tr>
 <tr>
 <td><code>get_chunk</code></td>
@@ -2851,7 +3049,7 @@ Errors serialize to frontend-friendly strings while preserving type information 
 <td><code>search_chunks</code></td>
 <td>knowledge</td>
 <td>✓</td>
-<td>Ranked search</td>
+<td>Ranked TF-IDF search</td>
 </tr>
 <tr>
 <td><code>get_topics</code></td>

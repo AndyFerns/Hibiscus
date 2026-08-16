@@ -1428,6 +1428,100 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v0131-pipeline-auto-scan-binary-safety-document-viewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [v0.13.1] - Pipeline Auto-Scan, Binary Safety, Document Viewers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[v0.13.1] - Pipeline Auto-Scan, Binary Safety, Document Viewers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Critical Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parser-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parser Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-viewers-filerenderer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Viewers (FileRenderer)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-to-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extract to Note
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-tauri-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Tauri Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-graph-plan-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Graph (Plan A)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0120-knowledge-base-robustness-overhaul" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1523,7 +1617,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#critical-bug-fixes" class="md-nav__link">
+  <a href="#critical-bug-fixes_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Critical Bug Fixes
@@ -2251,6 +2345,49 @@
 
 <h1 id="changelog">Changelog</h1>
 <p>All notable changes to the <strong>Hibiscus</strong> project will be documented in this file.</p>
+<h2 id="v0131-pipeline-auto-scan-binary-safety-document-viewers">[v0.13.1] - Pipeline Auto-Scan, Binary Safety, Document Viewers</h2>
+<h3 id="critical-bug-fixes">Critical Bug Fixes</h3>
+<ul>
+<li><strong>Binary file data destruction</strong> (<code>useEditorController</code>): Multiple code paths could silently zero out PDF and DOCX files. Monaco stays mounted and hidden while a binary document is active, meaning it was still bound to an empty placeholder buffer. Any change event (including accidental keystrokes while the hidden editor was focused), auto-save debounce, Save As, the unmount handler, or session restore could reach <code>write_text_file</code> with that empty string and permanently destroy the document. All five paths now check <code>isBinaryFile(path)</code> and bail out early. 8 regression tests in <code>tests/binaryFileSafety.test.ts</code> lock these invariants down.</li>
+<li><strong>DOCX tab closed on external edit</strong>: The <code>fs-changed</code> handler called <code>read_text_file</code> on every open buffer path, including binary ones. Reading a DOCX as UTF-8 throws a decode error, which was caught and interpreted as "file deleted" — closing the tab. Binary paths are now skipped in the handler entirely.</li>
+<li><strong>Session restore losing binary tabs</strong>: The restore path loaded all tabs as text, silently dropping PDFs and DOCX files that couldn't be decoded. Now uses <code>file_exists</code> (cheap existence check only) for binary paths and restores their tabs with the empty placeholder buffer intact.</li>
+</ul>
+<h3 id="knowledge-pipeline">Knowledge Pipeline</h3>
+<ul>
+<li><strong>Initial scan on workspace open</strong> (<code>watcher.rs</code>): <code>watch_workspace</code> now calls <code>initial_scan()</code> automatically in a background thread before processing live events. Previously the knowledge base, graph, and topics stayed empty until the user manually edited each file — the pipeline was purely event-driven with no bootstrapping. The watcher emits <code>knowledge-indexing</code> (bool) and <code>knowledge-updated</code> events so the frontend can reflect scan progress.</li>
+<li><strong>O(n²) aggregate rebuild eliminated</strong> (<code>queue.rs</code>): The scored index, topic map, and note metadata were each rebuilt after every individual file during a batch scan. For a workspace with 1000 files this was 3000 full rebuilds. Consolidated into <code>rebuild_aggregates()</code>, deferred during scans, and called exactly once at the end.</li>
+<li><strong>Case-insensitive topic normalisation</strong> (<code>topics.rs</code>): Heading text is now title-cased before grouping, so <code>"introduction"</code>, <code>"Introduction"</code>, and <code>"INTRODUCTION"</code> from different documents all merge into the same topic.</li>
+</ul>
+<h3 id="parser-improvements">Parser Improvements</h3>
+<ul>
+<li><strong>PDF — page provenance</strong> (<code>parser.rs</code>): Switched to <code>pdf_extract::extract_text_by_pages()</code>. Each page becomes a separate section with <code>"Page N"</code> as the heading — search results now tell you which page a hit is on. Previously the entire document was one flat blob.</li>
+<li><strong>PDF — text normalisation</strong>: <code>normalize_pdf_text()</code> rejoins layout line-breaks and de-hyphenates split words (<code>"knowl-\nedge"</code> → <code>"knowledge"</code>). Without this, PDF tokens were fragmented and never matched full search terms.</li>
+<li><strong>DOCX — heading structure recovered</strong>: The DOCX parser now reads <code>&lt;w:pStyle&gt;</code> XML attributes to detect Word heading styles (<code>Heading1</code>–<code>Heading9</code>, <code>Title</code>, <code>Subtitle</code>, localised variants). Before this fix, every paragraph was treated as body text regardless of its style, so all Word content collapsed into the "General" topic with no structure.</li>
+</ul>
+<h3 id="document-viewers-filerenderer">Document Viewers (<code>FileRenderer</code>)</h3>
+<ul>
+<li><strong>PDF</strong>: Renders all pages (was page 1 only). Container-width sizing via <code>ResizeObserver</code> (was <code>window.innerWidth</code>). Themed via CSS variables.</li>
+<li><strong>DOCX</strong>: Cache invalidated on <code>fs-changed</code> — external edits now visible without restarting. HTML from mammoth sanitised via <code>DOMParser</code> (strips <code>&lt;script&gt;</code>, event handlers, <code>javascript:</code> URLs). Themed page-column layout via <code>FileRenderer.css</code>.</li>
+<li><strong>Document toolbar</strong>: Read-only badge + "Extract to Note" action button on all binary viewers.</li>
+</ul>
+<h3 id="extract-to-note">Extract to Note</h3>
+<ul>
+<li>New <code>extract_document_to_note</code> Tauri command (<code>knowledge/query.rs</code>): runs the full knowledge parser on a PDF or DOCX and writes a structured Markdown note alongside the original. YAML frontmatter records the <code>source:</code> path. Heading structure preserved (page numbers for PDF, Word heading styles for DOCX). Never overwrites existing notes (numbered suffixes). The indexer picks it up immediately as a regular note.</li>
+</ul>
+<h3 id="new-tauri-commands">New Tauri Commands</h3>
+<ul>
+<li><code>copy_file(source, destination)</code> — byte-accurate file copy for binary Save As.</li>
+<li><code>file_exists(path)</code> — cheap existence check for session restore.</li>
+<li><code>extract_document_to_note(source_path)</code> — PDF/DOCX → structured Markdown note.</li>
+</ul>
+<h3 id="knowledge-graph-plan-a">Knowledge Graph (Plan A)</h3>
+<ul>
+<li><code>useBackendKnowledge</code> is now the canonical graph source, replacing the ephemeral frontend-only <code>useKnowledgeIndex</code> for all graph and backlinks rendering. Reactive on <code>fs-changed</code> (600ms debounce) + <code>knowledge-updated</code> instead of a fixed 5-second poll.</li>
+<li><code>BacklinksPanel</code> simplified to accept a resolved <code>string[]</code> — no longer touches <code>KnowledgeIndex</code> directly.</li>
+<li><code>SearchPanel</code> surfaces indexing errors and skipped files from the backend status response.</li>
+<li><code>KnowledgeGraphView</code> redesigned: categorical node colours + shapes (colour-blind safe), hub rings for high-degree nodes, hollow orphan rendering, amber edge highlight on hover, Fit/Relayout toolbar buttons, collapsible legend with shape glyphs.</li>
+<li>Drag zoom-out bug fixed: <code>alphaTarget</code> managed on drag start/end, forces bounded, camera re-centering suppressed while dragging.</li>
+</ul>
 <h2 id="v0120-knowledge-base-robustness-overhaul">[v0.12.0] - Knowledge Base Robustness Overhaul</h2>
 <h3 id="major-features">Major Features</h3>
 <ul>
@@ -2295,7 +2432,7 @@
 <li><strong>Binary File Rendering</strong>: Added support for PDF and DOCX file viewing in the editor</li>
 <li><strong>Improved Binary File Handling</strong>: Better rendering and integration for non-text file formats</li>
 </ul>
-<h3 id="critical-bug-fixes">Critical Bug Fixes</h3>
+<h3 id="critical-bug-fixes_1">Critical Bug Fixes</h3>
 <ul>
 <li><strong>Editor Corruption Bug</strong>: FINALLY resolved the persistent editor corruption issue by ensuring Monaco editor is never unmounted during React runtime</li>
 <li><strong>Monaco Stability</strong>: Made Monaco (editorView) persistent throughout application lifecycle</li>
