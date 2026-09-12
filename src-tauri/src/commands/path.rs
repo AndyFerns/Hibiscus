@@ -124,17 +124,11 @@ mod tests {
     #[test]
     fn test_rejects_excessive_depth() {
         // Build a path deeper than MAX_PATH_DEPTH
-        let deep: String = (0..=MAX_PATH_DEPTH + 1)
-            .map(|i| format!("d{}", i))
-            .collect::<Vec<_>>()
-            .join("\\");
-        let path = PathBuf::from(deep);
-        let result = validate_path(&path);
+        let deep =
+            (0..=MAX_PATH_DEPTH + 1).fold(PathBuf::new(), |path, i| path.join(format!("d{}", i)));
+        let result = validate_path(&deep);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Path depth"));
+        assert!(result.unwrap_err().to_string().contains("Path depth"));
     }
 
     #[test]

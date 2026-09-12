@@ -17,6 +17,7 @@
 
 import { invoke } from "@tauri-apps/api/core"
 import { CreateItemRequest } from "./types"
+import { resolveWorkspacePath } from "../../utils/workspacePath"
 
 export interface CreateItemResult {
   success: boolean
@@ -37,14 +38,10 @@ export async function createItemCommand(
   workspaceRoot: string,
   request: CreateItemRequest
 ): Promise<CreateItemResult> {
-  // Resolve relative path against workspace root.
-  // Normalize separators to the OS convention (backslash on Windows).
-  const relativePath = request.path.replace(/\//g, "\\")
-  const absolutePath = `${workspaceRoot}\\${relativePath}`
-
   const isDir = request.type === "folder"
 
   try {
+    const absolutePath = await resolveWorkspacePath(workspaceRoot, request.path)
     await invoke("create_item", { path: absolutePath, isDir })
     return { success: true, path: absolutePath }
   } catch (err) {

@@ -9,6 +9,7 @@ import { persistWorkspace } from "./useWorkspacePersistence"
 import { pickWorkspaceRoot, getLastWorkspaceRoot } from "./useWorkspaceRoot"
 import { updateSession } from "../state/session"
 import { useRecentFiles } from "./useRecentFiles"
+import { resolveWorkspacePath } from "../utils/workspacePath"
 
 const emptyWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -152,7 +153,7 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false
     
     try {
-      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
+      const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
       await invoke("create_file", { path: fullPath })
       
       // Refresh tree
@@ -173,7 +174,7 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false
     
     try {
-      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
+      const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
       await invoke("create_folder", { path: fullPath })
       
       // Refresh tree
@@ -194,15 +195,13 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false;
 
     try {
-      // Node IDs from the tree are relative paths (e.g. "notes.md", "subfolder\\file.txt").
-      // Resolve to absolute paths for the backend move_node command.
-      const sourcePath = `${workspaceRoot}\\${sourceId.replace(/\//g, '\\')}`;
-      const destParentPath = `${workspaceRoot}\\${destinationParentId.replace(/\//g, '\\')}`;
+      const sourcePath = await resolveWorkspacePath(workspaceRoot, sourceId);
+      const destParentPath = await resolveWorkspacePath(workspaceRoot, destinationParentId);
 
       const sourceName = sourceId.split(/[/\\]/).pop();
       if (!sourceName) return false;
 
-      const destinationPath = `${destParentPath}\\${sourceName}`;
+      const destinationPath = await resolveWorkspacePath(destParentPath, sourceName);
       
       // Call backend to move the file/folder
       await invoke("move_node", { 
