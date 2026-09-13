@@ -6,21 +6,39 @@ Hibiscus uses a controller pattern where business logic is encapsulated in custo
 
 ## Hook Architecture
 
+As of v0.13.2, `App.tsx` is a thin composition/provider shell. Feature orchestration, event routing, shortcuts, and layout state have been moved into dedicated hooks so the shell only wires providers and mounts the workbench layout.
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      App.tsx                                │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │           Custom Hooks (Controllers)                │   │
-│  ├─────────────┬─────────────┬─────────────┬───────────┤   │
-│  │useWorkspace │  useEditor  │  useStudy   │useKnowledge│  │
-│  │ Controller  │ Controller  │   Context   │  Index    │   │
-│  └─────────────┴─────────────┴─────────────┴───────────┘   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              UI Components                          │   │
-│  │  TreeView  │  EditorView  │  RightPanel  │  etc.   │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    App.tsx (composition only)                    │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │        Shell Hooks (App-level orchestration)               │ │
+│  ├──────────────────┬───────────────────┬─────────────────────┤ │
+│  │ useAppShortcuts  │ useAppLayout      │ useWorkspaceEditor  │ │
+│  │  (keybindings)   │ (panels, splits)  │ Routing (fs events) │ │
+│  └──────────────────┴───────────────────┴─────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │        Controller Hooks (shared state)                     │ │
+│  ├─────────────┬─────────────┬─────────────┬──────────────────┤ │
+│  │useWorkspace │  useEditor  │  useStudy   │ useBackend       │ │
+│  │ Controller  │ Controller  │   Context   │ Knowledge        │ │
+│  └─────────────┴─────────────┴─────────────┴──────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │        Feature Hooks (per-surface logic)                   │ │
+│  ├──────────────────┬────────────────┬────────────────────────┤ │
+│  │ useStudyTools    │ useNewItemModal│ useMarkdownViewMode    │ │
+│  │ useKnowledgeGraph│                │                        │ │
+│  │ Data             │                │                        │ │
+│  └──────────────────┴────────────────┴────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              UI Components                                 │ │
+│  │  TreeView  │  EditorView  │  RightPanel  │  etc.           │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+A single `useWorkspaceController` instance is shared across consumers (previously each caller instantiated its own, which caused divergent tree state).
 
 ---
 

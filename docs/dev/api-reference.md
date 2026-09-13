@@ -2,7 +2,7 @@
 
 Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (`@tauri-apps/api/core`). This reference documents all available commands.
 
-**Version**: 0.13.1  
+**Version**: 0.13.2  
 **Last Updated**: August 2026
 
 ---

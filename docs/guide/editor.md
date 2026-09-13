@@ -68,7 +68,8 @@ PDF and DOCX files are **read-only** in Hibiscus — they open in a dedicated vi
 
 **DOCX viewer:**
 - Converts the document to HTML using `mammoth.js` in the frontend.
-- The raw mammoth output is sanitised through `DOMParser` before rendering: `<script>` tags, `on*` event attributes, and `javascript:` / `data:text/html` URIs are stripped. No external sanitiser library required.
+- The raw mammoth output is sanitised by `sanitizeDocxHtml` (`src/components/Editor/docxSanitizer.ts`) before rendering: the HTML is cloned into a detached container and walked, stripping `<script>` and other disallowed tags, `on*` event attributes, and `javascript:` / `data:text/html` URIs. Safe `http(s)`/`mailto:` links and the allowlisted markup pass through unchanged. No external sanitiser library required.
+- The sanitiser lives in its own module (extracted from `FileRenderer.tsx` in v0.13.2) so it can be unit-tested without booting the PDF viewer — see `tests/docxSanitizer.test.ts` for the regression suite.
 - Styled as a page-column layout (`max-width: 72ch`) via `FileRenderer.css` CSS variables — fully themed with the rest of the app.
 - Cache invalidated on `fs-changed` events: if you edit the file in Word and save, reopening or switching back to the tab shows the updated content.
 

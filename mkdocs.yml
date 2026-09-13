@@ -68,6 +68,7 @@ nav:
       - Contributing: dev/contributing.md
 
   - Changelog: changelog.md
+  - Privacy Policy: privacy.md
 
 markdown_extensions:
   - admonition

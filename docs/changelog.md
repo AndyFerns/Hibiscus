@@ -4,6 +4,33 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.13.2] - App Shell Refactor, DOCX Sanitizer Hardening
+
+### App Shell Refactor (PR #14)
+
+`App.tsx` has been reduced from ~488 lines to a thin composition/provider/layout shell. Feature orchestration, event routing, shortcut wiring, and layout state now live in dedicated hooks so `App.tsx` is responsible for high-level composition and provider wiring only.
+
+- **New hooks:**
+  - `useAppShortcuts` — centralised keyboard-shortcut wiring for the app shell.
+  - `useAppLayout` — layout state (panel visibility, sizing, split configuration).
+  - `useWorkspaceEditorRouting` — routes workspace events (`fs-changed`, tab activation, external opens) to the editor controller.
+  - `useMarkdownViewMode` (`features/editor/`) — toggles between source and rendered Markdown views.
+  - `useStudyTools` (`features/study/`) — orchestrates Pomodoro, flashcards, notes, and stats surfaces.
+  - `useKnowledgeGraphData` (`features/knowledge/`) — resolves graph data for the knowledge graph view.
+  - `useNewItemModal` (`features/newitem/`) — new file/folder modal state.
+- **Shared workspace controller instance:** all consumers now receive the same `useWorkspaceController` instance instead of instantiating their own, eliminating divergent tree state across panes.
+- **Test coverage:** new characterization tests lock down top-level orchestration behaviour — `tests/App.orchestration.test.tsx`, `useAppLayout.test.ts`, `useAppShortcuts.test.ts`, `useKeyboardShortcuts.test.ts`, `useMarkdownViewMode.test.ts`, `useNewItemModal.test.ts`, `useWorkspaceEditorRouting.test.ts`, `knowledgeGraphSelection.test.ts`.
+
+### DOCX Sanitizer Isolation (PR #16)
+
+- **Extracted `sanitizeDocxHtml` into its own module** (`src/components/Editor/docxSanitizer.ts`). Previously the sanitiser lived inside `FileRenderer.tsx`, which meant tests had to boot the PDF viewer (and its worker) just to exercise a pure DOM-walking function.
+- **Isolated-container walk:** the sanitiser now clones input into a detached container before walking, so standalone disallowed tags (`<script>` without a parent document, orphan `<iframe>`, etc.) are consistently stripped regardless of how mammoth emitted them.
+- **Regression tests** (`tests/docxSanitizer.test.ts`): seven cases covering `<script>` removal, `on*` event-handler stripping, `javascript:` / `data:text/html` URL rejection, safe `http(s)`/`mailto:` link preservation, allowlisted markup pass-through, and disallowed structural elements. No PDF worker boot required.
+
+### Housekeeping
+
+- Version bumped to `v0.13.2` across `package.json`, `version.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json`.
+
 ## [v0.13.1] - Pipeline Auto-Scan, Binary Safety, Document Viewers
 
 ### Critical Bug Fixes
