@@ -147,6 +147,10 @@ See the LICENSE file for details.
 
 [Mozilla Public License 2.0 (MPL-2.0)](LICENSE)
 
+## Privacy
+
+Hibiscus is strictly local-first: your notes, files, calendar, index, and preferences never leave your device. No accounts, no telemetry, no cloud sync. See [PRIVACY.md](PRIVACY.md) for the full policy.
+
 ## Author
 
 Andrew Fernandes
