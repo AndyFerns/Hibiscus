@@ -154,12 +154,12 @@ export function useWorkspaceController() {
     
     try {
       const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
-      await invoke("create_file", { path: fullPath })
-      
+      await invoke("create_file", { workspaceRoot, path: fullPath })
+
       // Refresh tree
       const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
       setWorkspace(prev => ({ ...prev, tree }))
-      
+
       return true
     } catch (error) {
       console.error("[Hibiscus] Failed to create file:", error)
@@ -175,12 +175,12 @@ export function useWorkspaceController() {
     
     try {
       const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
-      await invoke("create_folder", { path: fullPath })
-      
+      await invoke("create_folder", { workspaceRoot, path: fullPath })
+
       // Refresh tree
       const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
       setWorkspace(prev => ({ ...prev, tree }))
-      
+
       return true
     } catch (error) {
       console.error("[Hibiscus] Failed to create folder:", error)
@@ -203,10 +203,12 @@ export function useWorkspaceController() {
 
       const destinationPath = await resolveWorkspacePath(destParentPath, sourceName);
       
-      // Call backend to move the file/folder
-      await invoke("move_node", { 
-        source: sourcePath, 
-        destination: destinationPath 
+      // Call backend to move the file/folder. workspaceRoot is passed so the
+      // backend can reject a move that would escape the workspace.
+      await invoke("move_node", {
+        workspaceRoot,
+        source: sourcePath,
+        destination: destinationPath,
       });
       
       // Refresh tree

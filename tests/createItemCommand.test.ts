@@ -15,8 +15,11 @@ describe("createItemCommand", () => {
     expect(await createItemCommand("/workspace", { ...request, type })).toEqual({
       success: true, path: "/workspace/folder/note.md",
     })
+    // workspaceRoot is forwarded so the backend can enforce containment.
     expect(invoke).toHaveBeenCalledWith("create_item", {
-      path: "/workspace/folder/note.md", isDir: type === "folder",
+      workspaceRoot: "/workspace",
+      path: "/workspace/folder/note.md",
+      isDir: type === "folder",
     })
   })
 

@@ -42,7 +42,10 @@ export async function createItemCommand(
 
   try {
     const absolutePath = await resolveWorkspacePath(workspaceRoot, request.path)
-    await invoke("create_item", { path: absolutePath, isDir })
+    // workspaceRoot is passed so the backend can enforce workspace containment
+    // (defence in depth: resolveWorkspacePath composes paths on the frontend,
+    // but only the backend can reject a resolved path that escapes the root).
+    await invoke("create_item", { workspaceRoot, path: absolutePath, isDir })
     return { success: true, path: absolutePath }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

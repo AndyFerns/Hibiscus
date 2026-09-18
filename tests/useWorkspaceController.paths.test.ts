@@ -26,7 +26,11 @@ describe.each([
     await act(async () => {
       expect(await result.current[operation]("folder\\item")).toBe(true)
     })
-    expect(invoke).toHaveBeenCalledWith(operation === "createFile" ? "create_file" : "create_folder", { path: path.join(root, "folder", "item") })
+    // workspaceRoot is forwarded so the backend can enforce containment.
+    expect(invoke).toHaveBeenCalledWith(
+      operation === "createFile" ? "create_file" : "create_folder",
+      { workspaceRoot: root, path: path.join(root, "folder", "item") },
+    )
     expect(invoke).toHaveBeenCalledWith("build_tree", { root })
   })
 
@@ -36,6 +40,7 @@ describe.each([
     vi.mocked(invoke).mockClear()
     await act(async () => { expect(await result.current.moveNode("source\\item", destination)).toBe(true) })
     expect(invoke).toHaveBeenCalledWith("move_node", {
+      workspaceRoot: root,
       source: path.join(root, "source", "item"),
       destination: path.join(root, ...destination.split("\\"), "item"),
     })
