@@ -214,6 +214,12 @@ export function useNewItemController(
 
       if (result.success && result.path) {
         onCreated?.(result.path, state.mode === "file")
+      } else if (result.error) {
+        const message = result.error
+        setState(prev => ({
+          ...prev,
+          validation: { valid: false, message },
+        }))
       }
 
       return result

@@ -7,7 +7,7 @@ use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
 use crate::error::HibiscusError;
-use super::path::validate_path;
+use super::path::{validate_path, validate_path_within_root};
 
 /// Reads the contents of a text file asynchronously.
 ///
@@ -169,17 +169,21 @@ pub async fn write_text_file(path: String, contents: String) -> Result<(), Hibis
 /// Creates a new empty file at the specified path.
 ///
 /// # Arguments
-/// * `path` - Absolute path where the file should be created
+/// * `workspace_root` - Absolute path of the active workspace. `path` must
+///                      live inside it.
+/// * `path` - Absolute path where the file should be created.
 ///
 /// # Returns
 /// * `Ok(())` - If the file was created successfully
 /// * `Err(HibiscusError)` - If the file could not be created
 #[tauri::command]
-pub async fn create_file(path: String) -> Result<(), HibiscusError> {
+pub async fn create_file(workspace_root: String, path: String) -> Result<(), HibiscusError> {
+    let workspace_root = PathBuf::from(&workspace_root);
     let path = PathBuf::from(&path);
-    
-    // Validate the path
+
+    // Validate the path (traversal, depth, workspace containment)
     validate_path(&path)?;
+    validate_path_within_root(&path, &workspace_root)?;
     
     // Check if file already exists
     if path.exists() {
@@ -215,17 +219,21 @@ pub async fn create_file(path: String) -> Result<(), HibiscusError> {
 /// Creates a new directory at the specified path.
 ///
 /// # Arguments
-/// * `path` - Absolute path where the directory should be created
+/// * `workspace_root` - Absolute path of the active workspace. `path` must
+///                      live inside it.
+/// * `path` - Absolute path where the directory should be created.
 ///
 /// # Returns
 /// * `Ok(())` - If the directory was created successfully
 /// * `Err(HibiscusError)` - If the directory could not be created
 #[tauri::command]
-pub async fn create_folder(path: String) -> Result<(), HibiscusError> {
+pub async fn create_folder(workspace_root: String, path: String) -> Result<(), HibiscusError> {
+    let workspace_root = PathBuf::from(&workspace_root);
     let path = PathBuf::from(&path);
-    
-    // Validate the path
+
+    // Validate the path (traversal, depth, workspace containment)
     validate_path(&path)?;
+    validate_path_within_root(&path, &workspace_root)?;
     
     // Check if directory already exists
     if path.exists() {
@@ -439,20 +447,31 @@ pub async fn copy_file(source: String, destination: String) -> Result<(), Hibisc
 /// Moves or renames a file or directory.
 ///
 /// # Arguments
-/// * `source` - Absolute path of the item to move
-/// * `destination` - Absolute path of the new location
+/// * `workspace_root` - Absolute path of the active workspace. Both `source`
+///                      and `destination` must live inside it -- a move that
+///                      would push a file out of the workspace, or pull a
+///                      file in from elsewhere on disk, is rejected.
+/// * `source` - Absolute path of the item to move.
+/// * `destination` - Absolute path of the new location.
 ///
 /// # Returns
 /// * `Ok(())` - If the move was successful
 /// * `Err(HibiscusError)` - If the move failed
 #[tauri::command]
-pub async fn move_node(source: String, destination: String) -> Result<(), HibiscusError> {
+pub async fn move_node(
+    workspace_root: String,
+    source: String,
+    destination: String,
+) -> Result<(), HibiscusError> {
+    let workspace_root = PathBuf::from(&workspace_root);
     let source = PathBuf::from(&source);
     let destination = PathBuf::from(&destination);
-    
-    // Validate both paths
+
+    // Validate both paths (traversal, depth, workspace containment)
     validate_path(&source)?;
     validate_path(&destination)?;
+    validate_path_within_root(&source, &workspace_root)?;
+    validate_path_within_root(&destination, &workspace_root)?;
     
     if !source.exists() {
         return Err(HibiscusError::FileNotFound(source.to_string_lossy().into()));

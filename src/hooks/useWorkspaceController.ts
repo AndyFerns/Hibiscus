@@ -9,6 +9,7 @@ import { persistWorkspace } from "./useWorkspacePersistence"
 import { pickWorkspaceRoot, getLastWorkspaceRoot } from "./useWorkspaceRoot"
 import { updateSession } from "../state/session"
 import { useRecentFiles } from "./useRecentFiles"
+import { resolveWorkspacePath } from "../utils/workspacePath"
 
 const emptyWorkspace: WorkspaceFile = {
   schema_version: "1.0",
@@ -152,13 +153,13 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false
     
     try {
-      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
-      await invoke("create_file", { path: fullPath })
-      
+      const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
+      await invoke("create_file", { workspaceRoot, path: fullPath })
+
       // Refresh tree
       const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
       setWorkspace(prev => ({ ...prev, tree }))
-      
+
       return true
     } catch (error) {
       console.error("[Hibiscus] Failed to create file:", error)
@@ -173,13 +174,13 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false
     
     try {
-      const fullPath = `${workspaceRoot}\\${relativePath.replace(/\//g, '\\')}`
-      await invoke("create_folder", { path: fullPath })
-      
+      const fullPath = await resolveWorkspacePath(workspaceRoot, relativePath)
+      await invoke("create_folder", { workspaceRoot, path: fullPath })
+
       // Refresh tree
       const tree = await invoke<Node[]>("build_tree", { root: workspaceRoot })
       setWorkspace(prev => ({ ...prev, tree }))
-      
+
       return true
     } catch (error) {
       console.error("[Hibiscus] Failed to create folder:", error)
@@ -194,20 +195,20 @@ export function useWorkspaceController() {
     if (!workspaceRoot) return false;
 
     try {
-      // Node IDs from the tree are relative paths (e.g. "notes.md", "subfolder\\file.txt").
-      // Resolve to absolute paths for the backend move_node command.
-      const sourcePath = `${workspaceRoot}\\${sourceId.replace(/\//g, '\\')}`;
-      const destParentPath = `${workspaceRoot}\\${destinationParentId.replace(/\//g, '\\')}`;
+      const sourcePath = await resolveWorkspacePath(workspaceRoot, sourceId);
+      const destParentPath = await resolveWorkspacePath(workspaceRoot, destinationParentId);
 
       const sourceName = sourceId.split(/[/\\]/).pop();
       if (!sourceName) return false;
 
-      const destinationPath = `${destParentPath}\\${sourceName}`;
+      const destinationPath = await resolveWorkspacePath(destParentPath, sourceName);
       
-      // Call backend to move the file/folder
-      await invoke("move_node", { 
-        source: sourcePath, 
-        destination: destinationPath 
+      // Call backend to move the file/folder. workspaceRoot is passed so the
+      // backend can reject a move that would escape the workspace.
+      await invoke("move_node", {
+        workspaceRoot,
+        source: sourcePath,
+        destination: destinationPath,
       });
       
       // Refresh tree

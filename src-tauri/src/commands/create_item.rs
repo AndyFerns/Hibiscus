@@ -22,7 +22,7 @@ use std::sync::Mutex;
 use tokio::fs;
 
 use crate::error::HibiscusError;
-use super::path::validate_path;
+use super::path::{validate_path, validate_path_within_root};
 
 /// Global set of paths currently being created.
 /// Used for per-path deduplication of concurrent requests.
@@ -33,11 +33,19 @@ static INFLIGHT_PATHS: std::sync::LazyLock<Mutex<HashSet<PathBuf>>> =
 /// Unified command for creating files and folders.
 ///
 /// # Arguments
-/// * `path`   - Absolute path to the item to create.
-/// * `is_dir` - If true, creates a directory. If false, creates an empty file.
+/// * `workspace_root` - Absolute path of the active workspace. The target
+///                      `path` MUST live inside this root; anything outside
+///                      is rejected so a malformed or malicious relative path
+///                      from the frontend cannot address arbitrary locations
+///                      on disk.
+/// * `path`           - Absolute path to the item to create.
+/// * `is_dir`         - If true, creates a directory. If false, creates an
+///                      empty file.
 ///
 /// # Behavior
 /// - Validates the path against traversal attacks and depth limits.
+/// - Validates the path is inside `workspace_root` (defence in depth against
+///   the frontend resolver handing us a path that escapes the workspace).
 /// - Creates all missing parent directories automatically.
 /// - Returns an error if the item already exists on disk.
 /// - Uses per-path locking to reject duplicate concurrent requests.
@@ -47,11 +55,17 @@ static INFLIGHT_PATHS: std::sync::LazyLock<Mutex<HashSet<PathBuf>>> =
 /// forward it to the knowledge pipeline. This command does NOT manually
 /// trigger indexing -- the watcher is the sole trigger.
 #[tauri::command]
-pub async fn create_item(path: String, is_dir: bool) -> Result<(), HibiscusError> {
+pub async fn create_item(
+    workspace_root: String,
+    path: String,
+    is_dir: bool,
+) -> Result<(), HibiscusError> {
+    let workspace_root = PathBuf::from(&workspace_root);
     let path = PathBuf::from(&path);
 
-    // Validate path safety (traversal, depth).
+    // Validate path safety (traversal, depth) and workspace containment.
     validate_path(&path)?;
+    validate_path_within_root(&path, &workspace_root)?;
 
     // Per-path lock: reject if another request is already creating this path.
     {

@@ -68,7 +68,7 @@ export interface NewItemState {
 // ---------------------------------------------------------------------------
 
 export interface CreateItemRequest {
-  /** Absolute path of the item to create. */
+  /** Path of the item relative to the workspace root. */
   path: string
   /** Whether this is a file or folder. */
   type: NewItemMode
