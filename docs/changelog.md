@@ -4,6 +4,35 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.13.3] - Path Containment Guard, Cross-Platform Path Resolution
+
+### Path Resolution (PR #17)
+
+- **Platform-aware workspace path joining** (`src/utils/workspacePath.ts`): New `resolveWorkspacePath` helper delegates to Tauri's `@tauri-apps/api/path.join`, which picks the correct separator per OS. Previously both `src/features/newitem/createItemCommand.ts` and `src/hooks/useWorkspaceController.ts` concatenated `${root}\\${name}` with a hard-coded backslash — the resulting paths were only valid on Windows and silently produced malformed absolute paths on macOS and Linux (creating files with literal `\` characters in their names, or failing containment checks upstream).
+- **Structured error propagation:** failures from path resolution now flow through the same result shape as backend errors, so the new-item modal and workspace controller surface a single, consistent error channel instead of throwing raw `TypeError`s from string interpolation.
+
+### Path Containment Guard (PR #17)
+
+- **`validate_path_within_root` promoted from dead code** ([`src-tauri/src/commands/path.rs:74`](../src-tauri/src/commands/path.rs)): the helper existed but was marked `#[allow(dead_code)]` and left private, so nothing called it. Worse, its implementation only performed the containment check when *both* `path` and `root` canonicalised successfully — meaning the primary use case (creating a *new* file that does not yet exist on disk) silently returned `Ok(())` and let any target path through. A malicious or buggy caller could have created a file outside the workspace root and the guard would have shrugged.
+- **Fixed and hardened:** the helper is now `pub(crate)`, canonicalises the workspace root up front, rejects any `..` segment in the target, and performs a lexical prefix check against the canonical root for paths that do not exist yet. For paths that *do* exist, it retains the canonical-form comparison so that a symlink pointing outside the workspace is still caught.
+- **Wired into every mutating command:** [`create_item`](../src-tauri/src/commands/create_item.rs), [`create_file`, `create_folder`, and both source and destination of `move_node`](../src-tauri/src/commands/files.rs) now call `validate_path_within_root` before touching the filesystem. This is defence-in-depth — the frontend already scopes paths to the workspace root, but a compromised or misbehaving caller (or a future command wired to a webview URL) can no longer escape by feeding a crafted absolute path or a `..` traversal.
+
+### Backend Command Signatures
+
+The following Tauri commands gained a leading `workspace_root: String` parameter. Frontend callers must now thread the active workspace root through every invoke:
+
+- `create_item(workspace_root, path, is_dir)`
+- `create_file(workspace_root, path)`
+- `create_folder(workspace_root, path)`
+- `move_node(workspace_root, source, destination)`
+
+Read-only commands (`read_text_file`, `read_file_binary`, `file_exists`, `build_tree`, etc.) are unchanged — the guard applies only to filesystem mutations that create or relocate nodes.
+
+### Test Coverage
+
+- **Rust unit tests** (`src-tauri/src/commands/path.rs`): new cases cover the previously-silent "target does not exist and escapes root" path, `..` rejection, existing-path canonical comparison, and nested-child acceptance. These lock down the exact class of bug that made the original guard a no-op.
+- **Frontend invoke shape** (`tests/createItemCommand.test.ts`, `tests/useWorkspaceController.paths.test.ts`): assert that `workspace_root` is now included in the invoke payload for `createItemCommand`, `createFile`, `createFolder`, and `moveNode`, catching any regression that forgets to thread the root through.
+
 ## [v0.13.2] - App Shell Refactor, DOCX Sanitizer Hardening
 
 ### App Shell Refactor (PR #14)

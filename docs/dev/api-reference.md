@@ -2,14 +2,14 @@
 
 Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (`@tauri-apps/api/core`). This reference documents all available commands.
 
-**Version**: 0.13.2  
-**Last Updated**: August 2026
+**Version**: 0.13.3  
+**Last Updated**: September 2026
 
 ---
 
 ## File Operations
 
-All file operations include path validation to prevent directory traversal attacks.
+All file operations include path validation to prevent directory traversal attacks. In addition, every command that **creates or moves** a filesystem node (`create_item`, `create_file`, `create_folder`, `move_node`) accepts an explicit `workspace_root` parameter and delegates to `validate_path_within_root` (`commands/path.rs`) before touching disk. The guard canonicalises the root, rejects `..` segments, lexically checks the target against the canonical root for not-yet-created paths, and falls back to canonical-form comparison for existing paths so that symlinks pointing outside the workspace are also rejected. This is defence-in-depth: the frontend already scopes paths to the active workspace, but a compromised or misbehaving caller cannot escape the root by feeding a crafted absolute path.
 
 ### Read Operations
 
@@ -77,44 +77,47 @@ Writes text content to file using atomic save strategy.
 
 ### File/Folder Creation
 
-#### `create_file(path: String) -> Result<(), HibiscusError>`
+#### `create_file(workspace_root: String, path: String) -> Result<(), HibiscusError>`
 **File**: `commands/files.rs`
 
 Creates a new empty file.
 
 **Parameters:**
+- `workspace_root`: Absolute path of the active workspace. `path` must resolve inside it, or the call is rejected with `PathValidation`.
 - `path`: Absolute path for new file
 
 **Behavior:**
 - Creates parent directories if needed
 - Returns error if file exists
-- Validates path security
+- Validates path security via `validate_path` **and** `validate_path_within_root(path, workspace_root)`
 
 ---
 
-#### `create_folder(path: String) -> Result<(), HibiscusError>`
+#### `create_folder(workspace_root: String, path: String) -> Result<(), HibiscusError>`
 **File**: `commands/files.rs`
 
 Creates a new directory.
 
 **Parameters:**
+- `workspace_root`: Absolute path of the active workspace. `path` must resolve inside it, or the call is rejected with `PathValidation`.
 - `path`: Absolute path for new folder
 
 **Behavior:**
 - Creates parent directories recursively
 - Returns error if folder exists
-- Validates path security
+- Validates path security via `validate_path` **and** `validate_path_within_root(path, workspace_root)`
 
 ---
 
-#### `create_item(path: String, is_file: bool) -> Result<String, HibiscusError>`
+#### `create_item(workspace_root: String, path: String, is_dir: bool) -> Result<String, HibiscusError>`
 **File**: `commands/create_item.rs`
 
 Unified item creation with per-path locking to prevent race conditions.
 
 **Parameters:**
+- `workspace_root`: Absolute path of the active workspace. `path` must resolve inside it, or the call is rejected with `PathValidation`.
 - `path`: Absolute path for new item
-- `is_file`: true = file, false = folder
+- `is_dir`: true = folder, false = file
 
 **Returns:**
 - `Ok(String)`: The created item path
@@ -123,6 +126,9 @@ Unified item creation with per-path locking to prevent race conditions.
 **Locking:**
 - Uses per-path mutex to prevent concurrent creation
 - Thread-safe across all operations
+
+**Security:**
+- Runs `validate_path_within_root(path, workspace_root)` before acquiring the per-path lock, so containment violations short-circuit without contending on the mutex.
 
 ---
 
@@ -192,20 +198,22 @@ Cheap existence check without reading file contents. Used by session restore to 
 
 ### Move Operations
 
-#### `move_node(source: String, target: String) -> Result<(), HibiscusError>`
+#### `move_node(workspace_root: String, source: String, destination: String) -> Result<(), HibiscusError>`
 **File**: `commands/files.rs`
 
 Moves a file or folder to a new location.
 
 **Parameters:**
+- `workspace_root`: Absolute path of the active workspace. **Both** `source` and `destination` must resolve inside it — a move that would drop a node outside the workspace, or lift one in from outside, is rejected with `PathValidation`.
 - `source`: Current absolute path
-- `target`: Destination absolute path
+- `destination`: Destination absolute path
 
 **Behavior:**
 - Works for both files and folders
 - Atomic operation when possible
 - Updates all internal state
 - Handles cross-device moves
+- Validates path security via `validate_path` **and** `validate_path_within_root` applied to both endpoints
 
 ---
 
@@ -687,6 +695,25 @@ Safely joins path segments.
 
 ---
 
+#### `validate_path_within_root(path: &Path, root: &Path) -> Result<(), HibiscusError>` *(internal, `pub(crate)`)*
+**File**: `commands/path.rs`
+
+Not exposed as a Tauri command — invoked internally by every mutating file operation (`create_item`, `create_file`, `create_folder`, `move_node`). Documented here so contributors adding new mutation commands know to call it.
+
+**Parameters:**
+- `path`: The target path the command intends to touch (may or may not exist yet)
+- `root`: The active workspace root (must exist and be canonicalisable)
+
+**Behavior:**
+- Runs the standard `validate_path` traversal / depth checks on `path` first
+- Canonicalises `root`; if that fails, returns `PathValidation`
+- If `path` exists on disk, canonicalises it and requires the canonical form to start with the canonical root (catches symlink escapes)
+- If `path` does **not** exist yet (the common create-new-file case), performs a lexical prefix check on the absolute `path` against the canonical `root`
+
+**Why it exists:** prior to v0.13.3 this helper was dead code and its earlier implementation only performed the containment check when both paths canonicalised successfully — silently passing every "create new file" call. Any new command that writes, renames, or deletes filesystem nodes should call this helper before touching disk.
+
+---
+
 ## Error Types
 
 All commands return `HibiscusError` on failure:
@@ -769,8 +796,9 @@ const content = await invoke<string>("read_text_file", {
 
 ```typescript
 await invoke("create_item", {
+  workspaceRoot: "/workspace",
   path: "/workspace/new-file.md",
-  is_file: true
+  isDir: false
 });
 ```
 
