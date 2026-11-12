@@ -4,6 +4,127 @@
 
 All notable changes to the **Hibiscus** project will be documented in this file.
 
+## [v0.14.0] - Editor Performance, Paginated Document Viewers, Draggable Explorer, Style A
+
+This is a minor release. It adds new document viewers, drag-and-drop in the explorer, an open-files list and a visual refresh. It also includes a set of performance fixes that would have been a patch release on their own.
+
+### Editor Performance
+
+- **One Monaco model per open file** (`src/components/Editor/modelRegistry.ts`).
+  - Previously the editor owned a single model and called `model.setValue()` on every tab switch. That re-tokenized the whole file and wiped undo history and scroll/cursor state.
+  - It also fired a content-change event that scheduled a pointless autosave, which then bounced through the watcher and rebuilt the tree.
+  - Switching tabs is now `setModel` plus a view-state restore. The registry doesn't import Monaco, so the controller stays testable.
+- **Typing no longer re-renders the whole app.**
+  - File text is no longer copied into React state on every keystroke.
+  - Editor changes are flushed after a short pause and tagged with the file they belong to.
+  - The tab list is only replaced when a dirty flag flips.
+  - The cursor position lives in a small external store (`src/state/cursorStore.ts`) that only the status bar subscribes to.
+  - `EditorView`, `MainPane`, `LeftPane`, `TopPane`, `RightPane` and `BottomPane` are memoized, and controller callbacks have stable identities.
+- **Per-file autosave timers.** Editing file B no longer cancels the pending autosave of file A. A save that is already in flight is retried instead of silently dropped.
+- **Markdown live preview:**
+  - The token cache is keyed by line content, so inserting a line no longer invalidates it.
+  - Code-fence ranges are updated incrementally, and fence lookup uses binary search.
+- **Large-file mode** (over 2 MB or 50k lines) turns off word wrap and the inline decorator.
+
+### Document Viewers
+
+- **Shared viewer toolbar:** page navigation (`12 / 340`), zoom, fit width / fit page, a thumbnails toggle, and Extract to note.
+  - Keyboard: PgUp/PgDn, Home/End, Ctrl + wheel / `+` / `-` / `0`.
+  - The last page and zoom are remembered per file.
+- **PDF:**
+  - Only the pages in view (±2) are rendered.
+  - Page sizes are read up front, so the scroll height is exact and nothing jumps.
+  - Parsed documents are cached (the last 3).
+  - Resizes are debounced, the device pixel ratio is capped at 2, and thumbnails are virtualized.
+  - pdf.js character maps and standard fonts are now shipped (via a small Vite plugin in `vite.config.ts`). This fixes missing glyphs in CJK PDFs and PDFs without embedded fonts.
+- **DOCX:** real pages with headers, footers and footnotes via `docx-preview`, replacing mammoth and `docxSanitizer`.
+  - Embedded HTML chunks and comments are not rendered.
+  - Every link click is intercepted, and web links open in the system browser.
+- **PPTX:** previously "not supported". Slides now render one at a time via `pptx-preview`, scaled to fit, with a numbered slide strip and arrow-key navigation.
+- **Images:** previously opened as a blank Monaco buffer you could type into.
+  - The new viewer has fit / actual size, zoom, drag-to-pan and a checkerboard background that shows transparency.
+  - SVGs are shown through `<img>`, so embedded scripts never run.
+- All viewers are code-split with `React.lazy`, so their libraries load only when such a file is first opened.
+
+### File Integrity Cross-Check
+
+- **New `inspect_document` command** (`src-tauri/src/commands/document.rs`). It reports the SHA-256 of the file on disk and its real content type from magic bytes, and runs structural checks for:
+  - truncated PDFs (no `%%EOF` marker)
+  - broken zips
+  - Office packages missing `[Content_Types].xml` or their main part (whose CRC is verified)
+  - content that doesn't match the extension, such as a `.pdf` that is really a saved HTML error page
+- **`useDocumentSource`** re-hashes the bytes the viewer received and compares them with the on-disk hash, retrying once if the file changed mid-read.
+  - Verified bytes are kept in a shared LRU cache (about 200 MB, keyed by path + hash), so returning to a tab is instant.
+  - On `fs-changed` the file is re-inspected, and it is only reloaded if its hash changed.
+- Damaged files show an explanation with Retry, Try to open anyway and Show in folder, instead of a blank or crashed viewer.
+- **`read_file_binary` returns raw bytes** (`tauri::ipc::Response`, an `ArrayBuffer` in JS) instead of a JSON array of numbers. The old format was several times larger and very slow to serialize for big PDFs.
+
+### Explorer Drag and Drop
+
+- **Pointer-based drag** replaces HTML5 drag-and-drop, which flickered over child elements and couldn't be animated. While dragging:
+  - The row lifts into a floating card that tilts with pointer speed, leaving a dashed slot where it was.
+  - Valid targets pulse. Invalid targets (a folder into itself or its subfolders, or into its current parent) are marked.
+  - Esc or an invalid drop springs the card back. A successful drop shrinks it into the folder, whose icon bounces.
+  - Motion is reduced when the system asks for it (`prefers-reduced-motion`).
+- Files can be dropped onto folders, onto empty space (the workspace root), or onto the tab bar, which opens the file. Collapsed folders spring open after 500 ms of hovering, and the list auto-scrolls near its edges.
+- **Optimistic moves:**
+  - The tree updates instantly and is reverted with an error toast if `move_node` fails.
+  - Open tabs inside a moved file or folder follow it to the new path instead of being closed as "deleted".
+- **Tree fixes:**
+  - The chevron only rotates when a folder is expanded, and empty folders can be expanded.
+  - Large folders are no longer clipped by the old `max-height: 2000px` transition.
+  - The undefined `--border-subtle` token is now defined.
+
+### Tabs and Open Files
+
+- **Open files dropdown** (`OpenFilesDropdown.tsx`): a "N ▾" button at the right end of the tab bar, or Ctrl+Shift+E, opens a compact popover listing every open file in tab order. It is at most about 360 px wide and 60% of the window tall. From it you can:
+  - switch to, close, save or rename a file (F2 or double-click)
+  - filter the list
+  - reorder by dragging or with Alt+↑/↓
+  - use Save all, Close saved and Close all
+- **Drag to reorder tabs**, with a FLIP animation as tabs settle into place. Middle-click closes a tab, and the active tab is scrolled into view.
+- New controller operations: `closeTabs`, `reorderTabs`, `renamePath`, `renameFile`, `saveFileByPath`. Tab order is saved in the editor session.
+
+### Visual Refresh (Style A)
+
+- **Layered surfaces:** panels float as rounded, softly shadowed surfaces on a darker canvas, instead of being separated by hairline borders.
+  - New tokens: `--surface-0..3`, `--surface-hover`, `--surface-active`, `--border-subtle`, `--radius-row/panel/pill`, `--panel-gap`, `--shadow-panel/popover`, `--ease-snap`, `--dur-fast/base`.
+  - They are derived from existing theme colors, so custom themes adapt without new required tokens.
+- **Theme presets:** Midnight, Dawn, Forest and Petals are retuned so the canvas, panels, editor and popovers are visibly distinct.
+  - Shadows are softer.
+  - Glows and scrollbars follow the theme, which fixes invisible scrollbars on Dawn.
+- **Components:**
+  - Pill tabs with a raised active tab.
+  - Filled rounded tree rows, with no accent bars or glows.
+  - A borderless title bar with the workspace name in a pill.
+  - Rounded popover menus and pill-grouped viewer controls.
+  - A rounded resize grip in the gap between panels.
+- Hiding the explorer now collapses its column instead of leaving an empty panel behind.
+
+### Backend Command Changes
+
+- `read_file_binary(path)` now returns a binary `ipc::Response` (an `ArrayBuffer` in JS). `loadBinaryFile` accepts both the new shape and the old `number[]`.
+- New `inspect_document(path) -> DocumentReport { size, modifiedMs, sha256, kind, expectedKind, ok, reason }`.
+
+### Dependencies
+
+- Added `docx-preview` (Apache-2.0) and `pptx-preview` (ISC). `pptx-preview` is distributed without public source and pulls in echarts; it is loaded only when a `.pptx` is opened.
+- Removed `mammoth`.
+
+### Test Coverage
+
+- New test files:
+  - `tests/editorTabs.test.ts`: reorder, bulk close, rename/move re-pointing, no writes on tab switch, stable callbacks.
+  - `tests/treeOps.test.ts`: drop legality, optimistic move, id remapping.
+  - `tests/pdfLayout.test.ts`: virtual window math.
+  - `tests/useDocumentSource.test.ts`: hash cross-check, retry, corrupt verdicts, cache.
+- Rust unit tests for `inspect_document` cover valid, truncated, mislabelled and damaged PDF, DOCX and PPTX files.
+- Removed `tests/docxSanitizer.test.ts` along with the sanitizer it covered.
+
+### Housekeeping
+
+- Version bumped to `v0.14.0` across `package.json`, `package-lock.json`, `version.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json`.
+
 ## [v0.13.3] - Path Containment Guard, Cross-Platform Path Resolution
 
 ### Path Resolution (PR #17)

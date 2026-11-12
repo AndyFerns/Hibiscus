@@ -52,26 +52,45 @@ The **FileRenderer** component handles different file types:
 | Markdown | `.md`, `.markdown` | Editor + Live preview |
 | Text | `.txt` | Editor with syntax highlight |
 | Code | `.js`, `.ts`, `.py`, `.rs`, etc. | Editor with syntax highlight |
-| PDF | `.pdf` | Paginated viewer (all pages) |
-| DOCX | `.docx` | Styled document viewer |
-| Images | `.png`, `.jpg`, `.gif`, `.svg`, etc. | Native image preview |
+| PDF | `.pdf` | Virtualized paginated viewer |
+| DOCX | `.docx` | Paginated document viewer |
+| PPTX | `.pptx` | Slide-by-slide viewer |
+| Images | `.png`, `.jpg`, `.gif`, `.webp`, `.bmp`, `.ico`, `.svg` | Image viewer (zoom, pan) |
 
-#### Binary Document Viewers (PDF & DOCX)
+#### Binary Document Viewers (PDF, DOCX, PPTX, images)
 
-PDF and DOCX files are **read-only** in Hibiscus — they open in a dedicated viewer rather than Monaco. A toolbar above each viewer shows a **"Read-only"** badge and an **"Extract to Note"** button.
+These files are **read-only** in Hibiscus. They open in a dedicated viewer rather than Monaco.
+
+**Shared toolbar:**
+- Page or slide navigation (type a number, or use PgUp/PgDn and Home/End)
+- Zoom (buttons, Ctrl + wheel, Ctrl `+` / `-`), with fit width (Ctrl `0`) and fit page
+- A thumbnails toggle (PDF) and **Extract to Note** (PDF and DOCX)
+- Hibiscus remembers your last page and zoom for each file
+
+**Integrity check:** before anything is rendered, the backend `inspect_document` command does the following:
+- hashes the file
+- detects its real type
+- looks for damage: a truncated PDF, a broken or incomplete zip, missing Office parts, or a file whose content doesn't match its extension
+
+The viewer then re-hashes the bytes it received and compares the two hashes. A damaged file shows an explanation with **Retry**, **Try to open anyway** and **Show in folder**, instead of a blank page.
 
 **PDF viewer:**
-- Renders all pages in a vertical scroll, each in its own framed canvas.
-- Sized to the actual container width via `ResizeObserver` (previously used `window.innerWidth`, which broke in narrower layouts).
-- Reloads automatically when the file changes on disk.
-- Page labels (`Page 1`, `Page 2`, …) match the section headings used in the knowledge index, so search results and viewer stay in sync.
+- Only the pages on screen, plus two either side, are rendered. Large PDFs scroll smoothly and memory use stays flat.
+- Page sizes are known up front, so the scrollbar is accurate and nothing jumps while pages render.
+- Thumbnails are optional and also virtualized.
+- CJK text and the standard PDF fonts render correctly (pdf.js character maps and fonts ship with the app).
+- When the file changes on disk it is re-checked, and only reloaded if its content actually changed.
 
 **DOCX viewer:**
-- Converts the document to HTML using `mammoth.js` in the frontend.
-- The raw mammoth output is sanitised by `sanitizeDocxHtml` (`src/components/Editor/docxSanitizer.ts`) before rendering: the HTML is cloned into a detached container and walked, stripping `<script>` and other disallowed tags, `on*` event attributes, and `javascript:` / `data:text/html` URIs. Safe `http(s)`/`mailto:` links and the allowlisted markup pass through unchanged. No external sanitiser library required.
-- The sanitiser lives in its own module (extracted from `FileRenderer.tsx` in v0.13.2) so it can be unit-tested without booting the PDF viewer — see `tests/docxSanitizer.test.ts` for the regression suite.
-- Styled as a page-column layout (`max-width: 72ch`) via `FileRenderer.css` CSS variables — fully themed with the rest of the app.
-- Cache invalidated on `fs-changed` events: if you edit the file in Word and save, reopening or switching back to the tab shows the updated content.
+- Renders real pages with headers, footers and footnotes via `docx-preview`.
+- Embedded raw HTML and comments are not rendered. Links open in your system browser, and bookmarks scroll within the document.
+
+**PPTX viewer:**
+- Shows one slide at a time, scaled to fit the pane. Use the slide strip at the bottom, or the arrow keys, to move between slides.
+
+**Image viewer:**
+- Fit to pane or actual size, zoom, and drag to pan. A checkerboard background shows transparency.
+- SVGs are displayed as images, so any scripts inside them never run.
 
 #### Why binary files are read-only
 

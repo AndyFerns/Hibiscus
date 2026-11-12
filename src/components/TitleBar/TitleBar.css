@@ -302,3 +302,88 @@
     -webkit-app-region: no-drag;
     app-region: no-drag;
 }
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * The title bar sits directly on the canvas: no bottom hairline, a solid
+ * wordmark, the workspace name in a soft pill, and menus that float as
+ * rounded popovers with inset rows.
+ * ============================================================================= */
+
+.titlebar {
+    border-bottom: none;
+}
+
+.titlebar-logo,
+.titlebar-menu-trigger {
+    border-radius: var(--radius-row, 6px);
+}
+
+.titlebar-logo:hover,
+.titlebar-menu-trigger:hover,
+.titlebar-menu-section.active .titlebar-menu-trigger {
+    background: var(--surface-hover);
+}
+
+.titlebar-dropdown {
+    margin-top: 4px;
+    padding: 4px;
+    background: var(--surface-3);
+    border: none;
+    border-radius: var(--radius-panel, 10px);
+    box-shadow: var(--shadow-popover);
+    transform-origin: top left;
+    animation: titlebar-dropdown-pop var(--dur-fast, 120ms) var(--ease-snap);
+}
+
+@keyframes titlebar-dropdown-pop {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.titlebar-dropdown-item {
+    padding: 6px var(--space-2, 8px);
+    border-radius: var(--radius-row, 6px);
+}
+
+.titlebar-dropdown-item:hover {
+    background: var(--surface-hover);
+}
+
+.titlebar-dropdown-divider {
+    margin: 4px 6px;
+    background: var(--border-subtle);
+}
+
+.titlebar-title {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: currentColor;
+    color: var(--text);
+    letter-spacing: 0.2px;
+}
+
+.titlebar-subtitle {
+    font-size: var(--text-xs, 11px);
+    color: var(--text-muted);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--surface-1);
+    box-shadow: 0 0 0 1px var(--border-subtle);
+    max-width: 40vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .titlebar-dropdown {
+        animation: none;
+    }
+}

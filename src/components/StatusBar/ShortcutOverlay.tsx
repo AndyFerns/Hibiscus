@@ -22,6 +22,8 @@ export function ShortcutOverlay({ isOpen, onClose }: ShortcutOverlayProps) {
     const shortcuts = [
         { key: 'Ctrl + S', description: 'Save current file' },
         { key: 'Ctrl + Shift + S', description: 'Save all files' },
+        { key: 'Ctrl + Shift + E', description: 'Show open files' },
+        { key: 'Ctrl + W', description: 'Close current tab' },
         { key: 'Ctrl + O', description: 'Open workspace folder' },
         { key: 'Ctrl + B', description: 'Toggle Explorer panel' },
         { key: 'Ctrl + J', description: 'Toggle Calendar panel' },

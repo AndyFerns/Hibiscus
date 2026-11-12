@@ -2,47 +2,50 @@
  * ============================================================================
  * EditorView Component
  * ============================================================================
- * 
+ *
  * Monaco Editor wrapper component that provides:
+ * - One text model per open file (see modelRegistry.ts), so switching tabs is
+ *   an O(1) `setModel` with cursor/scroll/undo state preserved
  * - Automatic language detection from file extension
- * - Content synchronization with parent state
- * - Debounced change callbacks
- * - Proper cleanup on unmount
+ * - Debounced change callbacks (the full-document `getValue()` copy runs at
+ *   most once per pause in typing, not on every keystroke)
+ * - rAF-throttled cursor reporting for the status bar
+ * - A large-file mode that turns off the expensive extras
  * - Inline Markdown live preview (Obsidian-style) via MarkdownInlineDecorator
- * 
- * IMPORTANT LAYOUT NOTES:
- * - The container uses flex: 1 to fill available space
- * - minHeight: 0 prevents overflow bugs in flex/grid contexts
- * - Monaco's automaticLayout handles resize events
- * 
- * This component is rendered inside the editor-container div in App.tsx
+ *
+ * This component is rendered inside the editor-container div in MainPane.
  * ============================================================================
  */
 
 import * as monaco from "monaco-editor"
-import { useEffect, useRef } from "react"
+import { memo, useEffect, useRef } from "react"
 
 import { getEditorConfig } from "../Editor/editorConfig"
 import { applyEditorThemeFromCSS } from "../Editor/editorThemeAdapter"
 import { FileRenderer } from "./FileRenderer"
 import { MarkdownInlineDecorator } from "./markdownInlineDecorator"
+import { editorModels } from "./modelRegistry"
+import { isBinaryFile } from "../../utils/fileLoader"
+import { setCursorPosition as publishCursor } from "../../state/cursorStore"
 
 import "./EditorView.css"
 import "./markdownInline.css"
 
+/** Files bigger than this skip word wrap and the inline markdown decorator. */
+const LARGE_FILE_CHARS = 2_000_000
+const LARGE_FILE_LINES = 50_000
+
+/** Delay before an edit is pushed to the controller (dirty flag, autosave). */
+const CHANGE_FLUSH_MS = 120
+
 /**
  * Detect language from file path extension
  * Used to set Monaco editor's syntax highlighting mode
- * 
- * @param path - File path to analyze
- * @returns Monaco language identifier string
  */
-function getLanguageFromPath(path: string): string {
+export function getLanguageFromPath(path: string): string {
   const ext = path.toLowerCase().split(".").pop()
 
-  // Map file extensions to Monaco language identifiers
   switch (ext) {
-    // Markup languages
     case "md":
     case "markdown":
       return "markdown"
@@ -50,34 +53,27 @@ function getLanguageFromPath(path: string): string {
     case "htm":
       return "html"
     case "xml":
+    case "svg":
       return "xml"
-
-    // Stylesheets
     case "css":
       return "css"
     case "scss":
       return "scss"
     case "less":
       return "less"
-
-    // JavaScript ecosystem
     case "js":
-      return "javascript"
     case "jsx":
+    case "mjs":
+    case "cjs":
       return "javascript"
     case "ts":
-      return "typescript"
     case "tsx":
       return "typescript"
-
-    // Data formats
     case "json":
       return "json"
     case "yaml":
     case "yml":
       return "yaml"
-
-    // Other languages
     case "py":
       return "python"
     case "rs":
@@ -89,12 +85,15 @@ function getLanguageFromPath(path: string): string {
     case "sh":
     case "bash":
       return "shell"
-
-    // Plain text fallback
     case "txt":
     default:
       return "plaintext"
   }
+}
+
+function isMarkdownPath(path: string): boolean {
+  const p = path.toLowerCase()
+  return p.endsWith(".md") || p.endsWith(".markdown")
 }
 
 /**
@@ -107,17 +106,18 @@ export interface CursorPosition {
 
 /**
  * EditorView Props Interface
- * @property path - File path (used for language detection)
- * @property content - Current file content
- * @property onChange - Callback fired when content changes
- * @property onCursorChange - Callback fired when cursor position changes
+ * @property path - File path (used for language detection and model lookup)
+ * @property content - Seed text for a new model / replacement after an external change
+ * @property version - Bumped by the controller when `content` must replace the model text
+ * @property onChange - Called (debounced) with the new text and the file it belongs to
+ * @property onCursorChange - Optional extra cursor listener (status bar uses cursorStore)
  * @property markdownViewMode - "live-preview" for inline rendering, "source" for raw markdown
  */
 interface EditorViewProps {
   path: string
   content: string
-  version: number // STRICTLY controls when to reload externally
-  onChange: (value: string) => void
+  version: number
+  onChange: (value: string, path?: string) => void
   onCursorChange?: (position: CursorPosition) => void
   onSave?: () => void
   markdownViewMode?: "live-preview" | "source"
@@ -125,7 +125,7 @@ interface EditorViewProps {
   onOpenFile?: (path: string) => void
 }
 
-export function EditorView({
+function EditorViewImpl({
   path,
   content,
   version,
@@ -135,195 +135,226 @@ export function EditorView({
   markdownViewMode = "live-preview",
   onOpenFile,
 }: EditorViewProps) {
-  // Refs for Monaco editor instance and container DOM element
   const containerRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
-
-  // Ref for the inline Markdown decorator instance
   const decoratorRef = useRef<MarkdownInlineDecorator | null>(null)
 
+  // Path whose model is currently attached to the editor
+  const attachedPathRef = useRef<string | null>(null)
+  // Whether the attached model is in large-file mode
+  const largeRef = useRef(false)
+
+  // Pending debounced change (path it belongs to + timer)
+  const pendingTimerRef = useRef<number | null>(null)
+  const pendingPathRef = useRef<string | null>(null)
+
   // ===========================================================================
-  // CRITICAL FIX: Use refs for ALL callbacks to avoid stale closures
-  // ===========================================================================
-  // Monaco event listeners are registered ONCE on mount. Without refs, they
-  // capture the initial callback values and never update. This causes:
-  // - onChange to save to wrong file when switching files
-  // - onSave to target incorrect file on Ctrl+S
-  // - Content corruption when rapid file switching occurs
-  //
-  // Solution: Store callbacks in refs and update them on every render.
-  // Event handlers read from refs to always get the latest callback.
+  // Callbacks live in refs: Monaco listeners are registered once on mount and
+  // must always call the latest callback (stale closures used to save to the
+  // wrong file after a tab switch).
   // ===========================================================================
   const onChangeRef = useRef(onChange)
   const onCursorChangeRef = useRef(onCursorChange)
   const onSaveRef = useRef(onSave)
-
-  // Update refs on every render to capture latest callbacks
   onChangeRef.current = onChange
   onCursorChangeRef.current = onCursorChange
   onSaveRef.current = onSave
 
-  // Track current path to prevent onChange from firing during file switches
-  const currentPathRef = useRef(path)
-  currentPathRef.current = path
+  /** Push the pending edit (if any) to the controller right now. */
+  const flushPendingChange = () => {
+    if (pendingTimerRef.current !== null) {
+      clearTimeout(pendingTimerRef.current)
+      pendingTimerRef.current = null
+    }
+    const target = pendingPathRef.current
+    pendingPathRef.current = null
+    if (!target) return
+    const entry = editorModels.get(target)
+    if (entry) onChangeRef.current?.(entry.model.getValue(), target)
+  }
+  const flushRef = useRef(flushPendingChange)
+  flushRef.current = flushPendingChange
 
-  /**
-   * Initialize Monaco editor on mount
-   * Creates the editor instance with initial content and configuration
-   */
+  /** Mount: create the editor once, with no model attached yet. */
   useEffect(() => {
     if (!containerRef.current) return
 
-    // register theme (only once)
     applyEditorThemeFromCSS()
-    // registerHibiscusThemes()
 
-    // Create Monaco editor instance with dark theme
-    editorRef.current = monaco.editor.create(
-      containerRef.current,
-      getEditorConfig(content, getLanguageFromPath(path))
-    )
-    // moved all editor initializing logic to src/components/Editor/monacoStudyConfig
+    const editor = monaco.editor.create(containerRef.current, {
+      ...getEditorConfig("", "plaintext"),
+      model: null,
+    })
+    editorRef.current = editor
 
-    // ===========================================================================
-    // CRITICAL: Content change handler uses ref to always call latest onChange
-    // ===========================================================================
-    editorRef.current.onDidChangeModelContent(() => {
-      // Use ref to get the latest onChange callback
-      if (onChangeRef.current) {
-        onChangeRef.current(editorRef.current!.getValue())
+    editor.onDidChangeModelContent(() => {
+      // Programmatic edits (external reloads) are not user changes.
+      if (editorModels.isSuppressed()) return
+      const target = attachedPathRef.current
+      if (!target) return
+      if (pendingPathRef.current && pendingPathRef.current !== target) {
+        flushRef.current()
+      }
+      pendingPathRef.current = target
+      if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current)
+      pendingTimerRef.current = window.setTimeout(() => flushRef.current(), CHANGE_FLUSH_MS)
+    })
+
+    // Cursor: coalesce to one update per animation frame.
+    let cursorFrame = 0
+    let lastCursor: CursorPosition | null = null
+    editor.onDidChangeCursorPosition((e) => {
+      lastCursor = { line: e.position.lineNumber, column: e.position.column }
+      if (cursorFrame) return
+      cursorFrame = requestAnimationFrame(() => {
+        cursorFrame = 0
+        if (!lastCursor) return
+        publishCursor(lastCursor)
+        onCursorChangeRef.current?.(lastCursor)
+      })
+    })
+
+    // Ctrl+S / Cmd+S
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+      flushRef.current()
+      if (onSaveRef.current) {
+        onSaveRef.current()
       }
     })
 
-    // Cursor position listener using ref
-    editorRef.current.onDidChangeCursorPosition((e) => {
-      if (onCursorChangeRef.current) {
-        onCursorChangeRef.current({
-          line: e.position.lineNumber,
-          column: e.position.column,
-        })
-      }
-    })
+    editorModels.setFlushHook(() => flushRef.current())
 
-    // Register Save command (Ctrl+S / Cmd+S)
-    editorRef.current.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-      () => {
-        if (onSaveRef.current) {
-          onSaveRef.current()
-        }
-      }
-    )
-
-    // Cleanup: dispose editor and decorator on unmount
     return () => {
+      flushRef.current()
+      editorModels.setFlushHook(null)
+      if (cursorFrame) cancelAnimationFrame(cursorFrame)
       decoratorRef.current?.dispose()
       decoratorRef.current = null
-      editorRef.current?.dispose()
-    }
-  }, []) // Empty deps: only run on mount
-
-  /**
-   * Sync content from parent ONLY when 'version' bumps
-   * This prevents stale React 'content' prop echoes from wiping ongoing typing
-   */
-  useEffect(() => {
-    const model = editorRef.current?.getModel()
-    if (model && model.getValue() !== content) {
-      // Preserve cursor position during content update
-      const position = editorRef.current?.getPosition()
-      model.setValue(content)
-      if (position) {
-        editorRef.current?.setPosition(position)
+      const prev = attachedPathRef.current
+      if (prev) {
+        const entry = editorModels.get(prev)
+        if (entry) entry.viewState = editor.saveViewState()
       }
+      // Detach before disposing so models survive (they belong to the registry).
+      editor.setModel(null)
+      editor.dispose()
+      editorRef.current = null
     }
-  }, [version, path])
+  }, [])
 
   /**
-   * Update language mode when file path changes
-   * Enables syntax highlighting for the new file type
+   * Attach the model for `path` (creating it on first open), or replace its
+   * text when the controller bumps `version` for an external change.
    */
   useEffect(() => {
-    const model = editorRef.current?.getModel()
-    if (model) {
-      monaco.editor.setModelLanguage(model, getLanguageFromPath(path))
+    const editor = editorRef.current
+    if (!editor) return
+
+    const prevPath = attachedPathRef.current
+
+    if (prevPath !== path) {
+      flushRef.current()
+
+      if (prevPath) {
+        const prevEntry = editorModels.get(prevPath)
+        if (prevEntry) prevEntry.viewState = editor.saveViewState()
+      }
+
+      // Binary documents are rendered by the viewers; keep Monaco empty.
+      if (isBinaryFile(path)) {
+        editor.setModel(null)
+        attachedPathRef.current = null
+        return
+      }
+
+      const language = getLanguageFromPath(path)
+      let entry = editorModels.get(path)
+      if (!entry) {
+        const model = monaco.editor.createModel(content, language)
+        entry = { model, viewState: null }
+        editorModels.set(path, entry)
+      } else {
+        const model = entry.model as monaco.editor.ITextModel
+        if (model.getLanguageId() !== language) {
+          monaco.editor.setModelLanguage(model, language)
+        }
+      }
+
+      const model = entry.model as monaco.editor.ITextModel
+      editor.setModel(model)
+      if (entry.viewState) {
+        editor.restoreViewState(entry.viewState as monaco.editor.ICodeEditorViewState)
+      }
+      attachedPathRef.current = path
+
+      // Large-file mode
+      const large =
+        model.getValueLength() > LARGE_FILE_CHARS || model.getLineCount() > LARGE_FILE_LINES
+      largeRef.current = large
+      editor.updateOptions({ wordWrap: large ? "off" : "on" })
+
+      const pos = editor.getPosition()
+      if (pos) publishCursor({ line: pos.lineNumber, column: pos.column })
+      return
     }
-  }, [path])
+
+    // Same file, new version: the controller has fresh text from disk.
+    // Skip if the user is mid-edit; their pending change wins.
+    if (pendingTimerRef.current !== null) return
+    const entry = editorModels.get(path)
+    if (entry && entry.model.getValue() !== content) {
+      editorModels.withSuppressed(() => {
+        const model = entry.model as monaco.editor.ITextModel
+        model.pushEditOperations(
+          [],
+          [{ range: model.getFullModelRange(), text: content }],
+          () => null
+        )
+      })
+    }
+    // `content` intentionally omitted: it only matters with a path/version change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path, version])
 
   // ===========================================================================
   // INLINE MARKDOWN DECORATOR — lifecycle management
-  // ===========================================================================
-  // Instantiate/dispose the decorator when:
-  // - The file changes (path) — need to check if new file is .md
-  // - The view mode changes — enable in live-preview, disable in source
   // ===========================================================================
   useEffect(() => {
     const editor = editorRef.current
     if (!editor) return
 
-    const isMarkdown = path.toLowerCase().endsWith(".md") || path.toLowerCase().endsWith(".markdown")
-    const shouldEnable = isMarkdown && markdownViewMode === "live-preview"
+    const shouldEnable =
+      isMarkdownPath(path) && markdownViewMode === "live-preview" && !largeRef.current
 
     if (shouldEnable) {
-      // Create decorator if it doesn't exist yet
       if (!decoratorRef.current) {
         decoratorRef.current = new MarkdownInlineDecorator(editor, {
           onNavigateLink: (url: string) => {
-            // For now, open external URLs in browser
-            // Internal file links would need workspace navigation
             console.log("[Hibiscus] Link navigation:", url)
           },
           onNavigateWikiLink: (page: string) => {
-            // WikiLink navigation — would connect to workspace file opening
             console.log("[Hibiscus] WikiLink navigation:", page)
           },
         })
       }
       decoratorRef.current.setEnabled(true)
-
-      // Apply markdown-optimised editor options
-      editor.updateOptions({
-        wordWrap: "on",
-        lineNumbers: "off",
-      })
-    } else {
-      // Disable decorator (keeps instance alive for quick re-enable)
-      if (decoratorRef.current) {
-        decoratorRef.current.setEnabled(false)
-      }
-
-      // If switching from live-preview to source on a .md file,
-      // restore source-mode editor options
-      if (isMarkdown && markdownViewMode === "source") {
-        editor.updateOptions({
-          wordWrap: "on",
-          lineNumbers: "off",
-        })
-      }
+    } else if (decoratorRef.current) {
+      decoratorRef.current.setEnabled(false)
     }
   }, [path, markdownViewMode])
 
-  // Always render Monaco with FileRenderer composition
   return (
-    <div
-      style={{
-        flex: 1,
-        minHeight: 0,
-        overflow: 'hidden',
-        display: 'flex'
-      }}
-    >
-      <FileRenderer file={{ path }} content={content} markdownViewMode={markdownViewMode} onOpenFile={onOpenFile}>
-        {/* Monaco Editor Container */}
-        <div
-          ref={containerRef}
-          className="monaco-container"
-          style={{
-            flex: 1,
-            minHeight: 0,
-          }}
-        />
+    <div className="editor-view-root">
+      <FileRenderer file={{ path }} onOpenFile={onOpenFile}>
+        <div ref={containerRef} className="monaco-container" />
       </FileRenderer>
     </div>
   )
 }
+
+/**
+ * Memoized: EditorView only re-renders when the active file, its version or
+ * the view mode change, never on unrelated app state (pomodoro ticks,
+ * knowledge-index updates, panel toggles).
+ */
+export const EditorView = memo(EditorViewImpl)

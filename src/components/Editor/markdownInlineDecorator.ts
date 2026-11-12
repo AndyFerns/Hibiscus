@@ -26,7 +26,11 @@ export class MarkdownInlineDecorator {
   
   private decorationsCollection: monaco.editor.IEditorDecorationsCollection;
   private disposables: monaco.IDisposable[] = [];
-  private lineCache = new Map<number, { content: string; tokens: MarkdownToken[] }>();
+  /**
+   * Token cache keyed by line *content*, not line number, so inserting or
+   * deleting lines never invalidates it (identical lines also share work).
+   */
+  private lineCache = new Map<string, MarkdownToken[]>();
   private activeLines = new Set<number>();
   private fenceRanges: FenceRange[] = [];
   
@@ -66,7 +70,7 @@ export class MarkdownInlineDecorator {
    * Force a full refresh of decorations (e.g., on theme change).
    */
   public refresh(): void {
-    this.lineCache.clear();
+    // The token cache is keyed by line content, so it never goes stale.
     this.refreshFences();
     this.updateActiveLines();
     this.scheduleUpdate();
@@ -80,24 +84,27 @@ export class MarkdownInlineDecorator {
     this.decorationsCollection.clear();
   }
 
-  private lastLineCount = 0;
+  private static readonly LINE_CACHE_LIMIT = 4000;
 
   private registerListeners() {
     this.disposables.push(
-      this.editor.onDidChangeModelContent(() => {
-        const model = this.editor.getModel();
-        const currentLineCount = model?.getLineCount() ?? 0;
-        
-        // When lines are inserted or deleted, line numbers shift and
-        // the per-line-number cache becomes stale. Clear it.
-        // The content-based check prevents expensive re-scanning of
-        // lines that haven't actually changed.
-        if (currentLineCount !== this.lastLineCount) {
-          this.lineCache.clear();
-          this.lastLineCount = currentLineCount;
+      this.editor.onDidChangeModelContent((e) => {
+        if (!this.isEnabled) return;
+        if (this.fenceAffectedBy(e.changes)) {
+          this.refreshFences();
+        } else {
+          this.shiftFences(e.changes[0]);
         }
-        
+        this.scheduleUpdate();
+      })
+    );
+
+    // A different file was attached to the editor (tab switch).
+    this.disposables.push(
+      this.editor.onDidChangeModel(() => {
+        if (!this.isEnabled) return;
         this.refreshFences();
+        this.updateActiveLines();
         this.scheduleUpdate();
       })
     );
@@ -229,8 +236,64 @@ export class MarkdownInlineDecorator {
     }
   }
   
+  /**
+   * Decide whether an edit could have created, removed or moved a fence
+   * boundary. Only then is a full O(lines) rescan needed; ordinary typing just
+   * shifts the existing ranges.
+   */
+  private fenceAffectedBy(changes: monaco.editor.IModelContentChange[]): boolean {
+    if (changes.length !== 1) return true;
+    const c = changes[0];
+    const start = c.range.startLineNumber;
+    const end = c.range.endLineNumber;
+    if (start <= 2) return true; // frontmatter lives at the top
+    if (c.text.includes('`')) return true;
+    for (const f of this.fenceRanges) {
+      if (f.startLine > end) break;
+      if ((f.startLine >= start && f.startLine <= end) || (f.endLine >= start && f.endLine <= end)) {
+        return true;
+      }
+    }
+    // An edit can turn an ordinary line into a fence (e.g. deleting "a" from "a```").
+    const model = this.editor.getModel();
+    if (model && start <= model.getLineCount() && model.getLineContent(start).trim().startsWith('```')) {
+      return true;
+    }
+    return false;
+  }
+
+  /** Move fence ranges below an edit by the number of lines it added/removed. */
+  private shiftFences(change: monaco.editor.IModelContentChange | undefined) {
+    if (!change) return;
+    let added = 0;
+    for (let i = 0; i < change.text.length; i++) if (change.text.charCodeAt(i) === 10) added++;
+    const removed = change.range.endLineNumber - change.range.startLineNumber;
+    const delta = added - removed;
+    if (delta === 0) return;
+    const at = change.range.startLineNumber;
+    for (const f of this.fenceRanges) {
+      if (f.startLine > at) {
+        f.startLine += delta;
+        f.endLine += delta;
+      } else if (f.endLine >= at) {
+        f.endLine += delta;
+      }
+    }
+  }
+
+  /** Binary search over the sorted, non-overlapping fence ranges. */
   private isLineInFence(lineNumber: number): boolean {
-    return this.fenceRanges.some(f => lineNumber >= f.startLine && lineNumber <= f.endLine);
+    const ranges = this.fenceRanges;
+    let lo = 0;
+    let hi = ranges.length - 1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const r = ranges[mid];
+      if (lineNumber < r.startLine) hi = mid - 1;
+      else if (lineNumber > r.endLine) lo = mid + 1;
+      else return true;
+    }
+    return false;
   }
 
   private scheduleUpdate() {
@@ -259,15 +322,18 @@ export class MarkdownInlineDecorator {
       
       const lineContent = model.getLineContent(i);
       
-      let cacheEntry = this.lineCache.get(i);
-      if (!cacheEntry || cacheEntry.content !== lineContent) {
-        cacheEntry = { content: lineContent, tokens: this.scanLine(lineContent) };
-        this.lineCache.set(i, cacheEntry);
+      let tokens = this.lineCache.get(lineContent);
+      if (!tokens) {
+        tokens = this.scanLine(lineContent);
+        if (this.lineCache.size >= MarkdownInlineDecorator.LINE_CACHE_LIMIT) {
+          this.lineCache.clear();
+        }
+        this.lineCache.set(lineContent, tokens);
       }
 
       const isActive = this.activeLines.has(i);
 
-      for (const token of cacheEntry.tokens) {
+      for (const token of tokens) {
         let inlineClassName = '';
         
         switch (token.type) {

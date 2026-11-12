@@ -49,6 +49,13 @@ interface WorkbenchProps {
     rightPanelWidth?: number
     /** Whether right panel is visible */
     showRightPanel?: boolean
+    /**
+     * Whether the left panel is visible. When false its column collapses and
+     * the panel shell is hidden (its content still renders, so it can decide
+     * for itself to return null). Without this, a hidden explorer left an
+     * empty floating panel behind.
+     */
+    showLeftPanel?: boolean
 }
 
 /**
@@ -68,6 +75,7 @@ export function Workbench({
     leftPanelWidth = PANEL_CONSTRAINTS.left.default,
     rightPanelWidth = PANEL_CONSTRAINTS.right.default,
     showRightPanel = false,
+    showLeftPanel = true,
 }: WorkbenchProps) {
     // Panel width state
     const [leftWidth, setLeftWidth] = useState(leftPanelWidth)
@@ -148,7 +156,7 @@ export function Workbench({
 
     // Compute grid template based on panel visibility
     const gridTemplateColumns = [
-        left ? `${leftWidth}px` : "0",
+        left && showLeftPanel ? `${leftWidth}px` : "0",
         "1fr",
         showRightPanel && right ? `${rightWidth}px` : "0"
     ].join(" ")
@@ -173,18 +181,18 @@ export function Workbench({
             {/* LEFT SIDEBAR */}
             {left && (
                 <>
-                    <aside className="panel left">
+                    <aside className={`panel left${showLeftPanel ? "" : " panel--hidden"}`}>
                         {left}
                     </aside>
 
                     {/* Left resize handle */}
-                    <div
+                    {showLeftPanel && <div
                         className={`resize-handle resize-handle-left ${isResizingLeft ? "active" : ""}`}
                         onMouseDown={startResizeLeft}
                         role="separator"
                         aria-label="Resize left panel"
                         aria-orientation="vertical"
-                    />
+                    />}
                 </>
             )}
 

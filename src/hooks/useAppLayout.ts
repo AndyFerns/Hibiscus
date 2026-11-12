@@ -1,5 +1,6 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from "react"
 import type { CursorPosition } from "../types/workspace"
+import { setCursorPosition as publishCursor } from "../state/cursorStore"
 
 export type CenterView = "editor" | "graph"
 
@@ -8,10 +9,10 @@ interface AppLayoutState {
   showRightPanel: boolean
   showShortcutOverlay: boolean
   centerView: CenterView
-  cursorPosition: CursorPosition
   setShowRightPanel: Dispatch<SetStateAction<boolean>>
   setCenterView: Dispatch<SetStateAction<CenterView>>
-  setCursorPosition: Dispatch<SetStateAction<CursorPosition>>
+  /** Writes to the cursor store; only the status bar subscribes to it. */
+  setCursorPosition: (position: CursorPosition) => void
   toggleLeftPanel: () => void
   toggleRightPanel: () => void
   toggleShortcutOverlay: () => void
@@ -24,10 +25,9 @@ export function useAppLayout(): AppLayoutState {
   const [showRightPanel, setShowRightPanel] = useState(false)
   const [showShortcutOverlay, setShowShortcutOverlay] = useState(false)
   const [centerView, setCenterView] = useState<CenterView>("editor")
-  const [cursorPosition, setCursorPosition] = useState<CursorPosition>({
-    line: 1,
-    column: 1,
-  })
+  const setCursorPosition = useCallback((position: CursorPosition) => {
+    publishCursor(position)
+  }, [])
 
   const toggleLeftPanel = useCallback(() => {
     setShowLeftPanel((visible) => !visible)
@@ -54,7 +54,6 @@ export function useAppLayout(): AppLayoutState {
     showRightPanel,
     showShortcutOverlay,
     centerView,
-    cursorPosition,
     setShowRightPanel,
     setCenterView,
     setCursorPosition,

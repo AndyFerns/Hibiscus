@@ -29,7 +29,7 @@ interface WorkspaceEditorRouting {
   handleFileOpen: (node: FileNode) => void
   openFileByPath: (filePath: string, line?: number) => void
   handleGraphNodeClick: (filePath: string) => void
-  handleEditorChange: (value: string) => void
+  handleEditorChange: (value: string, path?: string) => void
   handleItemCreated: (absolutePath: string, isFile: boolean) => void
   handleOpenFile: () => Promise<void>
   handleSaveAs: EditorController["saveAsFile"]
@@ -76,10 +76,14 @@ export function useWorkspaceEditorRouting({
     openFileByPath(filePath)
   }, [openFileByPath, setCenterView])
 
-  const handleEditorChange = useCallback((value: string) => {
-    onChange(value)
-    if (activeFilePath) {
-      updateNote(activeFilePath, value)
+  const handleEditorChange = useCallback((value: string, path?: string) => {
+    // EditorView passes the path its (debounced) change belongs to, so an edit
+    // flushed during a tab switch is never attributed to the new tab.
+    if (path === undefined) onChange(value)
+    else onChange(value, path)
+    const target = path ?? activeFilePath
+    if (target) {
+      updateNote(target, value)
     }
   }, [onChange, activeFilePath, updateNote])
 

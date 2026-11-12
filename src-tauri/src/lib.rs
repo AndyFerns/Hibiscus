@@ -72,6 +72,7 @@ pub fn run() {
             // File operations (async for non-blocking I/O)
             commands::read_text_file,
             commands::read_file_binary,
+            commands::inspect_document,
             commands::write_text_file,
             commands::copy_file,
             commands::file_exists,

@@ -126,16 +126,26 @@ interface EditorState {
 | `openFile(node)` | Open file in new tab |
 | `switchTab(fileId)` | Switch to existing tab |
 | `closeTab(fileId)` | Close tab (prompts if dirty) |
-| `onChange(content)` | Handle editor content change |
+| `closeTabs(fileIds)` | Close several tabs; activates the nearest survivor |
+| `reorderTabs(from, to)` | Move a tab (drag or Alt+↑/↓); order is saved in the session |
+| `renamePath(oldPath, newPath)` | Re-point open tabs, buffers and Monaco models after a file or folder move |
+| `renameFile(path, newName)` | Rename on disk via `move_node`, then `renamePath` |
+| `onChange(content, path?)` | Handle editor content change (path defaults to the active file) |
 | `saveCurrentFile()` | Save active file |
+| `saveFileByPath(path)` | Save one open file |
 | `saveAllFiles()` | Save all dirty files |
 | `saveAsFile()` | Save with new name/path |
 
+All returned callbacks have stable identities (state is read through refs), so memoized consumers such as `TabBar` and the panes don't re-render on every edit.
+
 ### Monaco Integration
 
-- Creates/destroys Monaco models per file
-- Swaps editor models on tab switch (no remount)
-- Tracks dirty state via model change events
+- One Monaco model per open file, held in `src/components/Editor/modelRegistry.ts`. That module doesn't import Monaco, so this hook stays testable.
+- A tab switch is `editor.setModel()` plus a view-state restore. Cursor, scroll and undo history are preserved, and nothing is written to disk.
+- `fileContent` only seeds a new model or replaces text after an external change on disk. It is **not** updated on every keystroke.
+- `fileVersion` is bumped only when the active file's text must be replaced from outside.
+- Edits reach `onChange` after a short pause, and dirty state only touches `openFiles` when a tab's flag flips.
+- Autosave is debounced per file.
 
 ### Usage
 

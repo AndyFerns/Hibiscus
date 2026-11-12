@@ -54,7 +54,6 @@ function AppInner({ workspaceController }: AppInnerProps) {
     showRightPanel,
     showShortcutOverlay,
     centerView,
-    cursorPosition,
     setShowRightPanel,
     setCenterView,
     setCursorPosition,
@@ -72,6 +71,8 @@ function AppInner({ workspaceController }: AppInnerProps) {
     openNode,
     openFileDialog,
     moveNode,
+    moveError,
+    clearMoveError,
     recentFiles,
     closeWorkspace,
   } = workspaceController
@@ -92,8 +93,21 @@ function AppInner({ workspaceController }: AppInnerProps) {
     activeFileId,
     switchTab,
     closeTab,
+    closeTabs,
+    reorderTabs,
+    renamePath,
+    renameFile,
+    saveFileByPath,
     buffersRef,
   } = useEditorController(workspaceRoot)
+
+  // Tree drag-and-drop: move on disk, then re-point any open tabs inside the
+  // moved file/folder so they stay open (instead of closing as "deleted").
+  const handleMoveNode = useCallback(
+    (sourceId: string, destinationParentId: string) =>
+      moveNode(sourceId, destinationParentId, renamePath),
+    [moveNode, renamePath]
+  )
 
   const {
     activeMode: activeMarkdownViewMode,
@@ -216,7 +230,9 @@ function AppInner({ workspaceController }: AppInnerProps) {
             onOpen={handleFileOpen}
             onNewFile={handleNewFile}
             onNewFolder={handleNewFolder}
-            onMoveNode={moveNode}
+            onMoveNode={handleMoveNode}
+            moveError={moveError}
+            onDismissMoveError={clearMoveError}
             onToggleGraph={toggleGraphView}
           />
         }
@@ -233,6 +249,12 @@ function AppInner({ workspaceController }: AppInnerProps) {
             fileContent={fileContent}
             fileVersion={fileVersion}
             openFiles={openFiles}
+            workspaceRoot={workspaceRoot}
+            closeTabs={closeTabs}
+            reorderTabs={reorderTabs}
+            renameFile={renameFile}
+            saveFileByPath={saveFileByPath}
+            saveAllFiles={saveAllFiles}
             markdownViewMode={activeMarkdownViewMode}
             onToggleMarkdownViewMode={toggleMarkdownViewMode}
             handleGraphNodeClick={handleGraphNodeClick}
@@ -262,12 +284,12 @@ function AppInner({ workspaceController }: AppInnerProps) {
           />
         }
         showRightPanel={showRightPanel}
+        showLeftPanel={showLeftPanel && !(focusMode && settings.general.focusModeHidesExplorer)}
         bottom={
           <BottomPane
             workspaceRoot={workspaceRoot}
             focusMode={focusMode}
             activeFile={activeFile}
-            cursorPosition={cursorPosition}
             pomodoroState={pomodoroState}
             showLeftPanel={showLeftPanel}
             showRightPanel={showRightPanel}
