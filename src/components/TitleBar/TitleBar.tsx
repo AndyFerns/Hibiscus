@@ -343,7 +343,7 @@ export function TitleBar({
                 <span className="titlebar-title">Hibiscus</span>
                 {workspaceName && (
                     <span className="titlebar-subtitle">
-                        — {workspaceName}
+                        {workspaceName}
                     </span>
                 )}
             </div>

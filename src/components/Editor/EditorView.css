@@ -262,3 +262,54 @@
   color: var(--text);
   border-color: var(--border-hover);
 }
+
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * The main panel itself is now the rounded, shadowed surface, so the editor
+ * drops its inner padding and hairline frame: the pill tab bar spans the
+ * panel's full width and the document fills the rest edge to edge.
+ * ============================================================================= */
+
+.editor-wrapper {
+  padding: 0;
+}
+
+.editor-container {
+  border: none;
+  border-radius: 0;
+}
+
+.editor-unsaved-hint {
+  background: var(--surface-hover);
+  border-color: var(--border-subtle);
+}
+
+.editor-placeholder {
+  gap: var(--space-2, 8px);
+}
+
+.editor-placeholder-icon {
+  display: inline-flex;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--surface-1);
+  box-shadow: 0 0 0 1px var(--border-subtle);
+  opacity: 0.6;
+}
+
+.md-view-toggle-btn {
+  top: 10px;
+  right: 14px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-3);
+  box-shadow: var(--shadow-panel);
+  transition:
+    color var(--dur-fast, 120ms) var(--ease-snap),
+    background var(--dur-fast, 120ms) var(--ease-snap);
+}
+
+.md-view-toggle-btn:hover {
+  background: var(--surface-hover);
+}

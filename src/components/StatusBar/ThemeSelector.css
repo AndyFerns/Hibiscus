@@ -144,3 +144,42 @@
 .theme-option-action:hover {
   color: var(--text);
 }
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * ============================================================================= */
+
+.theme-selector-btn {
+  border-radius: var(--radius-pill, 999px);
+}
+
+.theme-selector-btn:hover {
+  background: var(--surface-hover);
+}
+
+.theme-swatch {
+  box-shadow: 0 0 0 1px var(--border-hover);
+}
+
+.theme-dropdown {
+  padding: 4px;
+  background: var(--surface-3);
+  border: none;
+  border-radius: var(--radius-panel, 10px);
+  box-shadow: var(--shadow-popover);
+}
+
+.theme-dropdown-header:not(:first-child) {
+  border-top-color: var(--border-subtle);
+}
+
+.theme-dropdown-divider {
+  background: var(--border-subtle);
+}
+
+.theme-option {
+  border-radius: var(--radius-row, 6px);
+}
+
+.theme-option:hover {
+  background: var(--surface-hover);
+}
