@@ -221,3 +221,44 @@
  * correctly sets editor.background from CSS variables. The !important
  * override was conflicting with theme-driven backgrounds.
  */
+/* Root + Monaco host (moved out of inline styles so renders allocate nothing) */
+.editor-view-root {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+.monaco-container {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Markdown source / preview toggle (was an inline style object) */
+.editor-container {
+  position: relative;
+}
+
+.md-view-toggle-btn {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.md-view-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+}

@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import type { StudyContextType } from "../shared/StudyContext"
 import { useFlashcards } from "../flashcards/useFlashcards"
 import { useNotesSynthesis } from "../notes/useNotesSynthesis"
@@ -51,14 +52,23 @@ export function useStudyTools(
   const flashcards = useFlashcards(workspaceRoot)
   const notes = useNotesSynthesis(workspaceRoot)
 
-  const statsData = {
+  // Memoized so the right panel does not re-render (and re-aggregate the
+  // week) on every unrelated app render.
+  const statsData = useMemo(() => ({
     totalStudyMinutes: studyStats.totalStudyMinutes,
     totalSessions: studyStats.totalSessions,
     currentStreak: studyStats.currentStreak,
     avgDailyMinutes: studyStats.avgDailyMinutes,
     weeklyData: studyStats.getDailyAggregates(7),
     recentSessions: studyStats.data.sessions,
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [
+    studyStats.data,
+    studyStats.totalStudyMinutes,
+    studyStats.totalSessions,
+    studyStats.currentStreak,
+    studyStats.avgDailyMinutes,
+  ])
 
   return {
     settings,

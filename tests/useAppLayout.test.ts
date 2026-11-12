@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { useAppLayout } from "../src/hooks/useAppLayout"
+import { getCursorPosition } from "../src/state/cursorStore"
 
 describe("useAppLayout", () => {
   it("provides the default application layout", () => {
@@ -10,7 +11,7 @@ describe("useAppLayout", () => {
     expect(result.current.showRightPanel).toBe(false)
     expect(result.current.showShortcutOverlay).toBe(false)
     expect(result.current.centerView).toBe("editor")
-    expect(result.current.cursorPosition).toEqual({ line: 1, column: 1 })
+    expect(getCursorPosition()).toEqual({ line: 1, column: 1 })
   })
 
   it("toggles panel visibility independently", () => {
@@ -54,6 +55,6 @@ describe("useAppLayout", () => {
     })
 
     expect(result.current.centerView).toBe("graph")
-    expect(result.current.cursorPosition).toEqual({ line: 12, column: 4 })
+    expect(getCursorPosition()).toEqual({ line: 12, column: 4 })
   })
 })

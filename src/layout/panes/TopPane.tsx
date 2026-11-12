@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { TitleBar } from "../../components/TitleBar/TitleBar"
 
 export interface TopPaneProps {
@@ -22,7 +23,7 @@ export interface TopPaneProps {
   onOpenSettings: () => void
 }
 
-export function TopPane(props: TopPaneProps) {
+function TopPaneImpl(props: TopPaneProps) {
   return (
     <TitleBar
       workspaceRoot={props.workspaceRoot}
@@ -47,3 +48,5 @@ export function TopPane(props: TopPaneProps) {
     />
   )
 }
+/** Memoized: skips re-rendering when its props are unchanged. */
+export const TopPane = memo(TopPaneImpl)
