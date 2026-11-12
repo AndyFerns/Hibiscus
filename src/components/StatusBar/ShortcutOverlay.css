@@ -98,3 +98,34 @@
     color: var(--accent);
     box-shadow: 0 1px 0 var(--border);
 }
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * ============================================================================= */
+
+.shortcut-overlay-backdrop {
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    backdrop-filter: blur(3px);
+}
+
+.shortcut-overlay-modal {
+    background: var(--surface-3);
+    border: none;
+    border-radius: 14px;
+    box-shadow: var(--shadow-popover);
+}
+
+.shortcut-overlay-header,
+.shortcut-item {
+    border-bottom-color: var(--border-subtle);
+}
+
+.shortcut-overlay-close-btn {
+    border-radius: var(--radius-row, 6px);
+}
+
+.shortcut-key {
+    background: var(--surface-1);
+    border-color: var(--border-subtle);
+    border-radius: var(--radius-row, 6px);
+    box-shadow: 0 1px 0 var(--border);
+}

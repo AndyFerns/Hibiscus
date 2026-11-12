@@ -50,11 +50,11 @@
 
 .window-control-btn:hover {
     color: var(--text, #fff);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-hover);
 }
 
 .window-control-btn:active {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-active);
 }
 
 /* Focus state for keyboard navigation */

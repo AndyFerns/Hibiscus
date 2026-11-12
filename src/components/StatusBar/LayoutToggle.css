@@ -142,3 +142,7 @@
     width: 14px;
     height: 14px;
 }
+/* STYLE A — rounded hover target to match the other status-bar controls */
+.layout-toggle {
+  border-radius: var(--radius-pill, 999px);
+}

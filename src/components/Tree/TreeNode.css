@@ -287,3 +287,58 @@
   min-width: 0;
   flex: 1;
 }
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * Rows are filled 6px-radius pills: hover is a faint fill, the active file a
+ * stronger one. No accent bars, gradients or glows.
+ * ============================================================================= */
+
+.tree-node {
+  margin: 1px 0;
+  min-height: 26px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-radius: var(--radius-row, 6px);
+  transition:
+    background var(--dur-fast, 120ms) var(--ease-snap),
+    color var(--dur-fast, 120ms) var(--ease-snap);
+}
+
+.tree-node:hover {
+  background: var(--surface-hover);
+}
+
+.tree-node:hover::before,
+.tree-node--active::before {
+  display: none;
+}
+
+.tree-node--active {
+  background: var(--surface-active) !important;
+  color: var(--text) !important;
+  box-shadow: none;
+}
+
+.tree-node:hover .tree-node-icon {
+  transform: none;
+}
+
+.tree-node--folder {
+  color: var(--text-muted);
+}
+
+.tree-node--folder:hover,
+.tree-node--expanded {
+  color: var(--text);
+}
+
+.tree-node-chevron {
+  color: var(--text-subtle);
+  margin-right: 0;
+}
+
+.tree-node-children {
+  border-left-color: var(--border-subtle);
+  margin-left: 13px;
+  padding-left: 4px;
+}

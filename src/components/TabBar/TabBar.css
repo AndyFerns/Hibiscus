@@ -349,3 +349,107 @@
   border-radius: 50%;
   background: var(--accent);
 }
+
+/* =============================================================================
+ * STYLE A — PILL TABS
+ * Tabs float as pills inside the editor panel's header: no separators, the
+ * active tab is a raised pill (surface-3 + soft ring), hover is a faint fill.
+ * ============================================================================= */
+
+.tab-bar {
+  height: 40px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tab-bar--empty {
+  height: 8px;
+  min-height: 8px;
+  border-bottom: none;
+}
+
+.tab-bar-scroll {
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  scrollbar-color: transparent transparent;
+}
+
+.tab-bar-scroll:hover {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.tab-bar-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
+.tab-bar-tab {
+  height: 28px;
+  padding: 0 4px 0 12px;
+  border-right: none;
+  border-radius: var(--radius-pill, 999px);
+  transition:
+    background var(--dur-fast, 120ms) var(--ease-snap),
+    color var(--dur-fast, 120ms) var(--ease-snap),
+    box-shadow var(--dur-fast, 120ms) var(--ease-snap);
+}
+
+.tab-bar-tab:hover {
+  background: var(--surface-hover);
+}
+
+.tab-bar-tab--active {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border-subtle), var(--shadow-xs);
+}
+
+/* The old gradient underline is replaced by the raised pill */
+.tab-bar-tab--active::after {
+  display: none;
+}
+
+.tab-bar-tab-close {
+  border-radius: var(--radius-pill, 999px);
+}
+
+.tab-bar-tab-close:hover {
+  background: var(--surface-active);
+}
+
+.tab-bar-tab-dirty {
+  animation: none;
+  opacity: 0.85;
+}
+
+.open-files-trigger {
+  margin: 0 8px 0 4px;
+  align-self: center;
+  height: 26px;
+  border: none;
+  background: var(--surface-1);
+  box-shadow: 0 0 0 1px var(--border-subtle);
+}
+
+.open-files-trigger:hover,
+.open-files-trigger--open {
+  border: none;
+  background: var(--surface-hover);
+}
+
+.dnd-ghost--tab {
+  border-radius: var(--radius-pill, 999px);
+}
+
+.dnd-ghost--tab > .tab-bar-tab {
+  height: 28px;
+}
+
+/* Insert indicator between pills */
+.tab-bar-tab.dnd-insert-before {
+  box-shadow: -3px 0 0 -1px var(--accent) !important;
+}
+
+.tab-bar-tab.dnd-insert-after {
+  box-shadow: 3px 0 0 -1px var(--accent) !important;
+}
