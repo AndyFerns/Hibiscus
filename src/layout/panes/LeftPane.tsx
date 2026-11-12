@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { TreeView } from "../../components/Tree/TreeView"
 
 type LeftPaneProps = {
@@ -8,11 +9,13 @@ type LeftPaneProps = {
   onOpen: (...args: any[]) => void
   onNewFile: () => void
   onNewFolder: () => void
-  onMoveNode: (...args: any[]) => void
+  onMoveNode: (sourceId: string, destinationParentId: string) => unknown
   onToggleGraph: () => void
+  moveError?: string | null
+  onDismissMoveError?: () => void
 }
 
-export function LeftPane({
+function LeftPaneImpl({
   visible,
   hiddenByFocusMode,
   tree,
@@ -22,6 +25,8 @@ export function LeftPane({
   onNewFolder,
   onMoveNode,
   onToggleGraph,
+  moveError,
+  onDismissMoveError,
 }: LeftPaneProps) {
   if (!visible || hiddenByFocusMode) {
     return null
@@ -36,6 +41,10 @@ export function LeftPane({
       onNewFolder={onNewFolder}
       onMoveNode={onMoveNode}
       onToggleGraph={onToggleGraph}
+      moveError={moveError}
+      onDismissMoveError={onDismissMoveError}
     />
   )
 }
+
+export const LeftPane = memo(LeftPaneImpl)

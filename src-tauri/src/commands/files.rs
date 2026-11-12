@@ -344,13 +344,16 @@ pub async fn delete_folder(path: String) -> Result<(), HibiscusError> {
 /// * `path` - Absolute path to the file to read
 ///
 /// # Returns
-/// * `Ok(Vec<u8>)` - The file contents as binary data
+/// * `Ok(Response)` - The raw file bytes. Returned as a `tauri::ipc::Response`
+///   so they cross the IPC bridge as a binary body (an `ArrayBuffer` in JS)
+///   instead of a JSON array of numbers, which was ~4x larger and very slow
+///   to serialize and parse for big PDFs.
 /// * `Err(HibiscusError)` - If the file cannot be read
 ///
 /// # Security
 /// Path is validated to prevent directory traversal attacks.
 #[tauri::command]
-pub async fn read_file_binary(path: String) -> Result<Vec<u8>, HibiscusError> {
+pub async fn read_file_binary(path: String) -> Result<tauri::ipc::Response, HibiscusError> {
     let path = PathBuf::from(&path);
 
     // Validate the path
@@ -374,7 +377,7 @@ pub async fn read_file_binary(path: String) -> Result<Vec<u8>, HibiscusError> {
         HibiscusError::Io(format!("Failed to read binary file '{}': {}", path.display(), e))
     })?;
 
-    Ok(content)
+    Ok(tauri::ipc::Response::new(content))
 }
 
 /// Reports whether a path exists and is a regular file.

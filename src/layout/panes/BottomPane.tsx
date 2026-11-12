@@ -1,4 +1,5 @@
-import { CursorPosition } from "../../components/Editor/EditorView"
+import { memo } from "react"
+import { useCursorPosition } from "../../state/cursorStore"
 import { PomodoroTimer } from "../../features/pomodoro/PomodoroTimer"
 import { ThemeSelector } from "../../components/StatusBar/ThemeSelector"
 import { LayoutToggle } from "../../components/StatusBar/LayoutToggle"
@@ -7,7 +8,6 @@ export interface BottomPaneProps {
   workspaceRoot: string | null
   focusMode: boolean
   activeFile: any | null
-  cursorPosition: CursorPosition
   pomodoroState: any
   showLeftPanel: boolean
   showRightPanel: boolean
@@ -18,11 +18,20 @@ export interface BottomPaneProps {
   toggleRightPanel: () => void
 }
 
-export function BottomPane({
+/** Subscribes to the cursor store so only this span re-renders while typing. */
+function CursorStatus() {
+  const { line, column } = useCursorPosition()
+  return (
+    <span className="status-item" title="Cursor position">
+      Ln {line}, Col {column}
+    </span>
+  )
+}
+
+function BottomPaneImpl({
   workspaceRoot,
   focusMode,
   activeFile,
-  cursorPosition,
   pomodoroState,
   showLeftPanel,
   showRightPanel,
@@ -63,9 +72,7 @@ export function BottomPane({
       <div className="status-bar-right">
         {/* Cursor Position (Line:Column) */}
         {activeFile && (
-          <span className="status-item" title="Cursor position">
-            Ln {cursorPosition.line}, Col {cursorPosition.column}
-          </span>
+          <CursorStatus />
         )}
 
         {/* Current file name */}
@@ -103,3 +110,5 @@ export function BottomPane({
     </div>
   )
 }
+
+export const BottomPane = memo(BottomPaneImpl)

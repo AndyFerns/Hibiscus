@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { RightPanelContainer } from "../../components/RightPanel/RightPanelContainer"
 
 export interface RightPaneProps {
@@ -16,7 +17,7 @@ export interface RightPaneProps {
   activeFilePath: string | null
 }
 
-export function RightPane(props: RightPaneProps) {
+function RightPaneImpl(props: RightPaneProps) {
   return (
     <RightPanelContainer
       workspaceRoot={props.workspaceRoot}
@@ -35,3 +36,6 @@ export function RightPane(props: RightPaneProps) {
     />
   )
 }
+
+/** Memoized: skips re-rendering when its props are unchanged. */
+export const RightPane = memo(RightPaneImpl)

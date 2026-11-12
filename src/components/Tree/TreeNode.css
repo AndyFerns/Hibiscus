@@ -105,10 +105,8 @@
   background: var(--accent-soft) !important;
   color: var(--text) !important;
 
-  /* Subtle glow effect */
-  box-shadow:
-    inset 0 0 0 1px rgba(122, 162, 247, 0.2),
-    0 0 12px rgba(122, 162, 247, 0.1);
+  /* Subtle ring (theme-aware) */
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
 }
 
 /* Stronger left border for active node */
@@ -128,22 +126,24 @@
 
 /* =============================================================================
  * DRAG AND DROP STATES
- * Visual feedback during drag operations
+ * The source row stays in place as a dashed "slot" while its ghost is
+ * carried around (see components/dnd/dnd.css for the ghost and targets).
  * ============================================================================= */
 
-/* Node being dragged -- reduced opacity to indicate it is "lifted" */
 .tree-node--dragging {
-  opacity: 0.4;
-  transform: scale(0.98);
+  color: transparent !important;
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--border-hover) !important;
+  outline: 1px dashed var(--border-hover);
+  outline-offset: -1px;
 }
 
-/* Valid drop target (folder) -- highlighted with accent border */
-.tree-node--drop-target {
-  background: var(--accent-soft) !important;
-  box-shadow:
-    inset 0 0 0 2px var(--accent),
-    0 0 16px rgba(122, 162, 247, 0.2);
-  border-radius: var(--radius-md, 6px);
+.tree-node--dragging > * {
+  opacity: 0;
+}
+
+.tree-node--dragging::before {
+  display: none;
 }
 
 /* =============================================================================
@@ -153,9 +153,7 @@
 
 .tree-node:focus-visible {
   outline: none;
-  box-shadow:
-    inset 0 0 0 2px var(--accent),
-    0 0 8px rgba(122, 162, 247, 0.3);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 /* =============================================================================
@@ -192,12 +190,22 @@
   justify-content: center;
 
   /* Smooth rotation animation */
-  transition: transform var(--transition-fast, 0.15s ease-out);
+  transition: transform var(--transition-normal, 0.15s ease-out);
 }
 
 /* Rotate chevron when expanded */
-.tree-node--folder .tree-node-chevron {
+.tree-node--expanded .tree-node-chevron {
   transform: rotate(90deg);
+}
+
+/* Files get an empty chevron-sized spacer so names line up with folders */
+.tree-node-chevron--spacer {
+  visibility: hidden;
+}
+
+/* Open folders get a soft accent fill (was a hardcoded Midnight blue) */
+.tree-node--expanded .tree-node-folder-shape {
+  fill: var(--accent-soft);
 }
 
 /* =============================================================================
@@ -235,23 +243,33 @@
 
 .tree-node-children {
   /* Add left border for visual hierarchy */
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border-subtle, var(--border));
   margin-left: 8px;
   padding-left: var(--space-2, 8px);
 
-  /* Smooth expand/collapse animation */
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition:
-    max-height var(--transition-normal, 0.2s ease-out),
-    opacity var(--transition-normal, 0.2s ease-out);
+  /*
+   * Children only exist in the DOM while expanded, so a short entrance
+   * animation is enough. (The old max-height: 2000px transition clipped
+   * large folders and relied on an expensive :has() selector.)
+   */
+  animation: tree-children-in var(--transition-normal, 0.15s) ease-out;
 }
 
-/* Show children when parent is expanded */
-.tree-node-container:has(.tree-node[aria-expanded="true"]) > .tree-node-children {
-  max-height: 2000px;
-  opacity: 1;
+@keyframes tree-children-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-node-children {
+    animation: none;
+  }
 }
 
 /* =============================================================================
@@ -268,4 +286,59 @@
   /* Allow shrinking */
   min-width: 0;
   flex: 1;
+}
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * Rows are filled 6px-radius pills: hover is a faint fill, the active file a
+ * stronger one. No accent bars, gradients or glows.
+ * ============================================================================= */
+
+.tree-node {
+  margin: 1px 0;
+  min-height: 26px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-radius: var(--radius-row, 6px);
+  transition:
+    background var(--dur-fast, 120ms) var(--ease-snap),
+    color var(--dur-fast, 120ms) var(--ease-snap);
+}
+
+.tree-node:hover {
+  background: var(--surface-hover);
+}
+
+.tree-node:hover::before,
+.tree-node--active::before {
+  display: none;
+}
+
+.tree-node--active {
+  background: var(--surface-active) !important;
+  color: var(--text) !important;
+  box-shadow: none;
+}
+
+.tree-node:hover .tree-node-icon {
+  transform: none;
+}
+
+.tree-node--folder {
+  color: var(--text-muted);
+}
+
+.tree-node--folder:hover,
+.tree-node--expanded {
+  color: var(--text);
+}
+
+.tree-node-chevron {
+  color: var(--text-subtle);
+  margin-right: 0;
+}
+
+.tree-node-children {
+  border-left-color: var(--border-subtle);
+  margin-left: 13px;
+  padding-left: 4px;
 }

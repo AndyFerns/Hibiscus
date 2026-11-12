@@ -9,7 +9,8 @@
  * FEATURES:
  * - Expandable/collapsible folder hierarchy
  * - "New File" and "New Folder" action buttons in the header
- * - Native HTML5 drag-and-drop for reordering and moving nodes
+ * - Pointer-driven drag and drop (useTreeDrag) to move files and folders,
+ *   onto folders, the workspace root, or the tab bar to open a file
  *
  * This component is rendered in the Workbench's left panel slot.
  * ============================================================================
@@ -17,7 +18,10 @@
 
 import { Node } from "../../types/workspace"
 import { TreeNode } from "./TreeNode"
+import { useTreeDrag } from "./useTreeDrag"
+import { detectSeparator, movedId, remapIds } from "./treeOps"
 import "./TreeView.css"
+import "../dnd/dnd.css"
 
 /**
  * TreeView Props Interface
@@ -34,11 +38,14 @@ interface TreeViewProps {
   onOpen: (node: Node) => void
   onNewFile?: () => void
   onNewFolder?: () => void
-  onMoveNode?: (sourceId: string, destinationParentId: string) => void
+  onMoveNode?: (sourceId: string, destinationParentId: string) => unknown
   onToggleGraph?: () => void
+  /** Last failed move, shown as a dismissible toast */
+  moveError?: string | null
+  onDismissMoveError?: () => void
 }
 
-import { memo, useState, useCallback } from "react"
+import { memo, useState, useCallback, useEffect, useRef } from "react"
 
 export const TreeView = memo(function TreeView({
   tree,
@@ -48,12 +55,13 @@ export const TreeView = memo(function TreeView({
   onNewFolder,
   onMoveNode,
   onToggleGraph,
+  moveError,
+  onDismissMoveError,
 }: TreeViewProps) {
   // State to track which folders are expanded
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
-  // Currently dragged node ID for visual feedback
-  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   // Toggle folder expansion state
   const handleToggleExpand = useCallback((nodeId: string) => {
@@ -68,26 +76,52 @@ export const TreeView = memo(function TreeView({
     })
   }, [])
 
-  // Drag start handler -- stores the dragged node ID
-  const handleDragStart = useCallback((nodeId: string) => {
-    setDraggedNodeId(nodeId)
+  const expandNode = useCallback((nodeId: string) => {
+    setExpandedNodes(prev => {
+      if (prev.has(nodeId)) return prev
+      const next = new Set(prev)
+      next.add(nodeId)
+      return next
+    })
   }, [])
 
-  // Drag end handler -- clears the dragged state
-  const handleDragEnd = useCallback(() => {
-    setDraggedNodeId(null)
-  }, [])
-
-  // Drop handler -- delegates to parent onMoveNode callback using event data
-  const handleDrop = useCallback(
-    (sourceId: string, targetNodeId: string) => {
-      if (sourceId && sourceId !== targetNodeId && onMoveNode) {
-        onMoveNode(sourceId, targetNodeId)
-      }
-      setDraggedNodeId(null)
+  // Keep a moved folder (and anything open inside it) expanded under its new
+  // id, open the destination so the item is visible, then move it on disk.
+  const treeRef = useRef(tree)
+  treeRef.current = tree
+  const handleMove = useCallback(
+    (sourceId: string, targetFolderId: string) => {
+      const current = treeRef.current
+      const newId = movedId(current, sourceId, targetFolderId)
+      const sep = detectSeparator(current)
+      setExpandedNodes(prev => {
+        let next = remapIds(prev, sourceId, newId, sep)
+        if (targetFolderId && !next.has(targetFolderId)) {
+          next = new Set(next)
+          next.add(targetFolderId)
+        }
+        return next
+      })
+      return onMoveNode?.(sourceId, targetFolderId)
     },
     [onMoveNode]
   )
+
+  const { onPointerDown, onClickCapture } = useTreeDrag({
+    tree,
+    scrollRef: contentRef,
+    expandedNodes,
+    expandNode,
+    onMoveNode: handleMove,
+    onOpen,
+  })
+
+  // Auto-dismiss the move error toast.
+  useEffect(() => {
+    if (!moveError || !onDismissMoveError) return
+    const t = window.setTimeout(onDismissMoveError, 6000)
+    return () => clearTimeout(t)
+  }, [moveError, onDismissMoveError])
 
   return (
     <div className="tree-view" role="tree" aria-label="File explorer">
@@ -146,7 +180,15 @@ export const TreeView = memo(function TreeView({
       </div>
 
       {/* Tree content area */}
-      <div className="tree-view-content">
+      {/* Tree content area. Empty space here is the workspace-root drop zone. */}
+      <div
+        className="tree-view-content"
+        ref={contentRef}
+        data-drop-folder=""
+        data-drop-root=""
+        onPointerDown={onPointerDown}
+        onClickCapture={onClickCapture}
+      >
         {tree.length > 0 ? (
           tree.map(node => (
             <TreeNode
@@ -156,10 +198,6 @@ export const TreeView = memo(function TreeView({
               onOpen={onOpen}
               expandedNodes={expandedNodes}
               onToggleExpand={handleToggleExpand}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onDrop={handleDrop}
-              isDragging={draggedNodeId === node.id}
             />
           ))
         ) : (
@@ -168,6 +206,19 @@ export const TreeView = memo(function TreeView({
           </div>
         )}
       </div>
+
+      {moveError && (
+        <div className="tree-view-toast" role="alert">
+          <span>{moveError}</span>
+          {onDismissMoveError && (
+            <button className="tree-view-toast-close" onClick={onDismissMoveError} aria-label="Dismiss">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 })

@@ -1,0 +1,382 @@
+/**
+ * Open files dropdown — compact popover under the tab bar.
+ */
+
+.open-files-panel {
+  position: fixed;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 16px));
+  max-height: min(60vh, 520px);
+  background: var(--bg-elevated, var(--panel-bg));
+  border: 1px solid var(--border-hover, var(--border));
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm, 12px);
+  color: var(--text);
+  overflow: hidden;
+  transform-origin: top right;
+  animation: open-files-in 140ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@keyframes open-files-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .open-files-panel {
+    animation: none;
+  }
+}
+
+.open-files-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px 6px;
+}
+
+.open-files-title {
+  font-size: var(--text-xs, 11px);
+  font-weight: var(--font-semibold, 600);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.open-files-count {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.open-files-unsaved {
+  color: var(--accent);
+}
+
+.open-files-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 6px;
+  padding: 0 8px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 6px);
+  background: var(--editor-bg, var(--bg));
+  color: var(--text-subtle);
+}
+
+.open-files-filter:focus-within {
+  border-color: var(--accent);
+}
+
+.open-files-filter input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.open-files-filter input::placeholder {
+  color: var(--text-subtle);
+}
+
+.open-files-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 2px 6px 6px;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.open-files-empty {
+  padding: 16px 8px;
+  text-align: center;
+  color: var(--text-subtle);
+}
+
+.open-files-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 3px 6px 3px 4px;
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.open-files-row--focused {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+.open-files-row--active {
+  color: var(--text);
+}
+
+.open-files-row--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.open-files-grip {
+  display: inline-flex;
+  width: 10px;
+  justify-content: center;
+  color: var(--text-subtle);
+  opacity: 0;
+  cursor: grab;
+  transition: opacity var(--transition-fast);
+}
+
+.open-files-row--focused .open-files-grip {
+  opacity: 0.7;
+}
+
+.open-files-icon {
+  display: inline-flex;
+  color: var(--text-subtle);
+}
+
+.open-files-row--active .open-files-icon {
+  color: var(--accent);
+}
+
+.open-files-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.open-files-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.open-files-dir {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+  font-size: var(--text-xs, 11px);
+  color: var(--text-subtle);
+}
+
+.open-files-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.open-files-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.open-files-btn:hover {
+  background: var(--panel-bg-active, var(--border));
+  color: var(--text);
+}
+
+.open-files-btn--hover,
+.open-files-btn--close {
+  opacity: 0;
+}
+
+.open-files-row--focused .open-files-btn--hover,
+.open-files-row--focused .open-files-btn--close,
+.open-files-btn:focus-visible {
+  opacity: 1;
+}
+
+.open-files-btn--close:hover {
+  color: var(--error, #f7768e);
+}
+
+/* Dirty files: a dot that turns into a save button on hover */
+.open-files-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.open-files-save-icon {
+  display: none;
+}
+
+.open-files-row--focused .open-files-btn--save .open-files-dot {
+  display: none;
+}
+
+.open-files-row--focused .open-files-btn--save .open-files-save-icon {
+  display: block;
+}
+
+.open-files-rename {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.open-files-rename input {
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--editor-bg, var(--bg));
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.open-files-rename input[aria-invalid="true"] {
+  border-color: var(--error, #f7768e);
+}
+
+.open-files-rename-error {
+  margin-top: 2px;
+  font-size: var(--text-xs, 11px);
+  color: var(--error, #f7768e);
+}
+
+.open-files-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.open-files-footer-btn {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs, 11px);
+  cursor: pointer;
+}
+
+.open-files-footer-btn:hover:not(:disabled) {
+  background: var(--panel-bg-hover);
+  color: var(--text);
+}
+
+.open-files-footer-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.open-files-hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+/* Row ghost while reordering */
+.dnd-ghost--row > .open-files-row {
+  background: transparent;
+}
+
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * ============================================================================= */
+
+.open-files-panel {
+  background: var(--surface-3);
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--shadow-popover);
+}
+
+.open-files-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+}
+
+.open-files-filter {
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+.open-files-filter:focus-within {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.open-files-row {
+  border-radius: var(--radius-row, 6px);
+}
+
+.open-files-row--focused {
+  background: var(--surface-hover);
+}
+
+.open-files-row--active {
+  background: var(--surface-active);
+}
+
+.open-files-row--active::before {
+  display: none;
+}
+
+.open-files-footer {
+  border-top-color: var(--border-subtle);
+}
+
+.open-files-footer-btn {
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-1);
+  box-shadow: 0 0 0 1px var(--border-subtle);
+}
+
+.open-files-footer-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}

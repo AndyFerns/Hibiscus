@@ -4,25 +4,23 @@
  * ============================================================================
  *
  * Manages the multi-file editor state including:
- * - Open file list (for tab bar display)
+ * - Open file list (for tab bar display) and tab ordering
  * - Active file selection and switching
  * - File content loading, saving, and buffer management
  * - Dirty state tracking (unsaved changes) per file
  * - Session persistence and restore (via .hibiscus/session.json)
  * - Keyboard shortcut handling (Ctrl+S, Ctrl+W)
  *
- * ARCHITECTURE:
- * - Uses a Map (buffersRef) to store content per open file -- O(1) lookup
- * - Maintains an ordered list (openFiles) for tab bar rendering
- * - openFilesMap provides O(1) duplicate checking by path
- * - Session is persisted with 300ms debounce to avoid excessive writes
- * - Provides both debounced (auto) and immediate (manual) save
- *
- * MULTI-FILE ADDITIONS (relative to the single-file predecessor):
- * - openFiles[] and activeFileId replace the single activeFile model
- * - closeTab() switches to an adjacent tab instead of clearing entirely
- * - switchTab() swaps Monaco content without re-mounting the editor
- * - restoreSession() loads previously open files on workspace boot
+ * PERFORMANCE NOTES:
+ * - Text lives in Monaco models (see components/Editor/modelRegistry.ts) and
+ *   in `buffersRef`. It is NOT mirrored into React state on every keystroke;
+ *   `fileContent` only changes when a different file becomes active, so
+ *   typing never re-renders the app tree.
+ * - `openFiles` is only replaced when a tab's dirty flag actually flips.
+ * - Every callback returned here has a stable identity (state is read through
+ *   refs), so memoized consumers (TabBar, panes) do not re-render needlessly.
+ * - Autosave is debounced per path, so editing file B no longer cancels the
+ *   pending autosave of file A.
  * ============================================================================
  */
 
@@ -38,6 +36,7 @@ import {
   loadEditorSession,
 } from "../state/editorSession"
 import { isBinaryFile } from "../utils/fileLoader"
+import { editorModels, remapPath } from "../components/Editor/modelRegistry"
 
 /**
  * Buffer entry for an open file.
@@ -53,12 +52,35 @@ interface FileBuffer {
   isDirty: boolean
 }
 
+const AUTOSAVE_DELAY_MS = 1000
+
+function baseName(p: string): string {
+  return p.split(/[/\\]/).pop() || p
+}
+
+function toNode(file: OpenFile): Node {
+  return {
+    id: file.id,
+    name: file.name,
+    type: file.type as "file" | "folder",
+    path: file.path,
+  }
+}
+
+/** Pure helper: move one item in an array (exported for tests). */
+export function moveItem<T>(list: T[], from: number, to: number): T[] {
+  if (from === to || from < 0 || from >= list.length) return list
+  const next = list.slice()
+  const [item] = next.splice(from, 1)
+  next.splice(Math.max(0, Math.min(to, next.length)), 0, item)
+  return next
+}
+
 export function useEditorController(workspaceRoot: string | null) {
   // =========================================================================
   // MULTI-FILE STATE
-  // Ordered list of open files (drives tab bar rendering)
   // =========================================================================
-  const [openFiles, setOpenFiles] = useState<OpenFile[]>([])
+  const [openFiles, setOpenFilesState] = useState<OpenFile[]>([])
   const [activeFileId, setActiveFileId] = useState<string | null>(null)
 
   // Legacy single-file accessors kept for backward compatibility with App.tsx
@@ -71,468 +93,472 @@ export function useEditorController(workspaceRoot: string | null) {
   // Map for O(1) duplicate-open checking: path -> OpenFile.id
   const openFilesMapRef = useRef<Map<string, string>>(new Map())
 
-  // Current content (reactive state for rendering)
+  // Content of the *active* file at the moment it became active. Monaco owns
+  // the live text; this only seeds a new model and is not updated per edit.
   const [fileContent, setFileContent] = useState("")
+  // Bumped only when the active file's text must be replaced from outside
+  // (initial load, external change on disk).
   const [fileVersion, setFileVersion] = useState(0)
 
   // Dirty state for the active file
   const [isDirty, setIsDirty] = useState(false)
 
-  // Debounce timer ref for auto-save
-  const saveTimerRef = useRef<number | null>(null)
+  // Refs mirroring state so callbacks can stay stable
+  const openFilesRef = useRef<OpenFile[]>([])
+  const activeFilePathRef = useRef<string | null>(null)
+  const activeFileIdRef = useRef<string | null>(null)
+  const workspaceRootRef = useRef(workspaceRoot)
+  workspaceRootRef.current = workspaceRoot
 
-  // Currently saving flag to prevent race conditions
-  const isSavingRef = useRef(false)
+  // Per-path autosave timers and in-flight saves
+  const saveTimersRef = useRef<Map<string, number>>(new Map())
+  const savingRef = useRef<Set<string>>(new Set())
 
   // Track whether session restore has completed to avoid re-restoring
   const sessionRestoredRef = useRef(false)
 
-  // =========================================================================
-  // SESSION PERSISTENCE HELPER
-  // Debounced write of current tab state to disk
-  // =========================================================================
-  const persistSession = useCallback(() => {
-    if (!workspaceRoot) return
+  /** Update openFiles state and its ref together. */
+  const setOpenFiles = useCallback((updater: OpenFile[] | ((prev: OpenFile[]) => OpenFile[])) => {
+    const next = typeof updater === "function" ? updater(openFilesRef.current) : updater
+    if (next === openFilesRef.current) return
+    openFilesRef.current = next
+    setOpenFilesState(next)
+  }, [])
 
-    // Read from the refs/state at call-time
-    setOpenFiles((currentOpenFiles) => {
-      const session = {
-        openFiles: currentOpenFiles.map((f) => f.path),
-        activeFile: activeFilePath,
-      }
-      persistEditorSession(workspaceRoot, session)
-      return currentOpenFiles // no mutation
+  // =========================================================================
+  // SESSION PERSISTENCE (debounced in editorSession.ts)
+  // =========================================================================
+  const persistSession = useCallback(
+    (files: OpenFile[] = openFilesRef.current, active: string | null = activeFilePathRef.current) => {
+      const root = workspaceRootRef.current
+      if (!root) return
+      persistEditorSession(root, {
+        openFiles: files.map((f) => f.path),
+        activeFile: active,
+      })
+    },
+    []
+  )
+
+  /** Make `file` the active tab (or clear the editor when null). */
+  const activate = useCallback((file: OpenFile | null) => {
+    if (!file) {
+      activeFileIdRef.current = null
+      activeFilePathRef.current = null
+      setActiveFileId(null)
+      setActiveFile(null)
+      setActiveFilePath(null)
+      setFileContent("")
+      setIsDirty(false)
+      return
+    }
+    const buffer = buffersRef.current.get(file.path)
+    activeFileIdRef.current = file.id
+    activeFilePathRef.current = file.path
+    setActiveFileId(file.id)
+    setActiveFile(toNode(file))
+    setActiveFilePath(file.path)
+    setFileContent(buffer?.content ?? "")
+    setIsDirty(buffer?.isDirty ?? false)
+  }, [])
+
+  /** Reflect a buffer's dirty flag in tab state, only if it changed. */
+  const syncDirty = useCallback((path: string, dirty: boolean) => {
+    setOpenFiles((prev) => {
+      const idx = prev.findIndex((f) => f.path === path)
+      if (idx === -1 || prev[idx].isDirty === dirty) return prev
+      const next = prev.slice()
+      next[idx] = { ...prev[idx], isDirty: dirty }
+      return next
     })
-  }, [workspaceRoot, activeFilePath])
+    if (path === activeFilePathRef.current) setIsDirty(dirty)
+  }, [setOpenFiles])
 
   /**
    * Save a file to disk.
    * @param path - Full file path
-   * @param content - Content to save
-   * @param immediate - If true, saves immediately (Ctrl+S). If false, uses debounce.
+   * @param content - Content to save (the live buffer wins if it is newer)
+   * @param immediate - If true, saves immediately (Ctrl+S). If false, debounced.
    */
   const saveFile = useCallback(
     async (path: string, content: string, immediate = false) => {
-      // Clear any pending debounced save
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current)
-        saveTimerRef.current = null
+      const pending = saveTimersRef.current.get(path)
+      if (pending) {
+        clearTimeout(pending)
+        saveTimersRef.current.delete(path)
       }
 
       // GUARD: never write a text buffer over a binary document.
-      //
-      // Binary files (PDF, DOCX, images) are opened read-only with an empty
-      // placeholder buffer so Monaco has something to bind to. Writing that
-      // buffer back would truncate the real file to zero bytes. This guard is
-      // the last line of defence -- onChange already refuses to mark these
-      // buffers dirty -- because the consequence is unrecoverable data loss.
+      // Binary files are opened read-only with an empty placeholder buffer;
+      // writing it back would truncate the real file to zero bytes.
       if (isBinaryFile(path)) {
-        console.warn(
-          `[Hibiscus] Refusing to write text to binary file: ${path.split(/[/\\]/).pop()}`
-        )
+        console.warn(`[Hibiscus] Refusing to write text to binary file: ${baseName(path)}`)
         return
       }
 
       const doSave = async () => {
-        if (isSavingRef.current) return
+        saveTimersRef.current.delete(path)
+        if (savingRef.current.has(path)) {
+          // A save for this path is in flight; try again shortly so the
+          // latest edit is not silently dropped.
+          saveTimersRef.current.set(path, window.setTimeout(doSave, 200))
+          return
+        }
 
-        isSavingRef.current = true
+        const buffer = buffersRef.current.get(path)
+        const toWrite = buffer ? buffer.content : content
+        savingRef.current.add(path)
         try {
-          await invoke("write_text_file", { path, contents: content })
-
-          // Update buffer to mark as saved
-          const buffer = buffersRef.current.get(path)
+          await invoke("write_text_file", { path, contents: toWrite })
           if (buffer) {
-            buffer.savedContent = content
-            buffer.isDirty = false
+            buffer.savedContent = toWrite
+            buffer.isDirty = buffer.content !== toWrite
+            syncDirty(path, buffer.isDirty)
           }
-
-          // Update dirty state in the openFiles list for tab rendering
-          setOpenFiles((prev) =>
-            prev.map((f) =>
-              f.path === path ? { ...f, isDirty: false } : f
-            )
-          )
-
-          // Update dirty state if this is the active file
-          if (path === activeFilePath) {
-            setIsDirty(false)
-          }
-
-          console.log(`[Hibiscus] Saved: ${path.split(/[/\\]/).pop()}`)
+          console.log(`[Hibiscus] Saved: ${baseName(path)}`)
         } catch (error) {
           console.error("[Hibiscus] Failed to save file:", error)
         } finally {
-          isSavingRef.current = false
+          savingRef.current.delete(path)
         }
       }
 
       if (immediate) {
         await doSave()
       } else {
-        // Debounced save (auto-save after 1 second of inactivity)
-        saveTimerRef.current = window.setTimeout(doSave, 1000)
+        saveTimersRef.current.set(path, window.setTimeout(doSave, AUTOSAVE_DELAY_MS))
       }
     },
-    [activeFilePath]
+    [syncDirty]
   )
 
-  // ===========================================================================
-  // RACE CONDITION FIX: Track open requests to discard stale responses
-  // ===========================================================================
-  // When user rapidly clicks multiple files, multiple async openFile calls run
-  // in parallel. Without this tracking, the slower request could "win" and
-  // display the wrong file content. The request ID ensures only the latest
-  // request's response is used.
-  // ===========================================================================
+  // Discard stale responses when several opens race each other.
   const openRequestIdRef = useRef(0)
 
   /**
    * Open a file in the editor.
    * - If already open, just switch to that tab (no duplicate).
    * - If not open, load content from disk and add to openFiles.
-   * - Always sets the file as active.
    */
   const openFile = useCallback(
     async (node: Node) => {
-      if (!node.path || !workspaceRoot) return
+      const root = workspaceRootRef.current
+      if (!node.path || !root) return
 
-      // Normalize path for cross-platform consistency
-      let fullPath: string
+      const fullPath = (await isAbsolute(node.path)) ? node.path : await join(root, node.path)
 
-      if (await isAbsolute(node.path)) {
-        fullPath = node.path
-      } else {
-        fullPath = await join(workspaceRoot, node.path)
-      }
-
-      // ----- DUPLICATE CHECK (O(1)) -----
-      // If file is already open, just switch to its tab
-      const existingId = openFilesMapRef.current.get(fullPath)
-      if (existingId) {
-        // Switch to existing tab
-        setActiveFileId(existingId)
-        setActiveFile(node)
-        setActiveFilePath(fullPath)
-
-        // Load buffered content into the editor
-        const buffer = buffersRef.current.get(fullPath)
-        if (buffer) {
-          setFileContent(buffer.content)
-          setIsDirty(buffer.isDirty)
-          setFileVersion((v) => v + 1)
+      // ----- ALREADY OPEN: switch tab -----
+      if (openFilesMapRef.current.has(fullPath)) {
+        const existing = openFilesRef.current.find((f) => f.path === fullPath)
+        if (existing && existing.path !== activeFilePathRef.current) {
+          activate(existing)
+          persistSession()
         }
-
-        // Persist session (debounced)
-        persistSession()
         return
       }
 
       // ----- NEW FILE OPEN -----
       const requestId = ++openRequestIdRef.current
-
-      // Load from disk
       let buffer = buffersRef.current.get(fullPath)
 
       if (!buffer) {
-        // Detect binary file types that cannot be read as UTF-8 text.
-        // FileRenderer handles rendering these via loadBinaryFile() instead.
         if (isBinaryFile(fullPath)) {
-          // Binary files get an empty placeholder buffer.
-          // FileRenderer will use read_file_binary to load and display them.
-          buffer = {
-            content: "",
-            savedContent: "",
-            isDirty: false,
-          }
-          buffersRef.current.set(fullPath, buffer)
+          // Binary documents get an empty placeholder buffer; the viewers load
+          // the bytes themselves via read_file_binary.
+          buffer = { content: "", savedContent: "", isDirty: false }
         } else {
           try {
-            const content = await invoke<string>("read_text_file", {
-              path: fullPath,
-            })
-
-            // RACE CONDITION CHECK: Discard if a newer request was made
-            if (requestId !== openRequestIdRef.current) {
-              console.log(
-                `[Hibiscus] Discarding stale file open response for: ${node.name}`
-              )
-              return
-            }
-
-            buffer = {
-              content,
-              savedContent: content,
-              isDirty: false,
-            }
-            buffersRef.current.set(fullPath, buffer)
+            const content = await invoke<string>("read_text_file", { path: fullPath })
+            if (requestId !== openRequestIdRef.current) return
+            buffer = { content, savedContent: content, isDirty: false }
           } catch (error) {
             console.error("[Hibiscus] Failed to open file:", error)
             return
           }
         }
+        buffersRef.current.set(fullPath, buffer)
       }
 
-      // RACE CONDITION CHECK: Final check before updating state
-      if (requestId !== openRequestIdRef.current) {
-        console.log(
-          `[Hibiscus] Discarding stale file open for: ${node.name}`
-        )
-        return
-      }
+      if (requestId !== openRequestIdRef.current) return
 
-      // Create the OpenFile entry for the tab bar
-      const openFileEntry: OpenFile = {
+      const entry: OpenFile = {
         id: fullPath,
         path: fullPath,
-        name: node.name,
+        name: node.name || baseName(fullPath),
         type: node.type || "file",
         isDirty: false,
       }
 
-      // Register in the O(1) lookup map
       openFilesMapRef.current.set(fullPath, fullPath)
-
-      // Append to the ordered open files list
-      setOpenFiles((prev) => [...prev, openFileEntry])
-
-      // Set as active file
-      setActiveFileId(fullPath)
-      setActiveFile(node)
-      setActiveFilePath(fullPath)
-      setFileContent(buffer.content)
-      setIsDirty(buffer.isDirty)
+      const nextFiles = [...openFilesRef.current, entry]
+      setOpenFiles(nextFiles)
+      activate(entry)
       setFileVersion((v) => v + 1)
-
-      // Persist session (debounced)
-      persistSession()
+      persistSession(nextFiles, fullPath)
     },
-    [workspaceRoot, persistSession]
+    [activate, persistSession, setOpenFiles]
   )
 
-  /**
-   * Switch to a specific tab by file ID.
-   * Does NOT re-mount the editor -- only swaps content/model.
-   */
+  /** Switch to a specific tab by file ID. */
   const switchTab = useCallback(
     (fileId: string) => {
-      const file = openFiles.find((f) => f.id === fileId)
-      if (!file) return
-
-      const buffer = buffersRef.current.get(file.path)
-      if (!buffer) return
-
-      setActiveFileId(fileId)
-      setActiveFile({
-        id: file.id,
-        name: file.name,
-        type: file.type as "file" | "folder",
-        path: file.path,
-      })
-      setActiveFilePath(file.path)
-      setFileContent(buffer.content)
-      setIsDirty(buffer.isDirty)
-      setFileVersion((v) => v + 1)
-
-      // Persist session (debounced)
-      persistSession()
+      if (fileId === activeFileIdRef.current) return
+      const file = openFilesRef.current.find((f) => f.id === fileId)
+      if (!file || !buffersRef.current.has(file.path)) return
+      activate(file)
+      persistSession(openFilesRef.current, file.path)
     },
-    [openFiles, persistSession]
+    [activate, persistSession]
   )
 
   /**
-   * Close a tab by file ID.
-   * If the closed tab was active, switch to the nearest remaining tab.
+   * Close several tabs at once. Dirty tabs prompt to save first.
+   * If the active tab is among them, the nearest surviving tab is activated.
    */
+  const closeTabs = useCallback(
+    async (fileIds: string[]) => {
+      if (fileIds.length === 0) return
+      editorModels.flush()
+
+      const current = openFilesRef.current
+      const closing = new Set(fileIds)
+      const activeId = activeFileIdRef.current
+      const activeIdx = current.findIndex((f) => f.id === activeId)
+
+      for (const file of current) {
+        if (!closing.has(file.id)) continue
+        const buffer = buffersRef.current.get(file.path)
+        if (buffer?.isDirty) {
+          if (confirm(`Save changes to ${file.name} before closing?`)) {
+            await saveFile(file.path, buffer.content, true)
+          }
+        }
+        const timer = saveTimersRef.current.get(file.path)
+        if (timer) {
+          clearTimeout(timer)
+          saveTimersRef.current.delete(file.path)
+        }
+        buffersRef.current.delete(file.path)
+        openFilesMapRef.current.delete(file.path)
+        editorModels.release(file.path)
+      }
+
+      const remaining = current.filter((f) => !closing.has(f.id))
+      setOpenFiles(remaining)
+
+      let nextActive: string | null = activeFilePathRef.current
+      if (activeId && closing.has(activeId)) {
+        if (remaining.length === 0) {
+          activate(null)
+          nextActive = null
+        } else {
+          // Prefer the first survivor at or after the old position, else the last.
+          const after = current.slice(activeIdx + 1).find((f) => !closing.has(f.id))
+          const next = after ?? remaining[remaining.length - 1]
+          activate(next)
+          nextActive = next.path
+        }
+      }
+
+      persistSession(remaining, nextActive)
+    },
+    [activate, persistSession, saveFile, setOpenFiles]
+  )
+
+  /** Close a single tab by file ID. */
   const closeTab = useCallback(
     async (fileId: string) => {
-      const idx = openFiles.findIndex((f) => f.id === fileId)
-      if (idx === -1) return
-
-      const file = openFiles[idx]
-      const buffer = buffersRef.current.get(file.path)
-
-      // Prompt to save if dirty
-      if (buffer && buffer.isDirty) {
-        const shouldSave = confirm(
-          `Save changes to ${file.name} before closing?`
-        )
-        if (shouldSave) {
-          await saveFile(file.path, buffer.content, true)
-        }
-      }
-
-      // Remove from buffer and lookup map
-      buffersRef.current.delete(file.path)
-      openFilesMapRef.current.delete(file.path)
-
-      // Remove from open files list
-      const newOpenFiles = openFiles.filter((f) => f.id !== fileId)
-      setOpenFiles(newOpenFiles)
-
-      // If the closed tab was active, pick the best adjacent tab
-      if (activeFileId === fileId) {
-        if (newOpenFiles.length === 0) {
-          // No more open files -- clear editor
-          setActiveFileId(null)
-          setActiveFile(null)
-          setActiveFilePath(null)
-          setFileContent("")
-          setIsDirty(false)
-        } else {
-          // Switch to the tab at the same index, or the last tab
-          const nextIdx = Math.min(idx, newOpenFiles.length - 1)
-          const nextFile = newOpenFiles[nextIdx]
-          const nextBuffer = buffersRef.current.get(nextFile.path)
-
-          setActiveFileId(nextFile.id)
-          setActiveFile({
-            id: nextFile.id,
-            name: nextFile.name,
-            type: nextFile.type as "file" | "folder",
-            path: nextFile.path,
-          })
-          setActiveFilePath(nextFile.path)
-          setFileContent(nextBuffer?.content ?? "")
-          setIsDirty(nextBuffer?.isDirty ?? false)
-          setFileVersion((v) => v + 1)
-        }
-      }
-
-      // Persist session after close
-      if (workspaceRoot) {
-        persistEditorSession(workspaceRoot, {
-          openFiles: newOpenFiles.map((f) => f.path),
-          activeFile:
-            activeFileId === fileId
-              ? newOpenFiles.length > 0
-                ? newOpenFiles[Math.min(idx, newOpenFiles.length - 1)].path
-                : null
-              : activeFilePath,
-        })
-      }
-
-      console.log(`[Hibiscus] Closed tab: ${file.name}`)
+      await closeTabs([fileId])
     },
-    [openFiles, activeFileId, activeFilePath, saveFile, workspaceRoot]
+    [closeTabs]
+  )
+
+  /** Move a tab from one index to another (drag reorder). */
+  const reorderTabs = useCallback(
+    (from: number, to: number) => {
+      const next = moveItem(openFilesRef.current, from, to)
+      if (next === openFilesRef.current) return
+      setOpenFiles(next)
+      persistSession(next)
+    },
+    [persistSession, setOpenFiles]
   )
 
   /**
-   * Handle content change from editor.
-   * Updates buffer, dirty state, and triggers debounced save.
+   * Re-point open tabs after a file or folder was moved/renamed on disk.
+   * `oldPath`/`newPath` are absolute; a folder remaps every tab inside it.
+   */
+  const renamePath = useCallback(
+    (oldPath: string, newPath: string) => {
+      const remaps = new Map<string, string>()
+      for (const file of openFilesRef.current) {
+        const next = remapPath(file.path, oldPath, newPath)
+        if (next) remaps.set(file.path, next)
+      }
+      if (remaps.size === 0) return
+
+      for (const [from, to] of remaps) {
+        const buffer = buffersRef.current.get(from)
+        if (buffer) {
+          buffersRef.current.delete(from)
+          buffersRef.current.set(to, buffer)
+        }
+        const timer = saveTimersRef.current.get(from)
+        if (timer) {
+          // Re-arm the pending autosave against the new location.
+          clearTimeout(timer)
+          saveTimersRef.current.delete(from)
+          saveFile(to, buffer?.content ?? "", false)
+        }
+        openFilesMapRef.current.delete(from)
+        openFilesMapRef.current.set(to, to)
+      }
+      editorModels.rename(oldPath, newPath)
+
+      const next = openFilesRef.current.map((f) => {
+        const to = remaps.get(f.path)
+        return to ? { ...f, id: to, path: to, name: baseName(to) } : f
+      })
+      setOpenFiles(next)
+
+      const active = activeFilePathRef.current
+      const activeTo = active ? remaps.get(active) : undefined
+      if (activeTo) {
+        const file = next.find((f) => f.path === activeTo)!
+        activeFileIdRef.current = file.id
+        activeFilePathRef.current = file.path
+        setActiveFileId(file.id)
+        setActiveFilePath(file.path)
+        setActiveFile(toNode(file))
+      }
+      persistSession(next, activeFilePathRef.current)
+    },
+    [persistSession, saveFile, setOpenFiles]
+  )
+
+  /**
+   * Rename an open file on disk (used by the open-files list).
+   * Returns the new absolute path, or null on failure.
+   */
+  const renameFile = useCallback(
+    async (oldPath: string, newName: string): Promise<string | null> => {
+      const root = workspaceRootRef.current
+      const trimmed = newName.trim()
+      if (!root || !trimmed || /[/\\]/.test(trimmed)) return null
+      const sep = oldPath.includes("\\") ? "\\" : "/"
+      const dir = oldPath.slice(0, oldPath.length - baseName(oldPath).length).replace(/[\\/]+$/, "")
+      const newPath = `${dir}${sep}${trimmed}`
+      if (newPath === oldPath) return oldPath
+      try {
+        editorModels.flush()
+        await invoke("move_node", { workspaceRoot: root, source: oldPath, destination: newPath })
+        renamePath(oldPath, newPath)
+        return newPath
+      } catch (error) {
+        console.error("[Hibiscus] Failed to rename file:", error)
+        return null
+      }
+    },
+    [renamePath]
+  )
+
+  /**
+   * Handle content change from the editor.
+   * `path` defaults to the active file; EditorView passes it explicitly so a
+   * change flushed during a tab switch is attributed to the right file.
    */
   const onChange = useCallback(
-    (value: string) => {
-      if (!activeFilePath) return
+    (value: string, path?: string) => {
+      const target = path ?? activeFilePathRef.current
+      if (!target) return
 
-      // Binary documents are read-only. Monaco stays mounted (hidden) while a
-      // PDF/DOCX is active, so it can still emit change events for the
-      // placeholder buffer; acting on them would mark the file dirty and
-      // trigger an auto-save that destroys it.
-      if (isBinaryFile(activeFilePath)) return
+      // Binary documents are read-only. Acting on change events for their
+      // placeholder buffer would trigger an auto-save that destroys them.
+      if (isBinaryFile(target)) return
 
-      // Update buffer
-      const buffer = buffersRef.current.get(activeFilePath)
-      if (buffer) {
-        buffer.content = value
-        buffer.isDirty = value !== buffer.savedContent
-        setIsDirty(buffer.isDirty)
+      const buffer = buffersRef.current.get(target)
+      if (!buffer) return
+      if (buffer.content === value && !buffer.isDirty) return
 
-        // Also update the openFiles list for tab dirty indicator
-        setOpenFiles((prev) =>
-          prev.map((f) =>
-            f.path === activeFilePath
-              ? { ...f, isDirty: buffer.isDirty }
-              : f
-          )
-        )
+      buffer.content = value
+      const dirty = value !== buffer.savedContent
+      if (dirty !== buffer.isDirty) {
+        buffer.isDirty = dirty
+        syncDirty(target, dirty)
       }
 
-      // Update reactive state
-      setFileContent(value)
-
-      // Trigger debounced save
-      saveFile(activeFilePath, value, false)
+      if (dirty) saveFile(target, value, false)
     },
-    [activeFilePath, saveFile]
+    [saveFile, syncDirty]
   )
 
-  /**
-   * Force save the current file immediately (for Ctrl+S)
-   */
+  /** Force save the current file immediately (for Ctrl+S) */
   const saveCurrentFile = useCallback(async () => {
-    if (!activeFilePath) return
-
-    const buffer = buffersRef.current.get(activeFilePath)
+    editorModels.flush()
+    const path = activeFilePathRef.current
+    if (!path) return
+    const buffer = buffersRef.current.get(path)
     if (buffer && buffer.isDirty) {
-      await saveFile(activeFilePath, buffer.content, true)
+      await saveFile(path, buffer.content, true)
     }
-  }, [activeFilePath, saveFile])
-
-  /**
-   * Save all dirty files
-   */
-  const saveAllFiles = useCallback(async () => {
-    const savePromises: Promise<void>[] = []
-
-    buffersRef.current.forEach((buffer, path) => {
-      if (buffer.isDirty) {
-        savePromises.push(saveFile(path, buffer.content, true))
-      }
-    })
-
-    await Promise.all(savePromises)
   }, [saveFile])
 
-  /**
-   * Set up global keyboard shortcuts for save and close-tab
-   */
+  /** Save all dirty files */
+  const saveAllFiles = useCallback(async () => {
+    editorModels.flush()
+    const saves: Promise<void>[] = []
+    buffersRef.current.forEach((buffer, path) => {
+      if (buffer.isDirty) saves.push(saveFile(path, buffer.content, true))
+    })
+    await Promise.all(saves)
+  }, [saveFile])
+
+  /** Save a specific open file immediately. */
+  const saveFileByPath = useCallback(
+    async (path: string) => {
+      editorModels.flush()
+      const buffer = buffersRef.current.get(path)
+      if (buffer?.isDirty) await saveFile(path, buffer.content, true)
+    },
+    [saveFile]
+  )
+
+  /** Global keyboard shortcuts for save and close-tab */
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // Ctrl+S or Cmd+S to save
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "s") {
+      const mod = e.ctrlKey || e.metaKey
+      if (!mod) return
+      if (!e.shiftKey && e.key === "s") {
         e.preventDefault()
         await saveCurrentFile()
-      }
-
-      // Ctrl+Shift+S or Cmd+Shift+S to save all
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "S") {
+      } else if (e.shiftKey && e.key === "S") {
         e.preventDefault()
         await saveAllFiles()
-      }
-
-      // Ctrl+W or Cmd+W to close the active tab
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "w") {
+      } else if (!e.shiftKey && e.key === "w") {
         e.preventDefault()
-        if (activeFileId) {
-          await closeTab(activeFileId)
-        }
+        const id = activeFileIdRef.current
+        if (id) await closeTab(id)
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [saveCurrentFile, saveAllFiles, closeTab, activeFileId])
+  }, [saveCurrentFile, saveAllFiles, closeTab])
 
-  /**
-   * Clean up on unmount -- save any dirty files
-   */
+  /** Clean up on unmount -- save any dirty files */
   useEffect(() => {
+    const timers = saveTimersRef.current
+    const buffers = buffersRef.current
     return () => {
-      // Clear any pending saves
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current)
-      }
+      editorModels.flush()
+      timers.forEach((t) => clearTimeout(t))
+      timers.clear()
 
-      // Attempt to save dirty files on unmount. Binary documents are read-only
-      // and must never be written from a text buffer.
-      buffersRef.current.forEach(async (buffer, path) => {
+      // Binary documents are read-only and must never be written from text.
+      buffers.forEach(async (buffer, path) => {
         if (buffer.isDirty && !isBinaryFile(path)) {
           try {
-            await invoke("write_text_file", {
-              path,
-              contents: buffer.content,
-            })
+            await invoke("write_text_file", { path, contents: buffer.content })
           } catch (e) {
             console.error("[Hibiscus] Failed to save on unmount:", e)
           }
@@ -542,98 +568,75 @@ export function useEditorController(workspaceRoot: string | null) {
   }, [])
 
   // ===========================================================================
-  // BUG FIX: Detect external file changes (via File Explorer, other editors)
-  // When the filesystem watcher detects changes, we reload the content for
-  // any open files that were modified externally. If the file has unsaved
-  // local changes (isDirty), we warn the user; otherwise update silently.
+  // External file changes (File Explorer, other editors).
+  // Reload clean buffers from disk; never overwrite unsaved local edits.
   // ===========================================================================
   useEffect(() => {
     if (!workspaceRoot) return
 
     let unlisten: (() => void) | null = null
+    let disposed = false
 
     listen<string[]>("fs-changed", async (event) => {
-      const changedPaths = event.payload
+      const changed = new Set(event.payload.map((p) => p.replace(/\\/g, "/")))
 
-      // Check each buffer to see if it was modified externally
-      for (const [filePath, buffer] of buffersRef.current.entries()) {
-        // Normalize paths for comparison (handle Windows backslashes)
-        const normalizedFilePath = filePath.replace(/\\/g, "/")
-        const wasModified = changedPaths.some((changedPath) => {
-          const normalizedChanged = changedPath.replace(/\\/g, "/")
-          return normalizedFilePath === normalizedChanged
-        })
+      for (const [filePath, buffer] of Array.from(buffersRef.current.entries())) {
+        if (!changed.has(filePath.replace(/\\/g, "/"))) continue
 
-        if (wasModified) {
-          // Binary documents have no text buffer to diff. Reading them as text
-          // throws, which the catch below used to interpret as "file deleted",
-          // silently closing the tab whenever a PDF/DOCX changed on disk.
-          // The viewers re-read these from disk themselves.
-          if (isBinaryFile(filePath)) continue
+        // Binary documents have no text buffer to diff; the viewers re-check
+        // them (by content hash) themselves.
+        if (isBinaryFile(filePath)) continue
 
-          try {
-            // Read current disk content
-            const diskContent = await invoke<string>("read_text_file", {
-              path: filePath,
-            })
+        // Our own in-flight save: the watcher is just echoing it back.
+        if (savingRef.current.has(filePath)) continue
 
-            // If disk content differs from what we last saved, it was changed externally
-            if (diskContent !== buffer.savedContent) {
-              if (buffer.isDirty) {
-                // User has unsaved changes - log warning, don't overwrite
-                console.warn(
-                  `[Hibiscus] External change detected for ${filePath.split(/[/\\]/).pop()} ` +
-                    `but file has unsaved changes. Not reloading.`
-                )
-              } else {
-                // No local changes -- safe to reload from disk
-                buffer.content = diskContent
-                buffer.savedContent = diskContent
-                buffer.isDirty = false
+        try {
+          const diskContent = await invoke<string>("read_text_file", { path: filePath })
+          if (diskContent === buffer.savedContent) continue
 
-                // If this is the active file, update the UI state
-                if (filePath === activeFilePath) {
-                  setFileContent(diskContent)
-                  setIsDirty(false)
-                  setFileVersion((v) => v + 1)
-                }
-
-                console.log(
-                  `[Hibiscus] Reloaded external changes: ${filePath.split(/[/\\]/).pop()}`
-                )
-              }
-            }
-          } catch (e) {
-            // File may have been deleted -- remove from open files gracefully
-            console.warn(`[Hibiscus] Could not reload ${filePath}:`, e)
-
-            // Clean up deleted files from the open file list
-            buffersRef.current.delete(filePath)
-            openFilesMapRef.current.delete(filePath)
-            setOpenFiles((prev) =>
-              prev.filter((f) => f.path !== filePath)
+          if (buffer.isDirty) {
+            console.warn(
+              `[Hibiscus] External change detected for ${baseName(filePath)} ` +
+                `but file has unsaved changes. Not reloading.`
             )
-
-            if (filePath === activeFilePath) {
-              setActiveFile(null)
-              setActiveFilePath(null)
-              setActiveFileId(null)
-              setFileContent("")
-              setIsDirty(false)
-            }
+            continue
           }
+
+          buffer.content = diskContent
+          buffer.savedContent = diskContent
+          buffer.isDirty = false
+          editorModels.syncContent(filePath, diskContent)
+
+          if (filePath === activeFilePathRef.current) {
+            setFileContent(diskContent)
+            setIsDirty(false)
+            setFileVersion((v) => v + 1)
+          }
+          console.log(`[Hibiscus] Reloaded external changes: ${baseName(filePath)}`)
+        } catch (e) {
+          // The file was deleted (moves are re-pointed via renamePath before
+          // the watcher fires, so they do not land here).
+          console.warn(`[Hibiscus] Could not reload ${filePath}:`, e)
+          buffersRef.current.delete(filePath)
+          openFilesMapRef.current.delete(filePath)
+          editorModels.release(filePath)
+          setOpenFiles((prev) => prev.filter((f) => f.path !== filePath))
+          if (filePath === activeFilePathRef.current) activate(null)
         }
       }
-    }).then((fn) => (unlisten = fn))
+    }).then((fn) => {
+      if (disposed) fn()
+      else unlisten = fn
+    })
 
     return () => {
+      disposed = true
       if (unlisten) unlisten()
     }
-  }, [workspaceRoot, activeFilePath])
+  }, [workspaceRoot, activate, setOpenFiles])
 
   // ===========================================================================
   // SESSION RESTORE
-  // On workspace load, restore previously open tabs from .hibiscus/session.json
   // ===========================================================================
   useEffect(() => {
     if (!workspaceRoot || sessionRestoredRef.current) return
@@ -643,13 +646,11 @@ export function useEditorController(workspaceRoot: string | null) {
       if (!session || session.openFiles.length === 0) return
 
       sessionRestoredRef.current = true
+      const restored: OpenFile[] = []
 
-      // Open each file from the session, skipping any that fail to load
       for (const filePath of session.openFiles) {
+        if (openFilesMapRef.current.has(filePath)) continue
         try {
-          // Binary documents restore as read-only placeholder buffers, the
-          // same shape openFile() creates. Reading them as text throws, which
-          // previously dropped every PDF/DOCX tab on restart.
           let content: string
           if (isBinaryFile(filePath)) {
             const exists = await invoke<boolean>("file_exists", { path: filePath })
@@ -658,198 +659,107 @@ export function useEditorController(workspaceRoot: string | null) {
           } else {
             content = await invoke<string>("read_text_file", { path: filePath })
           }
-          const name = filePath.split(/[/\\]/).pop() || filePath
-          const buffer: FileBuffer = {
-            content,
-            savedContent: content,
-            isDirty: false,
-          }
-          buffersRef.current.set(filePath, buffer)
+          buffersRef.current.set(filePath, { content, savedContent: content, isDirty: false })
           openFilesMapRef.current.set(filePath, filePath)
-
-          const entry: OpenFile = {
-            id: filePath,
-            path: filePath,
-            name,
-            type: "file",
-            isDirty: false,
-          }
-
-          // Batch-add to avoid per-file re-render
-          setOpenFiles((prev) => [...prev, entry])
+          restored.push({ id: filePath, path: filePath, name: baseName(filePath), type: "file", isDirty: false })
         } catch {
-          // File was likely deleted since last session -- skip silently
-          console.warn(
-            `[Hibiscus] Session restore: skipping deleted file ${filePath}`
-          )
+          console.warn(`[Hibiscus] Session restore: skipping deleted file ${filePath}`)
         }
       }
 
-      // Restore the active tab
-      const activeTarget = session.activeFile
-      if (activeTarget && buffersRef.current.has(activeTarget)) {
-        const name = activeTarget.split(/[/\\]/).pop() || activeTarget
-        const buffer = buffersRef.current.get(activeTarget)!
+      if (restored.length > 0) setOpenFiles((prev) => [...prev, ...restored])
 
-        setActiveFileId(activeTarget)
-        setActiveFile({
-          id: activeTarget,
-          name,
-          path: activeTarget,
-          type: "file",
-        })
-        setActiveFilePath(activeTarget)
-        setFileContent(buffer.content)
-        setIsDirty(false)
+      const activeTarget = session.activeFile
+      const target = restored.find((f) => f.path === activeTarget)
+      if (target) {
+        activate(target)
         setFileVersion((v) => v + 1)
       }
     }
 
     restoreSession()
-  }, [workspaceRoot])
+  }, [workspaceRoot, activate, setOpenFiles])
 
-  /**
-   * Save the current file with a new name/location (Save As)
-   */
+  /** Save the current file with a new name/location (Save As) */
   const saveAsFile = useCallback(async (): Promise<boolean> => {
-    if (!activeFilePath || !activeFile) return false
+    editorModels.flush()
+    const currentPath = activeFilePathRef.current
+    if (!currentPath) return false
 
     try {
       const result = await save({
-        defaultPath: activeFile.name,
-        filters: [
-          {
-            name: "All Files",
-            extensions: ["*"],
-          },
-        ],
+        defaultPath: baseName(currentPath),
+        filters: [{ name: "All Files", extensions: ["*"] }],
       })
 
-      if (result) {
-        const newPath =
-          typeof result === "string"
-            ? result
-            : Array.isArray(result)
-              ? result[0]
-              : null
-        if (newPath) {
-          const buffer = buffersRef.current.get(activeFilePath)
-          if (buffer) {
-            if (isBinaryFile(activeFilePath)) {
-              // Binary documents have no text buffer -- copy the bytes.
-              // Writing buffer.content here produced an empty file.
-              await invoke("copy_file", {
-                source: activeFilePath,
-                destination: newPath,
-              })
-            } else {
-              await invoke("write_text_file", {
-                path: newPath,
-                contents: buffer.content,
-              })
-            }
+      const newPath =
+        typeof result === "string" ? result : Array.isArray(result) ? result[0] : null
+      if (!newPath) return false
 
-            // Update buffer to new path
-            buffersRef.current.delete(activeFilePath)
-            buffersRef.current.set(newPath, {
-              ...buffer,
-              savedContent: buffer.content,
-              isDirty: false,
-            })
+      const buffer = buffersRef.current.get(currentPath)
+      if (!buffer) return false
 
-            // Update the open files lookup map
-            openFilesMapRef.current.delete(activeFilePath)
-            openFilesMapRef.current.set(newPath, newPath)
-
-            // Update the openFiles list entry
-            const newName = newPath.split(/[/\\]/).pop() || newPath
-            setOpenFiles((prev) =>
-              prev.map((f) =>
-                f.path === activeFilePath
-                  ? {
-                      ...f,
-                      id: newPath,
-                      path: newPath,
-                      name: newName,
-                      isDirty: false,
-                    }
-                  : f
-              )
-            )
-
-            // Update active file path and ID
-            setActiveFilePath(newPath)
-            setActiveFileId(newPath)
-            setIsDirty(false)
-
-            console.log(
-              `[Hibiscus] Saved as: ${newPath.split(/[/\\]/).pop()}`
-            )
-            return true
-          }
-        }
+      if (isBinaryFile(currentPath)) {
+        // Binary documents have no text buffer -- copy the bytes.
+        await invoke("copy_file", { source: currentPath, destination: newPath })
+      } else {
+        await invoke("write_text_file", { path: newPath, contents: buffer.content })
       }
-      return false
+
+      buffer.savedContent = buffer.content
+      buffer.isDirty = false
+      renamePath(currentPath, newPath)
+      syncDirty(newPath, false)
+
+      console.log(`[Hibiscus] Saved as: ${baseName(newPath)}`)
+      return true
     } catch (error) {
       console.error("[Hibiscus] Failed to save file as:", error)
       return false
     }
-  }, [activeFilePath, activeFile])
+  }, [renamePath, syncDirty])
 
-  /**
-   * Close the current active file (legacy compatibility wrapper).
-   * Delegates to closeTab for multi-file behavior.
-   */
+  /** Close the current active file (legacy compatibility wrapper). */
   const closeFile = useCallback(async (): Promise<boolean> => {
-    if (!activeFileId) return true
-    await closeTab(activeFileId)
+    const id = activeFileIdRef.current
+    if (id) await closeTab(id)
     return true
-  }, [activeFileId, closeTab])
+  }, [closeTab])
 
-  /**
-   * Check if any files have unsaved changes
-   */
+  /** Check if any files have unsaved changes */
   const hasUnsavedFiles = useCallback((): boolean => {
+    editorModels.flush()
     for (const buffer of buffersRef.current.values()) {
       if (buffer.isDirty) return true
     }
     return false
   }, [])
 
-  /**
-   * Get list of files with unsaved changes
-   */
+  /** Get list of files with unsaved changes */
   const getUnsavedFiles = useCallback((): string[] => {
+    editorModels.flush()
     const unsaved: string[] = []
     for (const [path, buffer] of buffersRef.current.entries()) {
-      if (buffer.isDirty) {
-        unsaved.push(path.split(/[/\\]/).pop() || path)
-      }
+      if (buffer.isDirty) unsaved.push(baseName(path))
     }
     return unsaved
   }, [])
 
-  /**
-   * Handle application exit with unsaved changes check
-   */
+  /** Handle application exit with unsaved changes check */
   const handleExit = useCallback(async (): Promise<boolean> => {
     const unsavedFiles = getUnsavedFiles()
-
     if (unsavedFiles.length > 0) {
-      const fileList = unsavedFiles.join(", ")
       const action = confirm(
-        `You have unsaved changes in: ${fileList}\n\n` +
+        `You have unsaved changes in: ${unsavedFiles.join(", ")}\n\n` +
           "Click OK to save all changes and exit,\n" +
           "or Cancel to continue working."
       )
-
       if (action) {
         await saveAllFiles()
         return true
       }
       return false
     }
-
     return true
   }, [getUnsavedFiles, saveAllFiles])
 
@@ -864,6 +774,7 @@ export function useEditorController(workspaceRoot: string | null) {
     onChange,
     saveCurrentFile,
     saveAllFiles,
+    saveFileByPath,
 
     // File menu operations
     saveAsFile,
@@ -872,11 +783,15 @@ export function useEditorController(workspaceRoot: string | null) {
     getUnsavedFiles,
     handleExit,
 
-    // Multi-file tab interface (new)
+    // Multi-file tab interface
     openFiles,
     activeFileId,
     switchTab,
     closeTab,
+    closeTabs,
+    reorderTabs,
+    renamePath,
+    renameFile,
 
     // Buffer ref (read-only access for knowledge index)
     buffersRef,

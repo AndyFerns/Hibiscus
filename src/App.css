@@ -92,8 +92,8 @@ input {
 /* Vertical separator between status bar sections */
 .status-separator {
   width: 1px;
-  height: 12px;
-  background: var(--border);
+  height: 10px;
+  background: var(--border-subtle);
   margin: 0 var(--space-1, 4px);
 }
 
@@ -302,7 +302,7 @@ html[data-focus="true"] .workbench-left {
 
 /* Make main editor space take over more screen real estate */
 html[data-focus="true"] .workbench-main {
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Ensure focus mode overrides any temporary layout state */
