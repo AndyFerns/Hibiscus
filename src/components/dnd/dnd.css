@@ -1,0 +1,138 @@
+/**
+ * ============================================================================
+ * Drag and drop — ghost, drop targets, landing bounce
+ * ============================================================================
+ */
+
+:root {
+  --dnd-ghost-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* While dragging: grabbing cursor everywhere, no accidental text selection */
+body.dnd-active,
+body.dnd-active * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+/* The floating chip that follows the pointer */
+.dnd-ghost {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  will-change: transform;
+  transform-origin: 30% 50%;
+  border-radius: var(--radius-md, 6px);
+  background: var(--bg-elevated, var(--panel-bg));
+  box-shadow: var(--dnd-ghost-shadow);
+  outline: 1px solid var(--accent-soft);
+  overflow: hidden;
+}
+
+/* The cloned row inside the ghost: drop row chrome, keep icon + name */
+.dnd-ghost > * {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text) !important;
+  outline: none !important;
+}
+
+.dnd-ghost > *::before {
+  display: none !important;
+}
+
+.dnd-ghost--tree > .tree-node {
+  padding-left: 8px !important;
+}
+
+.dnd-ghost--tree .tree-node-icon {
+  color: var(--accent) !important;
+}
+
+.dnd-ghost-badge {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  padding: 0 6px;
+  border-radius: var(--radius-full, 999px);
+  background: var(--accent);
+  color: var(--bg);
+  font-size: var(--text-xs, 11px);
+  font-weight: var(--font-semibold, 600);
+}
+
+/* Valid drop target: accent wash + ring, with a gentle breathing pulse */
+.dnd-over {
+  background: var(--accent-soft) !important;
+  box-shadow: inset 0 0 0 1.5px var(--accent) !important;
+  animation: dnd-pulse 1s ease-in-out infinite;
+}
+
+/* Invalid target (e.g. a folder into itself): muted red ring, no pulse */
+.dnd-over--invalid {
+  box-shadow: inset 0 0 0 1.5px var(--error, #f7768e) !important;
+  background: var(--error-soft, transparent) !important;
+}
+
+@keyframes dnd-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1.5px var(--accent); }
+  50% { box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 3px var(--accent-soft); }
+}
+
+/* The tree root drop zone highlights its whole area */
+.tree-view-content.dnd-over {
+  border-radius: var(--radius-md, 6px);
+}
+
+/* The receiving folder's icon "gulps" the item */
+.dnd-landed .tree-node-icon {
+  animation: dnd-gulp 420ms cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.dnd-landed.tab-bar {
+  animation: dnd-flash 420ms ease-out;
+}
+
+@keyframes dnd-gulp {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35) rotate(-6deg); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+@keyframes dnd-flash {
+  0% { background: var(--accent-soft); }
+  100% { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dnd-over,
+  .dnd-landed .tree-node-icon,
+  .dnd-landed.tab-bar {
+    animation: none;
+  }
+}
+
+/* =============================================================================
+ * List reordering (tabs, open-files dropdown)
+ * ============================================================================= */
+
+.dnd-reorder-source {
+  opacity: 0.35;
+}
+
+.dnd-insert-before {
+  box-shadow: inset 2px 0 0 var(--accent) !important;
+}
+
+.dnd-insert-after {
+  box-shadow: inset -2px 0 0 var(--accent) !important;
+}
+
+.dnd-insert-above {
+  box-shadow: inset 0 2px 0 var(--accent) !important;
+}
+
+.dnd-insert-below {
+  box-shadow: inset 0 -2px 0 var(--accent) !important;
+}

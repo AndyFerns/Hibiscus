@@ -156,3 +156,54 @@
     font-style: italic;
     text-align: center;
 }
+/* =============================================================================
+ * MOVE ERROR TOAST
+ * ============================================================================= */
+
+.tree-view {
+    position: relative;
+}
+
+.tree-view-toast {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md, 6px);
+    background: var(--bg-elevated, var(--panel-bg));
+    border: 1px solid var(--error, #f7768e);
+    box-shadow: var(--shadow-md);
+    color: var(--text);
+    font-size: var(--text-xs, 11px);
+    line-height: 1.45;
+    animation: tree-toast-in 160ms ease-out;
+}
+
+.tree-view-toast span {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.tree-view-toast-close {
+    flex-shrink: 0;
+    display: inline-flex;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.tree-view-toast-close:hover {
+    color: var(--text);
+}
+
+@keyframes tree-toast-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
