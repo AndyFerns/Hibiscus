@@ -320,3 +320,63 @@
 .dnd-ghost--row > .open-files-row {
   background: transparent;
 }
+
+/* =============================================================================
+ * STYLE A — LAYERED SURFACES
+ * ============================================================================= */
+
+.open-files-panel {
+  background: var(--surface-3);
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--shadow-popover);
+}
+
+.open-files-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted);
+}
+
+.open-files-filter {
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+.open-files-filter:focus-within {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.open-files-row {
+  border-radius: var(--radius-row, 6px);
+}
+
+.open-files-row--focused {
+  background: var(--surface-hover);
+}
+
+.open-files-row--active {
+  background: var(--surface-active);
+}
+
+.open-files-row--active::before {
+  display: none;
+}
+
+.open-files-footer {
+  border-top-color: var(--border-subtle);
+}
+
+.open-files-footer-btn {
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-1);
+  box-shadow: 0 0 0 1px var(--border-subtle);
+}
+
+.open-files-footer-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
