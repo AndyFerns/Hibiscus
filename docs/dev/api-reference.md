@@ -2,8 +2,8 @@
 
 Hibiscus exposes multiple Rust commands to the React frontend via Tauri's IPC (`@tauri-apps/api/core`). This reference documents all available commands.
 
-**Version**: 0.13.3  
-**Last Updated**: September 2026
+**Version**: 0.14.0  
+**Last Updated**: November 2026
 
 ---
 
@@ -32,7 +32,7 @@ Reads a text file into memory for editor display.
 
 ---
 
-#### `read_file_binary(path: String) -> Result<Vec<u8>, HibiscusError>`
+#### `read_file_binary(path: String) -> Result<tauri::ipc::Response, HibiscusError>`
 **File**: `commands/files.rs`
 
 Reads file as binary data for non-text content.
@@ -41,13 +41,50 @@ Reads file as binary data for non-text content.
 - `path`: Absolute path to file
 
 **Returns:**
-- `Ok(Vec<u8>)`: Raw bytes
-- `Err`: FileNotFound, Io errors
+- `Ok(Response)`: Raw bytes as a binary IPC body, which arrives in JS as an `ArrayBuffer`.
+- `Err`: FileNotFound, InvalidPathType, Io errors
+
+> **Changed in v0.14.0:** this previously returned `Vec<u8>`, which Tauri serialized as a JSON `number[]`. That was several times larger than the file and slow to parse for big PDFs. Use `loadBinaryFile()` (`src/utils/fileLoader.ts`), which accepts both shapes and always returns an `ArrayBuffer`.
 
 **Use Cases:**
-- PDF rendering
+- PDF, DOCX and PPTX rendering
 - Image display
 - Binary file handling
+
+Viewers should not call this directly. Use `useDocumentSource(path)`, which first runs `inspect_document`, then cross-checks the received bytes against the on-disk hash, and caches verified bytes.
+
+---
+
+#### `inspect_document(path: String) -> Result<DocumentReport, HibiscusError>`
+**File**: `commands/document.rs`
+
+Checks a document's integrity before it is rendered. The work runs on a blocking thread.
+
+**Parameters:**
+- `path`: Absolute path to file
+
+**Returns:**
+```typescript
+interface DocumentReport {
+  size: number          // bytes
+  modifiedMs: number    // last-modified time, ms since epoch (0 if unknown)
+  sha256: string        // lower-case hex SHA-256 of the file
+  kind: string          // detected: pdf, docx, pptx, xlsx, zip, png, jpeg, gif, webp, bmp, ico, tiff, svg, html, empty, unknown
+  expectedKind: string  // implied by the extension
+  ok: boolean           // intact and matches its extension
+  reason: string | null // human-readable explanation when ok is false
+}
+```
+
+**Checks:**
+- **Type:** magic bytes, compared against the extension. For example, a `.pdf` that is really an HTML page is reported.
+- **PDF:** a `%%EOF` marker must appear in the last 1 KB; without it the file is reported as truncated.
+- **DOCX / PPTX / XLSX:** the zip must open (so the central directory is present), `[Content_Types].xml` must exist, and the main part (`word/document.xml`, `ppt/presentation.xml` or `xl/workbook.xml`) must decompress with a valid CRC.
+- **Empty files** are reported.
+
+**Security:**
+- Validates path doesn't contain `..`
+- Checks path depth limits
 
 ---
 
@@ -831,7 +868,8 @@ unlisten();
 | Command | File | Async | Purpose |
 |---------|------|-------|---------|
 | `read_text_file` | files.rs | ✓ | Read text content |
-| `read_file_binary` | files.rs | ✓ | Read binary content |
+| `read_file_binary` | files.rs | ✓ | Read binary content (raw `ArrayBuffer`) |
+| `inspect_document` | document.rs | ✓ | Hash, type sniffing and integrity checks |
 | `write_text_file` | files.rs | ✓ | Write text content |
 | `copy_file` | files.rs | ✓ | Byte-accurate file copy (binary Save As) |
 | `file_exists` | files.rs | ✓ | Cheap existence check |
