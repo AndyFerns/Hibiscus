@@ -284,6 +284,7 @@ function AppInner({ workspaceController }: AppInnerProps) {
           />
         }
         showRightPanel={showRightPanel}
+        showLeftPanel={showLeftPanel && !(focusMode && settings.general.focusModeHidesExplorer)}
         bottom={
           <BottomPane
             workspaceRoot={workspaceRoot}
