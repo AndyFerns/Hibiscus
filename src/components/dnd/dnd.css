@@ -22,8 +22,8 @@ body.dnd-active * {
   pointer-events: none;
   will-change: transform;
   transform-origin: 30% 50%;
-  border-radius: var(--radius-md, 6px);
-  background: var(--bg-elevated, var(--panel-bg));
+  border-radius: var(--radius-row, 6px);
+  background: var(--surface-3, var(--bg-elevated));
   box-shadow: var(--dnd-ghost-shadow);
   outline: 1px solid var(--accent-soft);
   overflow: hidden;
