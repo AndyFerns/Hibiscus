@@ -60,6 +60,8 @@
  * ============================================================================= */
 
 .tab-bar-scroll {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: stretch;
   height: 100%;
@@ -69,7 +71,8 @@
   overflow-y: hidden;
 
   /* Smooth scrolling for programmatic scroll and mouse wheel */
-  scroll-behavior: smooth;
+  /* Instant: smooth scrolling fought scrollIntoView and wheel scrolling. */
+  scroll-behavior: auto;
 
   /* Hide scrollbar by default, show thin bar on hover */
   scrollbar-width: thin;
@@ -250,7 +253,7 @@
 
 /* Close button hover -- slightly highlighted */
 .tab-bar-tab-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--panel-bg-hover);
   color: var(--text);
 }
 
@@ -265,4 +268,84 @@
   opacity: 1;
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+/* =============================================================================
+ * LAYOUT: tab strip + open-files trigger
+ * ============================================================================= */
+
+.tab-bar:not(.tab-bar--empty) {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Explorer drag hovering the tab bar (handled by useTreeDrag) */
+.tab-bar.dnd-over {
+  box-shadow: inset 0 -2px 0 var(--accent) !important;
+  animation: none;
+}
+
+.tab-bar-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Tab ghost while reordering */
+.dnd-ghost--tab > .tab-bar-tab {
+  height: 34px;
+  border-right: none;
+}
+
+.dnd-ghost--tab > .tab-bar-tab::after {
+  display: none;
+}
+
+/* =============================================================================
+ * OPEN FILES TRIGGER
+ * ============================================================================= */
+
+.open-files-trigger {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 6px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs, 11px);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.open-files-trigger:hover,
+.open-files-trigger--open {
+  background: var(--panel-bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.open-files-trigger svg {
+  transition: transform var(--transition-normal, 0.15s);
+}
+
+.open-files-trigger--open svg {
+  transform: rotate(180deg);
+}
+
+.open-files-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.open-files-trigger-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }

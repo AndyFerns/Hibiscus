@@ -1,6 +1,10 @@
+import { memo, useCallback } from "react"
 import { KnowledgeGraphView } from "../../features/knowledge/KnowledgeGraphView"
 import { TabBar } from "../../components/TabBar/TabBar"
 import { EditorView, CursorPosition } from "../../components/Editor/EditorView"
+import type { OpenFile } from "../../types/editor"
+
+type FileNodeLike = { id: string; name: string; path: string; type: "file" | "folder" }
 
 export interface MainPaneProps {
   centerView: "editor" | "graph"
@@ -13,23 +17,52 @@ export interface MainPaneProps {
   activeFileId: string | null
   fileContent: string
   fileVersion: number
-  openFiles: any[]
+  openFiles: OpenFile[]
+  workspaceRoot?: string | null
   markdownViewMode: "live-preview" | "source"
   onToggleMarkdownViewMode: () => void
   handleGraphNodeClick: (filePath: string) => void
   switchTab: (id: string) => void
   closeTab: (id: string) => void
-  handleFileOpen: (node: { id: string; name: string; path: string; type: "file" | "folder" }) => void
-  handleEditorChange: (value: string) => void
+  closeTabs?: (ids: string[]) => void
+  reorderTabs?: (from: number, to: number) => void
+  renameFile?: (path: string, newName: string) => Promise<string | null>
+  saveFileByPath?: (path: string) => void
+  saveAllFiles?: () => void
+  handleFileOpen: (node: FileNodeLike) => void
+  handleEditorChange: (value: string, path?: string) => void
   setCursorPosition: (position: CursorPosition) => void
   saveCurrentFile: () => void
 }
 
-export function MainPane(props: MainPaneProps) {
+const SourceIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+)
+const PreviewIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+)
+
+function MainPaneImpl(props: MainPaneProps) {
+  const { setCenterView, handleFileOpen } = props
+
+  const handleBack = useCallback(() => setCenterView("editor"), [setCenterView])
+
+  const handleOpenPath = useCallback(
+    (filePath: string) =>
+      handleFileOpen({
+        id: filePath,
+        name: filePath.split(/[/\\]/).pop() || filePath,
+        path: filePath,
+        type: "file",
+      }),
+    [handleFileOpen]
+  )
+
+  const isMarkdown = !!props.activeFilePath && props.activeFilePath.toLowerCase().endsWith(".md")
+
   return (
     <>
-      {/* Knowledge Graph — hidden when editor is active.
-          Only mount after the user has toggled to graph at least once. */}
+      {/* Knowledge Graph — mounted only while the graph view is active. */}
       {props.centerView === "graph" && (
         <KnowledgeGraphView
           graph={props.knowledgeGraph}
@@ -37,93 +70,62 @@ export function MainPane(props: MainPaneProps) {
           loading={props.knowledgeLoading}
           error={props.knowledgeError}
           onNodeClick={props.handleGraphNodeClick}
-          onBack={() => props.setCenterView("editor")}
+          onBack={handleBack}
         />
       )}
 
-      {/* Editor view — hidden (not unmounted) when graph is active.
-          Using display:none preserves the Monaco editor instance,
-          preventing content loss and blank editor bugs. */}
+      {/* Editor view — hidden (not unmounted) when graph is active so the
+          Monaco instance and its models survive. */}
       <div
         className="editor-wrapper"
-        style={{ display: props.centerView === "editor" ? undefined : "none" }}
+        style={props.centerView === "editor" ? undefined : HIDDEN}
       >
-        {/* Tab bar -- visible only when at least one file is open */}
         <TabBar
           openFiles={props.openFiles}
           activeFileId={props.activeFileId}
+          workspaceRoot={props.workspaceRoot ?? null}
           onSelectTab={props.switchTab}
           onCloseTab={props.closeTab}
-          onDropFile={(node: { id: string; name: string; path: string; type: string }) => props.handleFileOpen({
-            id: node.id,
-            name: node.name,
-            path: node.path,
-            type: (node.type === "file" || node.type === "folder") ? node.type : "file",
-          })}
+          onCloseTabs={props.closeTabs}
+          onReorderTabs={props.reorderTabs}
+          onRenameFile={props.renameFile}
+          onSaveFile={props.saveFileByPath}
+          onSaveAll={props.saveAllFiles}
         />
 
         {props.activeFile && props.activeFilePath ? (
-          <>
-            {/* Monaco editor container */}
-            <div className="editor-container" style={{ position: 'relative' }}>
-              {/* Markdown View Mode Toggle Button */}
-              {props.activeFilePath.toLowerCase().endsWith('.md') && (
-                <button
-                  className="md-view-toggle-btn"
-                  onClick={props.onToggleMarkdownViewMode}
-                  title={`Switch to ${props.markdownViewMode === 'live-preview' ? 'Source' : 'Live Preview'} Mode (Ctrl+M)`}
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '16px',
-                    zIndex: 10,
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    color: 'var(--text-secondary)',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  }}
-                >
-                  {props.markdownViewMode === 'live-preview' ? (
-                    <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
-                      <span>Source</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      <span>Preview</span>
-                    </>
-                  )}
-                </button>
-              )}
-              <EditorView
-                path={props.activeFilePath}
-                content={props.fileContent}
-                version={props.fileVersion}
-                onChange={props.handleEditorChange}
-                onCursorChange={props.setCursorPosition}
-                onSave={props.saveCurrentFile}
-                markdownViewMode={props.markdownViewMode}
-                onOpenFile={(filePath) =>
-                  props.handleFileOpen({
-                    id: filePath,
-                    name: filePath.split(/[/\\]/).pop() || filePath,
-                    path: filePath,
-                    type: "file",
-                  })
-                }
-              />
-            </div>
-          </>
+          <div className="editor-container">
+            {isMarkdown && (
+              <button
+                className="md-view-toggle-btn"
+                onClick={props.onToggleMarkdownViewMode}
+                title={`Switch to ${props.markdownViewMode === "live-preview" ? "Source" : "Live Preview"} Mode (Ctrl+M)`}
+              >
+                {props.markdownViewMode === "live-preview" ? (
+                  <>
+                    {SourceIcon}
+                    <span>Source</span>
+                  </>
+                ) : (
+                  <>
+                    {PreviewIcon}
+                    <span>Preview</span>
+                  </>
+                )}
+              </button>
+            )}
+            <EditorView
+              path={props.activeFilePath}
+              content={props.fileContent}
+              version={props.fileVersion}
+              onChange={props.handleEditorChange}
+              onCursorChange={props.setCursorPosition}
+              onSave={props.saveCurrentFile}
+              markdownViewMode={props.markdownViewMode}
+              onOpenFile={handleOpenPath}
+            />
+          </div>
         ) : (
-          /* Placeholder when no file is selected */
           <div className="editor-placeholder">
             <span className="editor-placeholder-icon">
               <svg width="48" height="48" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -139,3 +141,8 @@ export function MainPane(props: MainPaneProps) {
     </>
   )
 }
+
+const HIDDEN = { display: "none" } as const
+
+/** Memoized: typing and pomodoro ticks no longer re-render the editor area. */
+export const MainPane = memo(MainPaneImpl)
