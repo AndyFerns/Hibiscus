@@ -23,6 +23,12 @@
  * └────────────────────────────────────────────────────────────────┘
  * 
  * RES = Resize Handle
+ *
+ * STYLE A (layered surfaces):
+ * The canvas (--surface-0) shows through as a thin gutter, and the left,
+ * main and right panels sit on it as rounded, softly shadowed surfaces.
+ * There are no hairline borders between regions; the top bar and status bar
+ * live directly on the canvas.
  * ============================================================================
  */
 
@@ -56,7 +62,7 @@
   overflow: hidden;
 
   /* Apply theme colors and typography */
-  background: var(--bg);
+  background: var(--surface-0);
   color: var(--text);
   font-family: var(--font-ui);
   font-size: var(--text-base, 13px);
@@ -75,15 +81,8 @@
   grid-column: 1 / -1;
   /* Span all columns */
 
-  /* Subtle border separator */
-  border-bottom: 1px solid var(--border);
-
-  /* Glassmorphism effect for depth */
-  background: linear-gradient(180deg,
-      rgba(19, 23, 32, 0.95) 0%,
-      rgba(19, 23, 32, 0.85) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* Sits directly on the canvas: no border, no glass gradient */
+  background: var(--surface-0);
 
   /* Ensure topbar stays above other content */
   position: relative;
@@ -101,7 +100,17 @@
   min-width: 0;
 
   /* Default panel background */
-  background: var(--panel-bg);
+  background: var(--surface-1);
+}
+
+/* Floating surfaces: left, main and right panels */
+.panel.left,
+.panel.main,
+.panel.right {
+  border-radius: var(--radius-panel, 10px);
+  box-shadow: var(--shadow-panel);
+  /* Keep scrolled content inside the rounded corners */
+  overflow: hidden;
 }
 
 /* =============================================================================
@@ -111,10 +120,11 @@
 .panel.left {
   grid-area: left;
 
-  /* Right border separator */
-  border-right: 1px solid var(--border);
+  /* Gutter on the outer edge; the main panel provides the inner gap */
+  margin-left: var(--panel-gap, 6px);
+  background: var(--surface-1);
 
-  /* Scrolling behavior */
+  /* Scrolling happens inside the tree view */
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -129,8 +139,9 @@
   /* Prevent editor from overflowing */
   overflow: hidden;
 
-  /* Editor area background - slightly different shade */
-  background: var(--editor-bg);
+  /* Editor surface (matches Monaco's background) */
+  margin: 0 var(--panel-gap, 6px);
+  background: var(--surface-2);
 
   /* Flex container for editor content */
   display: flex;
@@ -144,8 +155,8 @@
 .panel.right {
   grid-area: right;
 
-  /* Left border separator */
-  border-left: 1px solid var(--border);
+  margin-right: var(--panel-gap, 6px);
+  background: var(--surface-1);
 
   /* Scrolling behavior */
   overflow-y: auto;
@@ -170,12 +181,12 @@
   /* Compact padding for status bar */
   padding: var(--space-1, 4px) var(--space-3, 12px);
 
-  /* Smaller text for status info */
-  font-size: var(--text-sm, 12px);
+  /* Smaller, quieter text for status info */
+  font-size: var(--text-xs, 11px);
   color: var(--text-muted);
 
-  /* Top border separator */
-  border-top: 1px solid var(--border);
+  /* Borderless, on the canvas */
+  background: var(--surface-0);
 
   /* Ensure minimum height */
   min-height: var(--statusbar-height, 32px);
@@ -187,46 +198,56 @@
  * ============================================================================= */
 
 .resize-handle {
-  /* Positioning in grid */
+  /* Positioning in grid: spans the panel area, sits in the gutter */
   position: absolute;
   top: var(--topbar-height, 42px);
   bottom: var(--statusbar-height, 32px);
 
-  /* Handle dimensions */
-  width: 6px;
-
-  /* Cursor indicates resizable */
+  /* Generous hit area, invisible until hovered */
+  width: 8px;
   cursor: col-resize;
-
-  /* Initially invisible */
   background: transparent;
-
-  /* Transition for hover effect */
-  transition: background var(--transition-fast);
-
-  /* Stacking above panels */
   z-index: var(--z-overlay, 250);
 }
 
-.resize-handle:hover,
-.resize-handle.active {
+/* A short rounded grip appears in the gutter on hover / while dragging */
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 36px;
+  border-radius: var(--radius-pill, 999px);
   background: var(--accent);
-  opacity: 0.5;
+  opacity: 0;
+  transform: translate(-50%, -50%) scaleY(0.6);
+  transition:
+    opacity var(--dur-fast, 120ms) var(--ease-snap),
+    transform var(--dur-base, 180ms) var(--ease-snap),
+    height var(--dur-base, 180ms) var(--ease-snap);
 }
 
-.resize-handle.active {
-  opacity: 0.8;
+.resize-handle:hover::after {
+  opacity: 0.6;
+  transform: translate(-50%, -50%) scaleY(1);
 }
 
-/* Left resize handle - positioned at right edge of left panel */
+.resize-handle.active::after {
+  opacity: 0.9;
+  height: 72px;
+  transform: translate(-50%, -50%) scaleY(1);
+}
+
+/* Left handle: centered in the gutter between left panel and main */
 .resize-handle-left {
-  left: var(--left-panel-width, 260px);
+  left: calc(var(--left-panel-width, 260px) + var(--panel-gap, 6px) / 2);
   transform: translateX(-50%);
 }
 
-/* Right resize handle - positioned at left edge of right panel */
+/* Right handle: centered in the gutter between main and right panel */
 .resize-handle-right {
-  right: var(--right-panel-width, 300px);
+  right: calc(var(--right-panel-width, 300px) + var(--panel-gap, 6px) / 2);
   transform: translateX(50%);
 }
 
@@ -236,7 +257,7 @@
 
 /* Panel with hover highlight effect */
 .panel--interactive:hover {
-  background: var(--panel-bg-hover);
+  background: var(--surface-hover);
 }
 
 /* Panel loading state */
